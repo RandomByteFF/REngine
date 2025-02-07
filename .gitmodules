@@ -1,0 +1,3 @@
+[submodule "submodules/python"]
+	path = submodules/python
+	url = https://github.com/boostorg/python.git
