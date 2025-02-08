@@ -15,10 +15,12 @@ if (Python_Development_FOUND)
 	include_directories(${Python_INCLUDE_DIRS})
 endif()
 
-if(Boost_FOUND)
-    include_directories(${Boost_INCLUDE_DIR}) 
-	add_executable(REngine ${SOURCE_FILES})
-	target_compile_definitions(REngine PRIVATE BOOST_ALL_NO_LIB)
-    target_link_libraries(REngine ${Boost_LIBRARIES} ${PYTHON_LIB} ${Boost_PYTHON_LIB})
+if(NOT Boost_FOUND)
+	message(FATAL_ERROR "Boost not found!")
 endif()
+
+include_directories(${Boost_INCLUDE_DIR}) 
+add_executable(REngine ${SOURCE_FILES})
+target_compile_definitions(REngine PRIVATE BOOST_ALL_NO_LIB)
+target_link_libraries(REngine ${Boost_LIBRARIES} ${PYTHON_LIB})
 
