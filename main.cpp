@@ -1,14 +1,39 @@
-#include <boost/lambda/lambda.hpp>
-#include <boost/python.hpp>
+#include <vulkan/vulkan.h>
+
 #include <iostream>
-#include <iterator>
-#include <algorithm>
+#include <stdexcept>
+#include <cstdlib>
 
-int main()
-{
-    using namespace boost::lambda;
-    typedef std::istream_iterator<int> in;
+class VulkanApp {
+public:
+	void Run() {
+		InitVulkan();
+	}
+private:
+	void InitVulkan() {
 
-    std::for_each(
-        in(std::cin), in(), std::cout << (_1 * 3) << " " );
+	}
+
+	void MainLoop() {
+
+	}
+
+	void Cleanup() {
+
+	}
+};
+
+int main() {
+	VulkanApp app;
+
+	try
+	{
+		app.Run();
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+		return EXIT_FAILURE;
+	}
+	return EXIT_SUCCESS;	
 }
