@@ -21,6 +21,8 @@ if(NOT Boost_FOUND)
 	message(FATAL_ERROR "Boost not found!")
 endif()
 
+add_subdirectory(submodules)
+
 include_directories(${Boost_INCLUDE_DIR}) 
 add_executable(REngine ${SOURCE_FILES})
 target_compile_definitions(REngine PRIVATE BOOST_ALL_NO_LIB)
