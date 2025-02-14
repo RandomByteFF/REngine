@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(submodules)
+find_package(Vulkan REQUIRED)
 
 set(ImguiSources
 	imgui/imgui_draw.cpp
@@ -10,7 +11,10 @@ set(ImguiSources
 	imgui/backends/imgui_impl_vulkan.cpp
 )
 
-include_directories(imgui imgui/backends)
+include_directories(imgui 
+	imgui/backends 
+	${Vulkan_INCLUDE_DIR}
+)
 
 add_executable(ImGui 
 	imgui/imgui_demo.cpp
@@ -18,14 +22,21 @@ add_executable(ImGui
 	${ImguiSources}
 )
 
+if (NOT MSVC)
+	target_link_libraries(
+		ImGui
+		dl
+		pthread
+		X11
+		Xxf86vm
+		Xrandr
+		Xi
+)
+endif()
 target_link_libraries(
 	ImGui
 	glfw # Use the target found by find_package if you used it
-    vulkan # Best practice if you are using FindVulkan.cmake
-    dl
-    pthread
-    X11
-    Xxf86vm
-    Xrandr
-    Xi
+	${Vulkan_LIBRARY}
 )
+
+add_subdirectory(glfw)

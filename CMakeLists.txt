@@ -7,6 +7,9 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF) 
 find_package(Boost 1.87.0 REQUIRED COMPONENTS python313)
 find_package(Python REQUIRED COMPONENTS Development)
+find_package(Vulkan REQUIRED)
+
+add_subdirectory(submodules)
 
 set(SOURCE_FILES
 	main.cpp
@@ -21,19 +24,21 @@ if(NOT Boost_FOUND)
 	message(FATAL_ERROR "Boost not found!")
 endif()
 
-add_subdirectory(submodules)
-
-include_directories(${Boost_INCLUDE_DIR}) 
+include_directories(${Boost_INCLUDE_DIR} ${Vulkan_INCLUDE_DIR}) 
 add_executable(REngine ${SOURCE_FILES})
 target_compile_definitions(REngine PRIVATE BOOST_ALL_NO_LIB)
 target_link_libraries(REngine ${Python_LIBRARIES} ${Boost_LIBRARIES}
-	glfw # Use the target found by find_package if you used it
-    vulkan # Best practice if you are using FindVulkan.cmake
-    dl
-    pthread
-    X11
-    Xxf86vm
-    Xrandr
-    Xi
+	glfw
+    ${Vulkan_LIBRARY}
 )
+if (NOT MSVC)
+    target_link_libraries(
+        dl
+        pthread
+        X11
+        Xxf86vm
+        Xrandr
+        Xi
+    )
+endif()
 
