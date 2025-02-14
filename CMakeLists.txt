@@ -33,6 +33,7 @@ target_link_libraries(REngine ${Python_LIBRARIES} ${Boost_LIBRARIES}
 )
 if (NOT MSVC)
     target_link_libraries(
+		REngine
         dl
         pthread
         X11
