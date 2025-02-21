@@ -4,3 +4,6 @@
 [submodule "submodules/glfw"]
 	path = submodules/glfw
 	url = git@github.com:glfw/glfw.git
+[submodule "submodules/glm"]
+	path = submodules/glm
+	url = git@github.com:icaven/glm.git
