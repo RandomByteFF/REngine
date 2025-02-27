@@ -24,12 +24,13 @@ if(NOT Boost_FOUND)
 	message(FATAL_ERROR "Boost not found!")
 endif()
 
-include_directories(${Boost_INCLUDE_DIR} ${Vulkan_INCLUDE_DIR}) 
+include_directories(${Boost_INCLUDE_DIR} ${Vulkan_INCLUDE_DIR})
 add_executable(REngine ${SOURCE_FILES})
 target_compile_definitions(REngine PRIVATE BOOST_ALL_NO_LIB)
 target_link_libraries(REngine ${Python_LIBRARIES} ${Boost_LIBRARIES}
 	glfw
     ${Vulkan_LIBRARY}
+    submodules
 )
 if (NOT MSVC)
     target_link_libraries(
