@@ -7,3 +7,6 @@
 [submodule "submodules/glm"]
 	path = submodules/glm
 	url = git@github.com:icaven/glm.git
+[submodule "submodules/stb"]
+	path = submodules/stb
+	url = git@github.com:nothings/stb.git
