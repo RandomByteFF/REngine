@@ -2,24 +2,26 @@ cmake_minimum_required(VERSION 3.10)
 project(submodules)
 find_package(Vulkan REQUIRED)
 
+set(CMAKE_CXX_STANDARD 17)
+
 set(ImguiSources
-imgui/imgui_draw.cpp
-imgui/imgui_tables.cpp
-imgui/imgui_widgets.cpp
-imgui/imgui.cpp
-imgui/backends/imgui_impl_glfw.cpp
-imgui/backends/imgui_impl_vulkan.cpp
+	imgui/imgui_draw.cpp
+	imgui/imgui_tables.cpp
+	imgui/imgui_widgets.cpp
+	imgui/imgui.cpp
+	imgui/backends/imgui_impl_glfw.cpp
+	imgui/backends/imgui_impl_vulkan.cpp
 )
 
 include_directories(imgui 
-imgui/backends 
-${Vulkan_INCLUDE_DIR}
+	imgui/backends 
+	${Vulkan_INCLUDE_DIR}
 )
 
 add_executable(ImGui 
-imgui/imgui_demo.cpp
-imgui/examples/example_glfw_vulkan/main.cpp
-${ImguiSources}
+	imgui/imgui_demo.cpp
+	imgui/examples/example_glfw_vulkan/main.cpp
+	${ImguiSources}
 )
 
 add_library(submodules INTERFACE)
@@ -37,13 +39,13 @@ if (NOT MSVC)
 endif()
 target_link_libraries(
 	ImGui
-	glfw # Use the target found by find_package if you used it
+	glfw 
 	${Vulkan_LIBRARY}
 )
 
 add_subdirectory(glfw)
 
-
-target_include_directories(submodules INTERFACE 
-	stb
+target_include_directories(submodules
+	INTERFACE stb
+	INTERFACE tinyobjloader
 )
