@@ -13,7 +13,8 @@ set(ImguiSources
 	imgui/backends/imgui_impl_vulkan.cpp
 )
 
-include_directories(imgui 
+include_directories(
+	imgui 
 	imgui/backends 
 	${Vulkan_INCLUDE_DIR}
 )
@@ -48,4 +49,5 @@ add_subdirectory(glfw)
 target_include_directories(submodules
 	INTERFACE stb
 	INTERFACE tinyobjloader
+	INTERFACE glfw/include
 )
