@@ -13,6 +13,7 @@
 #include "tiny_obj_loader.h"
 
 #include "core/windowManager.hpp"
+#include "core/instance.hpp"
 
 #include <chrono>
 #include <iostream>
@@ -29,25 +30,13 @@
 #include <array>
 #include <unordered_map>
 
+using namespace REngine::Core;
+
 const std::string MODEL_PATH = "test_files/viking_room.obj";
 const std::string TEXTURE_PATH = "test_files/viking_room.png";
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
-const std::vector<const char *> validationLayers = {
-	"VK_LAYER_KHRONOS_validation"
-};
-
-const std::vector<const char*> deviceExtensions = {
-	VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
-
-#ifdef NDEBUG
-	const bool enableValidationLayers = false;
-#else
-	const bool enableValidationLayers = true;
-	#endif
-	
-	struct UniformBufferObject {
+struct UniformBufferObject {
 	glm::mat4 model;
 	glm::mat4 view;
 	glm::mat4 proj;
@@ -109,12 +98,9 @@ public:
 		Cleanup();
 	}
 private:
-	REngine::Core::WindowManager window;
-	VkInstance vkInstance;
-	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+	WindowManager window;
 	VkDevice device;
 	VkQueue graphicsQueue;
-	vk::SurfaceKHR surface;
 	VkQueue presentQueue;
 	VkSwapchainKHR swapChain;
 	std::vector<VkImage> swapChainImages;
@@ -149,7 +135,6 @@ private:
 	VkDeviceMemory depthImageMemory;
 	VkImageView depthImageView;
 	uint32_t currentFrame = 0;
-	VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 	VkImage colorImage;
 	VkDeviceMemory colorImageMemory;
 	VkImageView colorImageView;
@@ -164,9 +149,7 @@ private:
 	}
 
 	void InitVulkan() {
-		CreateInstance();
-		window.CreateSurface(vkInstance, surface);
-		PickPhysicalDevice();
+		Instance::Initialize(window);
 		CreateLogicalDevice();
 		CreateSwapChain();
 		CreateImageViews();
@@ -332,20 +315,6 @@ private:
 		}
 	}
 
-	VkSampleCountFlagBits GetMaxUsableSampleCount() {
-		VkPhysicalDeviceProperties physicalDeviceProperties;
-		vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
-		VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
-		if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
-		if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
-		if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
-		if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
-		if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
-		if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
-
-		return VK_SAMPLE_COUNT_1_BIT;	
-	}
-
 	void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -436,7 +405,7 @@ private:
 
 	void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
 		VkFormatProperties formatProperties;
-		vkGetPhysicalDeviceFormatProperties(physicalDevice, imageFormat, &formatProperties);
+		vkGetPhysicalDeviceFormatProperties(Instance::GetInfo().physicalDevice, imageFormat, &formatProperties);
 		if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)) {
 			throw std::runtime_error("Texture image format does not support linear blitting!");
 		}
@@ -535,7 +504,7 @@ private:
 
 	void CreateDepthResources() {
 		VkFormat depthFormat = FindDepthFormat();
-		CreateImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+		CreateImage(swapChainExtent.width, swapChainExtent.height, 1, VkSampleCountFlagBits(Instance::GetInfo().maxMsaa), depthFormat, VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
 		depthImageView = CreateImageView(depthImage, depthFormat, 1, VK_IMAGE_ASPECT_DEPTH_BIT);
 	}
@@ -543,7 +512,7 @@ private:
 	VkFormat FindSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
 		for (VkFormat format :candidates) {
 			VkFormatProperties props;
-			vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
+			vkGetPhysicalDeviceFormatProperties(Instance::GetInfo().physicalDevice, format, &props);
 			if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
 				return format;
 			}
@@ -631,7 +600,7 @@ private:
 
 	void CreateColorResources() {
 		VkFormat colorFormat = swapChainImageFormat;
-		CreateImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, colorFormat, VK_IMAGE_TILING_OPTIMAL,
+		CreateImage(swapChainExtent.width, swapChainExtent.height, 1, VkSampleCountFlagBits(Instance::GetInfo().maxMsaa), colorFormat, VK_IMAGE_TILING_OPTIMAL,
 		VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
 		colorImageView = CreateImageView(colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
 	}
@@ -713,7 +682,7 @@ private:
 		samplerInfo.anisotropyEnable = VK_TRUE;
 
 		VkPhysicalDeviceProperties properties{};
-		vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+		vkGetPhysicalDeviceProperties(Instance::GetInfo().physicalDevice, &properties);
 
 		samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
 		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
@@ -791,7 +760,7 @@ private:
 	}
 
 	void CreateCommandPool() {
-		QueueFamilyIndices queueFamilyIndices = FindQueueFamilies(physicalDevice);
+		QueueFamilyIndices queueFamilyIndices = Instance::GetInfo().queues;
 
 		VkCommandPoolCreateInfo poolInfo;
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -908,7 +877,7 @@ private:
 
 	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
 		VkPhysicalDeviceMemoryProperties memProperties;
-		vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+		vkGetPhysicalDeviceMemoryProperties(Instance::GetInfo().physicalDevice, &memProperties);
 
 		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
 		{
@@ -1021,8 +990,8 @@ private:
 		vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 		vkDestroyRenderPass(device, renderPass, nullptr);
 		vkDestroyDevice(device, nullptr);
-		vkDestroySurfaceKHR(vkInstance, surface, nullptr);
-		vkDestroyInstance(vkInstance, nullptr);
+		vkDestroySurfaceKHR(Instance::Get(), Instance::GetInfo().surface, nullptr);
+		vkDestroyInstance(Instance::Get(), nullptr);
 		window.Destroy();
 	}
 	
@@ -1071,7 +1040,7 @@ private:
 	}
 
 	void CreateSwapChain() {
-		SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(physicalDevice);
+		SwapChainSupportDetails swapChainSupport = Instance::GetInfo().swapchainSupport;
 
 		VkSurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
 		VkPresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
@@ -1084,7 +1053,7 @@ private:
 
 		VkSwapchainCreateInfoKHR createInfo {};
 		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		createInfo.surface = surface;
+		createInfo.surface = Instance::GetInfo().surface;
 		createInfo.minImageCount = imageCount;
 		createInfo.imageFormat = surfaceFormat.format;
 		createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -1092,7 +1061,7 @@ private:
 		createInfo.imageArrayLayers = 1;
 		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-		QueueFamilyIndices indices = FindQueueFamilies(physicalDevice);
+		QueueFamilyIndices indices = Instance::GetInfo().queues;
 		uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 		if (indices.graphicsFamily != indices.presentFamily) {
 			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
@@ -1129,190 +1098,6 @@ private:
 			swapChainImageViews[i] = CreateImageView(swapChainImages[i], swapChainImageFormat, 1);
 		}
 		
-	}
-
-	void CreateInstance() {
-		if (enableValidationLayers && !checkValidationLayerSupport()) {
-			throw std::runtime_error("A requested validation layer is not available");
-		}
-		VkApplicationInfo appInfo {};
-		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		appInfo.pApplicationName = "REngine";
-		appInfo.applicationVersion = VK_MAKE_VERSION(0, 0, 1);
-		appInfo.pEngineName = "No Engine";
-		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-		appInfo.apiVersion = VK_API_VERSION_1_0;
-
-		VkInstanceCreateInfo createInfo {};
-		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-		createInfo.pApplicationInfo = &appInfo;
-
-		uint32_t glfwExtensionCount = 0;
-		const char** glfwExtensions;
-		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-		
-		createInfo.enabledExtensionCount = glfwExtensionCount;
-		createInfo.ppEnabledExtensionNames = glfwExtensions;
-		if (enableValidationLayers) {
-			createInfo.enabledLayerCount = uint32_t(validationLayers.size());
-			createInfo.ppEnabledLayerNames = validationLayers.data();
-		}
-		else {
-			createInfo.enabledLayerCount = 0;
-		}
-		
-		uint32_t extensionCount = 0;
-		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-		std::vector<VkExtensionProperties> extensions(extensionCount);
-		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
-
-		VkResult result = vkCreateInstance(&createInfo, nullptr, &vkInstance);
-		if (result != VK_SUCCESS) {
-			throw std::runtime_error("Failed to create vulkan instance!");
-		}
-	}
-
-	bool checkValidationLayerSupport() {
-		uint32_t layerCount;
-		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-		
-		std::vector<VkLayerProperties> availableLayers(layerCount);
-		vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
-
-		for (auto i : validationLayers) {
-			bool has = false;
-			for (auto j : availableLayers) {
-				if (strcmp(i, j.layerName) == 0) {
-					has = true;
-					break;
-				}
-			}
-			if (!has) return false;
-		}
-		return true;
-	}
-
-	void PickPhysicalDevice() {
-		uint32_t deviceCount = 0;
-		vkEnumeratePhysicalDevices(vkInstance, &deviceCount, nullptr);
-		if (deviceCount == 0) {
-			throw std::runtime_error("failed to find GPU with vulkan support");
-		}
-		std::vector<VkPhysicalDevice> devices(deviceCount);
-		vkEnumeratePhysicalDevices(vkInstance, &deviceCount, devices.data());
-		for (auto i : devices) {
-			if (IsDeviceSuitable(i)) {
-				physicalDevice = i;
-				msaaSamples = GetMaxUsableSampleCount();
-				break;
-			}
-		}
-
-		if (physicalDevice == VK_NULL_HANDLE) {
-			throw std::runtime_error("No suitable GPU found!");
-		}
-	}
-
-	bool IsDeviceSuitable(VkPhysicalDevice device) {
-		VkPhysicalDeviceFeatures deviceFeatures;
-		VkPhysicalDeviceProperties deviceProperties;
-		vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-		vkGetPhysicalDeviceProperties(device, &deviceProperties);
-		QueueFamilyIndices indices = FindQueueFamilies(device);
-
-		bool extensionsSupported = CheckDeviceExtensionSupport(device, deviceExtensions);
-		bool swapChainAdequate = false;
-		if (extensionsSupported) {
-			SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(device);
-			swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
-		}
-
-		return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU 
-		&& indices.IsComplete() 
-		&& swapChainAdequate
-		&& deviceFeatures.samplerAnisotropy;
-		// TODO: something a bit more fancy
-	}
-
-	bool CheckDeviceExtensionSupport(VkPhysicalDevice device, const std::vector<const char*> &requiredExtensions) {
-		uint32_t extensionCount;
-		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
-
-		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
-		
-		for (auto i : requiredExtensions) {
-			bool available = false;
-			for (auto j : availableExtensions) {
-				if (strcmp(i, j.extensionName) == 0) {
-					available = true;
-					break;
-				}
-			}
-			if (!available) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	struct QueueFamilyIndices {
-		std::optional<uint32_t> graphicsFamily;
-		std::optional<uint32_t> presentFamily;
-
-		bool IsComplete() {
-			return graphicsFamily.has_value() && presentFamily.has_value();
-		}
-	};
-
-	struct SwapChainSupportDetails {
-		VkSurfaceCapabilitiesKHR capabilities;
-		std::vector<VkSurfaceFormatKHR> formats;
-		std::vector<VkPresentModeKHR> presentModes;
-	};
-
-	QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device) {
-		QueueFamilyIndices indices;
-
-		uint32_t queueFamilyCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-		int i = 0;
-		VkBool32 presentSupport = false;
-		for (const auto& queueFamily : queueFamilies) {
-			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
-			if (presentSupport) {
-				indices.presentFamily = i;
-			}
-			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-				indices.graphicsFamily = i;
-				break;
-			}
-			i++;
-		}
-
-		return indices;
-	}
-
-	SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice device) {
-		SwapChainSupportDetails details;
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
-		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
-		if (formatCount != 0) {
-			details.formats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, details.formats.data());
-		}
-		uint32_t presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, nullptr);
-
-		if (presentModeCount != 0) {
-			details.presentModes.resize(presentModeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
-		}
-
-		return details;
 	}
 
 	VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats) {
@@ -1355,7 +1140,7 @@ private:
 	}
 
 	void CreateLogicalDevice() {
-		QueueFamilyIndices indices = FindQueueFamilies(physicalDevice);
+		QueueFamilyIndices indices = Instance::GetInfo().queues;
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 		std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 		float queuePriority = 1.0f;
@@ -1388,7 +1173,7 @@ private:
 			createInfo.enabledLayerCount = 0;
 		}
 
-		if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
+		if (vkCreateDevice(Instance::GetInfo().physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create logical device!");
 		}
 
@@ -1476,7 +1261,7 @@ private:
 		VkPipelineMultisampleStateCreateInfo multisampling{};
 		multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 		multisampling.sampleShadingEnable = VK_FALSE;
-		multisampling.rasterizationSamples = msaaSamples;
+		multisampling.rasterizationSamples = VkSampleCountFlagBits(Instance::GetInfo().maxMsaa);
 		
 		VkPipelineColorBlendAttachmentState colorBlendAttachment{};
 		colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -1546,7 +1331,7 @@ private:
 	void CreateRenderPass() {
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = swapChainImageFormat;
-		colorAttachment.samples = msaaSamples;
+		colorAttachment.samples = VkSampleCountFlagBits(Instance::GetInfo().maxMsaa);
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -1556,7 +1341,7 @@ private:
 
 		VkAttachmentDescription depthAttachment{};
 		depthAttachment.format = FindDepthFormat();
-		depthAttachment.samples = msaaSamples;
+		depthAttachment.samples = VkSampleCountFlagBits(Instance::GetInfo().maxMsaa);
 		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 		depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
