@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 project(submodules)
 find_package(Vulkan REQUIRED)
 
@@ -45,6 +45,7 @@ target_link_libraries(
 )
 
 add_subdirectory(glfw)
+add_subdirectory(VulkanMemoryAllocator)
 
 target_include_directories(submodules
 	INTERFACE stb
