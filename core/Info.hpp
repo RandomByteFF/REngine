@@ -9,7 +9,12 @@ namespace REngine::Core {
 		vk::SampleCountFlagBits maxMsaa;
 		QueueFamilyIndices queues;
 		vk::SurfaceKHR surface;
-		SwapChainSupportDetails swapchainSupport;
+		SwapchainSupportDetails swapchainSupport;
 		vk::PhysicalDevice physicalDevice;
+		vk::Device device;
+		vk::Queue graphicsQueue;
+		vk::Queue presentQueue;
+		int fbWidth;
+		int fbHeight;
 	};
 }

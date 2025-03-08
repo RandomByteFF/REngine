@@ -1,7 +1,10 @@
 #include "instance.hpp"
 
+#include <set>
 #include <GLFW/glfw3.h>
+
 #include "queueFamily.hpp"
+#include "swapchain.hpp"
 
 // namespace {
 // }
@@ -11,6 +14,7 @@ namespace REngine::Core {
 		InitializeInstance();
 		manager.CreateSurface(Instance::Get(), info.surface);
 		PickPhysicalDevice();
+		CreateLogicalDevice();
 	}
 
 	const vk::Instance &Instance::Get() {
@@ -73,7 +77,7 @@ namespace REngine::Core {
 				physicalDevice = i;
 				info.maxMsaa = GetMaxUsableSampleCount();
 				info.queues = QueueFamilyIndices::FindQueueFamilies(physicalDevice, info.surface);
-				info.swapchainSupport = QuerySwapChainSupport(physicalDevice);
+				info.swapchainSupport = Swapchain::QuerySwapchainSupport(physicalDevice);
 				info.physicalDevice = physicalDevice;
 				break;
 			}
@@ -93,7 +97,7 @@ namespace REngine::Core {
 		bool extensionsSupported = CheckDeviceExtensionSupport(device, deviceExtensions);
 		bool swapChainAdequate = false;
 		if (extensionsSupported) {
-			SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(device);
+			SwapchainSupportDetails swapChainSupport = Swapchain::QuerySwapchainSupport(device);
 			swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
 		}
 
@@ -115,26 +119,6 @@ namespace REngine::Core {
 		if (counts & vk::SampleCountFlagBits::e2) { return vk::SampleCountFlagBits::e2; }
 
 		return vk::SampleCountFlagBits::e1;	
-	}
-
-	SwapChainSupportDetails Instance::QuerySwapChainSupport(vk::PhysicalDevice device) {
-		SwapChainSupportDetails details;
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, info.surface, &details.capabilities);
-		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(device, info.surface, &formatCount, nullptr);
-		if (formatCount != 0) {
-			details.formats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(device, info.surface, &formatCount, details.formats.data());
-		}
-		uint32_t presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(device, info.surface, &presentModeCount, nullptr);
-
-		if (presentModeCount != 0) {
-			details.presentModes.resize(presentModeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(device, info.surface, &presentModeCount, details.presentModes.data());
-		}
-
-		return details;
 	}
 
 	bool Instance::CheckDeviceExtensionSupport(vk::PhysicalDevice device, const std::vector<const char*> &requiredExtensions) {
@@ -159,4 +143,44 @@ namespace REngine::Core {
 		return true;
 	}
 
+	void Instance::CreateLogicalDevice() {
+		QueueFamilyIndices indices = Instance::GetInfo().queues;
+		std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
+		std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+		std::array<float, 1> queuePriority = {1.0f};
+
+		for (auto queueFamily : uniqueQueueFamilies) {
+			vk::DeviceQueueCreateInfo queueCreateInfo(vk::DeviceQueueCreateFlags(), queueFamily, queuePriority);
+			queueCreateInfos.push_back(queueCreateInfo);
+		}
+
+		vk::PhysicalDeviceFeatures physicalDeviceFeatures {};
+		physicalDeviceFeatures.samplerAnisotropy = true;
+
+		vk::DeviceCreateInfo createInfo {};
+		createInfo.pQueueCreateInfos = queueCreateInfos.data();
+		createInfo.queueCreateInfoCount = uint32_t(queueCreateInfos.size());
+		createInfo.pEnabledFeatures = &physicalDeviceFeatures;
+		createInfo.enabledExtensionCount = uint32_t(deviceExtensions.size());
+		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+
+		if (enableValidationLayers) {
+			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+			createInfo.ppEnabledLayerNames = validationLayers.data();
+		} else {
+			createInfo.enabledLayerCount = 0;
+		}
+
+		device = physicalDevice.createDevice(createInfo);
+		info.device = device;
+		graphicsQueue = device.getQueue(indices.graphicsFamily.value(), 0);
+		presentQueue = device.getQueue(indices.presentFamily.value(), 0);
+		info.graphicsQueue = graphicsQueue;
+		info.presentQueue = presentQueue;
+	}
+
+	void Instance::FrameBufferResized(int width, int height) {
+		info.fbHeight = height;
+		info.fbWidth = width;
+	}
 }

@@ -26,20 +26,24 @@ namespace REngine::Core {
 
 		inline static vk::Instance instance;
 		inline static vk::PhysicalDevice physicalDevice;
+		inline static vk::Device device;
+		inline static vk::Queue graphicsQueue;
+		inline static vk::Queue presentQueue;
 		inline static Info info;
 		
 		static bool CheckValidationLayerSupport();
 		static void InitializeInstance();
 		static void PickPhysicalDevice();
 		static bool IsDeviceSuitable(vk::PhysicalDevice device);
-		static SwapChainSupportDetails QuerySwapChainSupport(vk::PhysicalDevice device);
 		static bool CheckDeviceExtensionSupport(vk::PhysicalDevice device, const std::vector<const char*> &requiredExtensions);
-
-	public:
+		
+		public:
 		static void Initialize(WindowManager manager);
 		static const vk::Instance &Get();
 		static const Info &GetInfo();
 		static vk::SampleCountFlagBits GetMaxUsableSampleCount();
+		static void FrameBufferResized(int width, int height);
+		static void CreateLogicalDevice();
 	};
 }
 

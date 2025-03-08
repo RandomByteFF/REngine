@@ -1,4 +1,5 @@
 #include "windowManager.hpp"
+#include "instance.hpp"
 
 namespace REngine::Core {
 	
@@ -25,6 +26,7 @@ namespace REngine::Core {
 	void WindowManager::FramebufferResizeCallback(GLFWwindow *window, int width, int height) {
 		WindowManager *manager = reinterpret_cast<WindowManager*>(glfwGetWindowUserPointer(window));
 		manager->framebufferResized = true;
+		Instance::FrameBufferResized(width, height);
 	}
 
 	bool WindowManager::IsDirty(bool reset) {
