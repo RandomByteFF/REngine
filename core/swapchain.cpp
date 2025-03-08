@@ -15,8 +15,8 @@ namespace REngine::Core {
 	}
 
 	void Swapchain::CreateSwapchain() {
-		SwapchainSupportDetails swapChainSupport = Instance::GetInfo().swapchainSupport;
 		Info info = Instance::GetInfo();
+		SwapchainSupportDetails swapChainSupport = QuerySwapchainSupport(info.physicalDevice);
 
 		vk::SurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
 		vk::PresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
