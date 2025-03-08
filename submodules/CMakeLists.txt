@@ -50,4 +50,5 @@ target_include_directories(submodules
 	INTERFACE stb
 	INTERFACE tinyobjloader
 	INTERFACE glfw/include
+	INTERFACE glm
 )
