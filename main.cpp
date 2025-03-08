@@ -133,15 +133,9 @@ private:
 	VkImage colorImage;
 	VkDeviceMemory colorImageMemory;
 	VkImageView colorImageView;
-	bool framebufferResized = false;
 
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
-
-	static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
-		auto app = reinterpret_cast<VulkanApp*>(glfwGetWindowUserPointer(window));
-		app->framebufferResized = true;
-	}
 
 	void InitVulkan() {
 		Instance::Initialize(window);
@@ -946,9 +940,8 @@ private:
 
 		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
-		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
+		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || window.IsDirty(true)) {
 			RecreateSwapChain();
-			framebufferResized = false;
 		}
 		else if (result != VK_SUCCESS) {
 			throw std::runtime_error("Failed to acquire swap chain image!");
