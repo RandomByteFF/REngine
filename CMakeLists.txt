@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 project(REngine)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -33,6 +33,7 @@ target_link_libraries(REngine ${Python_LIBRARIES} ${Boost_LIBRARIES}
     ${Vulkan_LIBRARY}
     submodules
     core
+	GPUOpen::VulkanMemoryAllocator
 )
 if (NOT MSVC)
     target_link_libraries(

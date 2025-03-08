@@ -8,3 +8,7 @@ add_library(core
 target_link_libraries(core PRIVATE
 	submodules
 )
+
+target_precompile_headers(core PUBLIC 
+	headers.h
+)
