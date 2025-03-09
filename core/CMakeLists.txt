@@ -6,6 +6,7 @@ add_library(core
 	swapchain.cpp
 	image.cpp
 	queue.cpp
+	buffer.cpp
 )
 target_link_libraries(core PRIVATE
 	submodules
