@@ -4,6 +4,8 @@ add_library(core
 	instance.cpp
 	queueFamily.cpp
 	swapchain.cpp
+	image.cpp
+	queue.cpp
 )
 target_link_libraries(core PRIVATE
 	submodules

@@ -3,6 +3,7 @@
 #include <limits>
 
 #include "instance.hpp"
+#include "image.hpp"
 
 namespace REngine::Core {
 	SwapchainSupportDetails Swapchain::QuerySwapchainSupport(vk::PhysicalDevice device) {
@@ -60,6 +61,12 @@ namespace REngine::Core {
 		images = info.device.getSwapchainImagesKHR(swapchain);
 		imageFormat = surfaceFormat.format;
 		this->extent = extent;
+
+
+		imageViews.resize(images.size());
+		for (size_t i = 0; i < images.size(); i++) {
+			imageViews[i] = Image::CreateImageView(images[i], imageFormat);
+		}
 	}
 
 	vk::Extent2D Swapchain::Extent() const {
@@ -68,6 +75,10 @@ namespace REngine::Core {
 
 	VkFormat Swapchain::ImageFormat() const {
 		return VkFormat(imageFormat);
+	}
+
+	const std::vector<vk::ImageView> &Swapchain::Views() const {
+		return imageViews;
 	}
 
 	vk::SurfaceFormatKHR Swapchain::ChooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats) {
@@ -109,5 +120,4 @@ namespace REngine::Core {
 			return actualExtent;
 		}
 	}
-
 }

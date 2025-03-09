@@ -3,6 +3,7 @@
 #include "headers.h"
 #include "queueFamily.hpp"
 #include "swapchain.hpp"
+#include "vk_mem_alloc.h"
 
 namespace REngine::Core {
 	struct Info {
@@ -14,6 +15,8 @@ namespace REngine::Core {
 		vk::Device device;
 		vk::Queue graphicsQueue;
 		vk::Queue presentQueue;
+		VmaAllocator allocator;
+		vk::CommandPool commandPool;
 		int fbWidth;
 		int fbHeight;
 	};

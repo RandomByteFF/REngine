@@ -1,4 +1,5 @@
 #define GLFW_INCLUDE_VULKAN
+#define VMA_IMPLEMENTATION
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.hpp>
 #define GLM_FORCE_RADIANS
@@ -14,6 +15,8 @@
 
 #include "core/windowManager.hpp"
 #include "core/instance.hpp"
+#include "core/image.hpp"
+#include "core/queue.hpp"
 
 #include <chrono>
 #include <iostream>
@@ -101,13 +104,11 @@ private:
 	WindowManager window;
 	Swapchain swapchain;
 	vk::Device device;
-	std::vector<VkImageView> swapChainImageViews;
 	VkRenderPass renderPass;
 	VkDescriptorSetLayout descriptorSetLayout;
 	VkPipelineLayout pipelineLayout;
 	VkPipeline graphicsPipeline;
 	std::vector<VkFramebuffer> swapChainFrameBuffers;
-	VkCommandPool commandPool;
 	std::vector<VkCommandBuffer> commandBuffers;
 	std::vector<VkSemaphore> imageAvailableSemaphores;
 	std::vector<VkSemaphore> renderFinishedSemaphores;
@@ -122,35 +123,26 @@ private:
 	VkDescriptorPool descriptorPool;
 	std::vector<VkDescriptorSet> descriptorSets;
 	uint32_t mipLevels;
-	VkImage textureImage;
-	VkDeviceMemory textureImageMemory;
-	VkImageView textureImageView;
+	Image textureImage;
+	Image depthImage;
+	Image colorImage;
 	VkSampler textureSampler;
-	VkImage depthImage;
-	VkDeviceMemory depthImageMemory;
-	VkImageView depthImageView;
 	uint32_t currentFrame = 0;
-	VkImage colorImage;
-	VkDeviceMemory colorImageMemory;
-	VkImageView colorImageView;
 
 	std::vector<Vertex> vertices;
 	std::vector<uint32_t> indices;
 
 	void InitVulkan() {
 		Instance::Initialize(window);
-		swapchain.CreateSwapchain();
 		device = Instance::GetInfo().device;
-		CreateImageViews();
+		swapchain.CreateSwapchain();
 		CreateRenderPass();
 		CreateDescriptorSetLayout();
 		CreateGraphicsPipeline();
 		CreateColorResources();
 		CreateDepthResources();
 		CreateFrameBuffers();
-		CreateCommandPool();
 		CreateTextureImage();
-		CreateTextureImageView();
 		CreateTextureSampler();
 		LoadModel();
 		CreateVertexBuffer();
@@ -225,7 +217,7 @@ private:
 
 			VkDescriptorImageInfo imageInfo{};
 			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo.imageView = textureImageView;
+			imageInfo.imageView = textureImage.View();
 			imageInfo.sampler = textureSampler;
 
 			std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
@@ -255,7 +247,7 @@ private:
 		commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.commandPool = commandPool;
+		allocInfo.commandPool = Instance::GetInfo().commandPool;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		allocInfo.commandBufferCount = (uint32_t) commandBuffers.size();
 
@@ -375,21 +367,17 @@ private:
 		vkUnmapMemory(device, stagingBufferMemory);
 		stbi_image_free(pixels);
 
-		CreateImage(texWidth, texHeight, mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | 
-		VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
+		textureImage.CreateImage(texWidth, texHeight, mipLevels, vk::SampleCountFlagBits::e1, vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst);
 
-		TransitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, mipLevels);
-		CopyBufferToImage(stagingBuffer, textureImage, uint32_t(texWidth), uint32_t(texHeight));
+		textureImage.TransitionLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+		CopyBufferToImage(stagingBuffer, textureImage.image, uint32_t(texWidth), uint32_t(texHeight));
 		//Doing this while generating mipmaps.
 		//TransitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels);
-		GenerateMipmaps(textureImage, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels);
+		GenerateMipmaps(textureImage.image, VK_FORMAT_R8G8B8A8_SRGB, texWidth, texHeight, mipLevels);
 
 		vkDestroyBuffer(device, stagingBuffer, nullptr);
 		vkFreeMemory(device, stagingBufferMemory, nullptr);
-	}
-
-	void CreateTextureImageView() {
-		textureImageView = CreateImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB, mipLevels);
 	}
 
 	void GenerateMipmaps(VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) {
@@ -399,7 +387,7 @@ private:
 			throw std::runtime_error("Texture image format does not support linear blitting!");
 		}
 
-		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+		VkCommandBuffer commandBuffer = Queue::BeginSingleTimeCommands();
 
 		VkImageMemoryBarrier barrier{};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -469,33 +457,14 @@ private:
 		0, nullptr,
 		1, &barrier);
 
-		EndSingleTimeCommands(commandBuffer);
+		Queue::EndSingleTimeCommands(commandBuffer);
 	}
 
-	VkImageView CreateImageView(VkImage image, VkFormat format, uint32_t mipLevels = 1, VkImageAspectFlags aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT) {
-		VkImageViewCreateInfo viewInfo{};
-		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		viewInfo.image = image;
-		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		viewInfo.format = format;
-		viewInfo.subresourceRange.aspectMask = aspectFlags;
-		viewInfo.subresourceRange.baseMipLevel = 0;
-		viewInfo.subresourceRange.levelCount = mipLevels;
-		viewInfo.subresourceRange.baseArrayLayer = 0;
-		viewInfo.subresourceRange.layerCount = 1;
-
-		VkImageView imageView;
-		if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to create texture image view!");
-		}
-		return imageView;
-	}
 
 	void CreateDepthResources() {
 		VkFormat depthFormat = FindDepthFormat();
-		CreateImage(swapchain.Extent().width, swapchain.Extent().height, 1, VkSampleCountFlagBits(Instance::GetInfo().maxMsaa), depthFormat, VK_IMAGE_TILING_OPTIMAL,
-		VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
-		depthImageView = CreateImageView(depthImage, depthFormat, 1, VK_IMAGE_ASPECT_DEPTH_BIT);
+		depthImage.CreateImage(swapchain.Extent().width, swapchain.Extent().height, 1, Instance::GetInfo().maxMsaa, vk::Format(depthFormat), 
+		vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageAspectFlagBits::eDepth);
 	}
 
 	VkFormat FindSupportedFormat(const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
@@ -521,127 +490,14 @@ private:
 		return format== VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 	}
 
-	VkCommandBuffer BeginSingleTimeCommands() {
-		VkCommandBufferAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandPool = commandPool;
-		allocInfo.commandBufferCount = 1;
-
-		VkCommandBuffer commandBuffer;
-		vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
-
-		VkCommandBufferBeginInfo beginInfo{};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-		vkBeginCommandBuffer(commandBuffer, &beginInfo);
-
-		return commandBuffer;
-	}
-
-	void EndSingleTimeCommands(VkCommandBuffer commandBuffer) {
-		vkEndCommandBuffer(commandBuffer);
-
-		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffer;
-
-		vkQueueSubmit(Instance::GetInfo().graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-		vkQueueWaitIdle(Instance::GetInfo().graphicsQueue);
-
-		vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
-	}
-
-	void CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSample, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, 
-		VkMemoryPropertyFlags properties, VkImage &image, VkDeviceMemory &imageMemory) {
-		VkImageCreateInfo imageInfo{};
-		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageInfo.imageType = VK_IMAGE_TYPE_2D;
-		imageInfo.extent.width = width;
-		imageInfo.extent.height = height;
-		imageInfo.extent.depth = 1;
-		imageInfo.mipLevels = mipLevels;
-		imageInfo.arrayLayers = 1;
-		imageInfo.format = format;
-		imageInfo.tiling = tiling;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageInfo.usage = usage;
-		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		imageInfo.samples = numSample;
-
-		if (vkCreateImage(device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to create image");
-		}
-
-		VkMemoryRequirements memRequirements;
-		vkGetImageMemoryRequirements(device, image, &memRequirements);
-		VkMemoryAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
-		if (vkAllocateMemory(device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to allocate image memory!");
-		}
-		vkBindImageMemory(device, image, imageMemory, 0);
-	}
-
 	void CreateColorResources() {
 		VkFormat colorFormat = swapchain.ImageFormat();
-		CreateImage(swapchain.Extent().width, swapchain.Extent().height, 1, VkSampleCountFlagBits(Instance::GetInfo().maxMsaa), colorFormat, VK_IMAGE_TILING_OPTIMAL,
-		VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, colorImage, colorImageMemory);
-		colorImageView = CreateImageView(colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1);
-	}
-
-	void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) {
-		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
-		
-		VkImageMemoryBarrier barrier{};
-		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		barrier.oldLayout = oldLayout;
-		barrier.newLayout = newLayout;
-
-		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.image = image;
-		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.levelCount = mipLevels;
-		barrier.subresourceRange.baseArrayLayer = 0;
-		barrier.subresourceRange.layerCount = 1;
-
-		barrier.srcAccessMask = 0;
-		barrier.dstAccessMask = 0;
-
-		VkPipelineStageFlags sourceStage;
-		VkPipelineStageFlags destinationStage;
-
-		if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-			barrier.srcAccessMask = 0;
-			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-
-			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-		}
-		else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-			sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-		}
-		else {
-			throw std::invalid_argument("Unsupported layout transition!");
-		}
-
-		vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-
-		EndSingleTimeCommands(commandBuffer);
+		colorImage.CreateImage(swapchain.Extent().width, swapchain.Extent().height, 1, Instance::GetInfo().maxMsaa, vk::Format(colorFormat), 
+		vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment);
 	}
 
 	void CopyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
-		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+		VkCommandBuffer commandBuffer = Queue::BeginSingleTimeCommands();
 
 		VkBufferImageCopy region{};
 		region.bufferOffset = 0;
@@ -657,7 +513,7 @@ private:
 		region.imageExtent = {width, height, 1};
 		vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-		EndSingleTimeCommands(commandBuffer);
+		Queue::EndSingleTimeCommands(commandBuffer);
 	}
 
 	void CreateTextureSampler() {
@@ -742,33 +598,18 @@ private:
 		CleanupSwapChain();
 
 		swapchain.CreateSwapchain();
-		CreateImageViews();
 		CreateColorResources();
 		CreateDepthResources();
 		CreateFrameBuffers();
 	}
 
-	void CreateCommandPool() {
-		QueueFamilyIndices queueFamilyIndices = Instance::GetInfo().queues;
-
-		VkCommandPoolCreateInfo poolInfo;
-		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
-		poolInfo.pNext = nullptr;
-
-		if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to create command pool");
-		}
-	}
-
 	void CreateFrameBuffers() {
-		swapChainFrameBuffers.resize(swapChainImageViews.size());
-		for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+		swapChainFrameBuffers.resize(swapchain.Views().size());
+		for (size_t i = 0; i < swapchain.Views().size(); i++) {
 			std::array<VkImageView, 3> attachments = {
-				colorImageView,
-				depthImageView,
-				swapChainImageViews[i]
+				colorImage.View(),
+				depthImage.View(),
+				swapchain.Views()[i]
 			};
 
 			VkFramebufferCreateInfo frameBufferInfo{};
@@ -855,13 +696,13 @@ private:
 	}
 
 	void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) {
-		VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
+		VkCommandBuffer commandBuffer = Queue::BeginSingleTimeCommands();
 
 		VkBufferCopy copyRegion{};
 		copyRegion.size = size;
 		vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-		EndSingleTimeCommands(commandBuffer);
+		Queue::EndSingleTimeCommands(commandBuffer);
 	}
 
 	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
@@ -951,9 +792,7 @@ private:
 	void Cleanup() {
 		CleanupSwapChain();
 		vkDestroySampler(device, textureSampler, nullptr);
-		vkDestroyImageView(device, textureImageView, nullptr);
-		vkDestroyImage(device, textureImage, nullptr);
-		vkFreeMemory(device, textureImageMemory, nullptr);
+		textureImage.Destroy();
 
 		vkDestroyDescriptorPool(device, descriptorPool, nullptr);
 		vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
@@ -973,7 +812,7 @@ private:
 			vkDestroyFence(device, inFlightFences[i], nullptr);	
 		}
 		
-		vkDestroyCommandPool(device, commandPool, nullptr);
+		vkDestroyCommandPool(device, Instance::GetInfo().commandPool, nullptr);
 		vkDestroyPipeline(device, graphicsPipeline, nullptr);
 		vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 		vkDestroyRenderPass(device, renderPass, nullptr);
@@ -984,16 +823,12 @@ private:
 	}
 	
 	void CleanupSwapChain() {
-		vkDestroyImageView(device, colorImageView, nullptr);
-		vkDestroyImage(device, colorImage, nullptr);
-		vkFreeMemory(device, colorImageMemory, nullptr);
-		vkDestroyImageView(device, depthImageView, nullptr);
-		vkDestroyImage(device, depthImage, nullptr);
-		vkFreeMemory(device, depthImageMemory, nullptr);
+		colorImage.Destroy();
+		depthImage.Destroy();
 		for (auto framebuffer : swapChainFrameBuffers) {
 			vkDestroyFramebuffer(device, framebuffer, nullptr);
 		}
-		for (auto imageView : swapChainImageViews) {
+		for (auto imageView : swapchain.Views()) {
 			vkDestroyImageView(device, imageView, nullptr);
 		}
 		vkDestroySwapchainKHR(device, swapchain.swapchain, nullptr);
@@ -1025,16 +860,6 @@ private:
 		file.close();
 
 		return buffer;
-	}
-
-
-	void CreateImageViews() {
-		swapChainImageViews.resize(swapchain.images.size());
-		for (size_t i = 0; i < swapchain.images.size(); i++)
-		{
-			swapChainImageViews[i] = CreateImageView(swapchain.images[i], swapchain.ImageFormat(), 1);
-		}
-		
 	}
 
 
