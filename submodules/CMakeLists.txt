@@ -46,10 +46,10 @@ target_link_libraries(
 
 add_subdirectory(glfw)
 add_subdirectory(VulkanMemoryAllocator)
-
 target_include_directories(submodules
 	INTERFACE stb
 	INTERFACE tinyobjloader
 	INTERFACE glfw/include
 	INTERFACE glm
+	INTERFACE VulkanMemoryAllocator/include
 )

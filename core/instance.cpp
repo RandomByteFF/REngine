@@ -177,6 +177,20 @@ namespace REngine::Core {
 		presentQueue = device.getQueue(indices.presentFamily.value(), 0);
 		info.graphicsQueue = graphicsQueue;
 		info.presentQueue = presentQueue;
+
+		VmaAllocatorCreateInfo allocCreate{};
+		allocCreate.device = device;
+		allocCreate.instance = instance;
+		allocCreate.physicalDevice = physicalDevice;
+		vmaCreateAllocator(&allocCreate, &allocator);
+		info.allocator = allocator;
+
+		vk::CommandPoolCreateInfo poolInfo;
+		poolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
+		poolInfo.queueFamilyIndex = indices.graphicsFamily.value();
+		poolInfo.pNext = nullptr;
+		commandPool = device.createCommandPool(poolInfo);
+		info.commandPool = commandPool;
 	}
 
 	void Instance::FrameBufferResized(int width, int height) {

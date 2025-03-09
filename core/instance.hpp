@@ -3,6 +3,7 @@
 #include "Info.hpp"
 #include "swapchain.hpp"
 #include "windowManager.hpp"
+#include "vk_mem_alloc.h"
 
 #ifdef NDEBUG
 	const bool enableValidationLayers = false;
@@ -27,8 +28,10 @@ namespace REngine::Core {
 		inline static vk::Instance instance;
 		inline static vk::PhysicalDevice physicalDevice;
 		inline static vk::Device device;
+		inline static vk::CommandPool commandPool;
 		inline static vk::Queue graphicsQueue;
 		inline static vk::Queue presentQueue;
+		inline static VmaAllocator allocator;
 		inline static Info info;
 		
 		static bool CheckValidationLayerSupport();

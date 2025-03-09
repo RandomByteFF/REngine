@@ -8,7 +8,6 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost 1.87.0 REQUIRED COMPONENTS python313)
 find_package(Python REQUIRED COMPONENTS Development)
 find_package(Vulkan REQUIRED)
-
 set(SOURCE_FILES
 	main.cpp
 )
@@ -22,8 +21,8 @@ if(NOT Boost_FOUND)
 message(FATAL_ERROR "Boost not found!")
 endif()
 include_directories(${Boost_INCLUDE_DIR} ${Vulkan_INCLUDE_DIR})
-add_subdirectory(submodules)
 
+add_subdirectory(submodules)
 add_subdirectory(core)
 
 add_executable(REngine ${SOURCE_FILES})
@@ -33,7 +32,7 @@ target_link_libraries(REngine ${Python_LIBRARIES} ${Boost_LIBRARIES}
     ${Vulkan_LIBRARY}
     submodules
     core
-	GPUOpen::VulkanMemoryAllocator
+	VulkanMemoryAllocator
 )
 if (NOT MSVC)
     target_link_libraries(

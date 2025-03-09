@@ -10,6 +10,7 @@ namespace REngine::Core {
 	};
 
 	class Swapchain {
+		std::vector<vk::ImageView> imageViews;
 		vk::Format imageFormat;
 		vk::Extent2D extent;
 		
@@ -18,12 +19,13 @@ namespace REngine::Core {
 		vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities);
 		
 		public:
-		std::vector<vk::Image> images;
 		vk::SwapchainKHR swapchain;
+		std::vector<vk::Image> images;
 		static SwapchainSupportDetails QuerySwapchainSupport(vk::PhysicalDevice device);
 		void CreateSwapchain();
 		vk::Extent2D Extent() const;
 		// TODO: switch this to vk::Format
 		VkFormat ImageFormat() const;
+		const std::vector<vk::ImageView> &Views() const;
 	};
 }
