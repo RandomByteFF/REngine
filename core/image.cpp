@@ -1,11 +1,16 @@
 #include "image.hpp"
 #include "instance.hpp"
 #include "queue.hpp"
+#include "buffer.hpp"
 
 namespace REngine::Core {
-	void Image::CreateImage(uint32_t width, uint32_t height, uint32_t mipLevels, 
-		vk::SampleCountFlagBits numSample, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage,
-		vk::ImageAspectFlagBits aspect) {
+	void Image::CreateImage(uint32_t width, uint32_t height, int mipLevels,
+			vk::SampleCountFlagBits numSample, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage,
+			vk::ImageAspectFlagBits aspect) {
+		this->width = width;
+		this->height = height;
+		this->format = format;
+		this->mipLevels = mipLevels;
 
 		vk::ImageCreateInfo imageInfo{};
 		imageInfo.imageType = vk::ImageType::e2D;
@@ -27,9 +32,28 @@ namespace REngine::Core {
 		VkImageCreateInfo ii = imageInfo;
 		vmaCreateImage(Instance::GetInfo().allocator, &ii, &allocCreateInfo, &img, &alloc, &allocInfo);
 		image = img;
-		this->format = format;
-		this->mipLevels = mipLevels;
 		view = CreateImageView(image, format, mipLevels, aspect);
+	}
+
+	void Image::CreateImage(int width, int height, int mipLevels, vk::DeviceSize size, unsigned char *pixels) {
+		this->width = width;
+		this->height = height;
+		this->mipLevels = mipLevels;
+
+		Buffer stagingBuffer;
+		stagingBuffer.Create(size, vk::BufferUsageFlagBits::eTransferSrc, true);
+		stagingBuffer.Copy(pixels, size);
+
+		CreateImage(width, height, mipLevels, vk::SampleCountFlagBits::e1, vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal,
+			vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst);
+
+		TransitionLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+		stagingBuffer.Copy(image, width, height);
+		//Doing this while generating mipmaps.
+		//TransitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, mipLevels);
+		GenerateMipmaps(mipLevels);
+
+		stagingBuffer.Destroy();
 	}
 
 	void Image::TransitionLayout(vk::ImageLayout oldLayout, vk::ImageLayout newLayout) {
@@ -90,6 +114,82 @@ namespace REngine::Core {
 		VkImageView imageView;
 		imageView = Instance::GetInfo().device.createImageView(viewInfo);
 		return imageView;
+	}
+	
+	void Image::GenerateMipmaps(uint32_t mipLevels) {
+		vk::FormatProperties formatProperties = Instance::GetInfo().physicalDevice.getFormatProperties(format);
+
+		vk::CommandBuffer commandBuffer = Queue::BeginSingleTimeCommands();
+
+		vk::ImageMemoryBarrier barrier{};
+		barrier.image = image;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = 1;
+		barrier.subresourceRange.levelCount = 1;
+
+		int32_t mipWidth = width;
+		int32_t mipHeight = height;
+
+		for (uint32_t i = 1; i < mipLevels; i++)
+		{
+			barrier.subresourceRange.baseMipLevel = i - 1;
+			barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+			barrier.newLayout = vk::ImageLayout::eTransferSrcOptimal;
+			barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+			barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
+			commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, 
+			vk::DependencyFlags(),
+			{},
+			{},
+			{barrier});
+			
+			vk::ImageBlit blit{};
+			blit.srcOffsets[0] = vk::Offset3D{0, 0, 0};
+			blit.srcOffsets[1] = vk::Offset3D{mipWidth, mipHeight, 1};
+			blit.srcSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+			blit.srcSubresource.mipLevel = i - 1;
+			blit.srcSubresource.baseArrayLayer = 0;
+			blit.srcSubresource.layerCount = 1;
+			blit.dstOffsets[0] = vk::Offset3D{0, 0, 0};
+			blit.dstOffsets[1] = vk::Offset3D{mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, 1};
+			blit.dstSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+			blit.dstSubresource.mipLevel = i;
+			blit.dstSubresource.baseArrayLayer = 0;
+			blit.dstSubresource.layerCount = 1;
+			commandBuffer.blitImage(image, vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal,
+			blit, vk::Filter::eLinear);
+			
+			barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
+			barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+			barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
+			barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+			
+			commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader, 
+			vk::DependencyFlags(),
+			{},
+			{},
+			{barrier});
+
+			if (mipWidth > 1) mipWidth /= 2;
+			if (mipHeight > 1) mipHeight /= 2;
+			
+		}
+		barrier.subresourceRange.baseMipLevel = mipLevels - 1;
+		barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+		barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+		barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+		
+		commandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eFragmentShader, 
+		vk::DependencyFlags(),
+		{},
+		{},
+		{barrier});
+
+		Queue::EndSingleTimeCommands(commandBuffer);
 	}
 
 	vk::ImageView Image::View() const {
