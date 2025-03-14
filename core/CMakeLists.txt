@@ -7,6 +7,7 @@ add_library(core
 	image.cpp
 	queue.cpp
 	buffer.cpp
+	pipeline.cpp
 )
 target_link_libraries(core PRIVATE
 	submodules
