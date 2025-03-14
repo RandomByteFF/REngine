@@ -1,17 +1,20 @@
 #pragma once
 
 #include "headers.h"
+#include <limits>
 
 namespace REngine::Core {
 	class Buffer {
-		//TODO: buffer should know it's own size
+		vk::DeviceSize size;
 		VmaAllocation alloc;
-		public:
+
+	public:
 		vk::Buffer buffer;
 		void Create(vk::DeviceSize size, vk::BufferUsageFlags usage, bool mappable = false);
-		void Copy(const void *data, vk::DeviceSize size);
+		void CopyData(const void *data, vk::DeviceSize size = std::numeric_limits<uint64_t>::max());
 		void Copy(vk::Image image, uint32_t width, uint32_t height);
-		void Copy(Buffer dst, vk::DeviceSize size);
+		void Copy(Buffer dst);
+		void Stage(void *data);
 		void Destroy();
 	};
 }

@@ -42,7 +42,7 @@ namespace REngine::Core {
 
 		Buffer stagingBuffer;
 		stagingBuffer.Create(size, vk::BufferUsageFlagBits::eTransferSrc, true);
-		stagingBuffer.Copy(pixels, size);
+		stagingBuffer.CopyData(pixels);
 
 		CreateImage(width, height, mipLevels, vk::SampleCountFlagBits::e1, vk::Format::eR8G8B8A8Srgb, vk::ImageTiling::eOptimal,
 			vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst);
