@@ -620,6 +620,7 @@ private:
 		vkDestroyPipeline(device, graphicsPipeline, nullptr);
 		vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 		vkDestroyRenderPass(device, renderPass, nullptr);
+		Instance::Destroy();
 		vkDestroyDevice(device, nullptr);
 		vkDestroySurfaceKHR(Instance::Get(), Instance::GetInfo().surface, nullptr);
 		vkDestroyInstance(Instance::Get(), nullptr);

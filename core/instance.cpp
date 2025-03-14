@@ -193,6 +193,10 @@ namespace REngine::Core {
 		info.commandPool = commandPool;
 	}
 
+	void Instance::Destroy() {
+		vmaDestroyAllocator(allocator);
+	}
+
 	void Instance::FrameBufferResized(int width, int height) {
 		info.fbHeight = height;
 		info.fbWidth = width;
