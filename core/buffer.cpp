@@ -6,6 +6,7 @@
 namespace REngine::Core {
 	void Buffer::Create(vk::DeviceSize size, vk::BufferUsageFlags usage, bool mappable) {
 		vk::BufferCreateInfo bufferInfo{};
+		this->size = size;
 		bufferInfo.size = size;
 		bufferInfo.usage = usage;
 		bufferInfo.sharingMode = vk::SharingMode::eExclusive;
@@ -20,7 +21,8 @@ namespace REngine::Core {
 		buffer = b;
 	}
 
-	void Buffer::Copy(const void *data, vk::DeviceSize size) {
+	void Buffer::CopyData(const void *data, vk::DeviceSize size) {
+		if (size == std::numeric_limits<uint64_t>::max()) size = this->size;
 		vmaCopyMemoryToAllocation(Instance::GetInfo().allocator, data, alloc, 0, size);
 	}
 
@@ -45,7 +47,7 @@ namespace REngine::Core {
 		Queue::EndSingleTimeCommands(commandBuffer);
 	}
 
-	void Buffer::Copy(Buffer dst, vk::DeviceSize size) {
+	void Buffer::Copy(Buffer dst) {
 		vk::CommandBuffer commandBuffer = Queue::BeginSingleTimeCommands();
 
 		vk::BufferCopy copyRegion{};
@@ -53,6 +55,14 @@ namespace REngine::Core {
 		commandBuffer.copyBuffer(buffer, dst.buffer, copyRegion);		
 
 		Queue::EndSingleTimeCommands(commandBuffer);
+	}
+
+	void Buffer::Stage(void *data) {
+		Buffer staging;
+		staging.Create(size, vk::BufferUsageFlagBits::eTransferSrc, true);
+		staging.CopyData(data);
+		staging.Copy(*this);
+		staging.Destroy();
 	}
 
 	void Buffer::Destroy() {

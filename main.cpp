@@ -503,28 +503,13 @@ private:
 	}
 
 	void CreateVertexBuffer() {
-		VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
-
-		Buffer stagingBuffer;
-		stagingBuffer.Create(bufferSize, vk::BufferUsageFlagBits::eTransferSrc, true);
-
-		stagingBuffer.Copy(vertices.data(), bufferSize);
-
-		vertexBuffer.Create(bufferSize, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer);
-		stagingBuffer.Copy(vertexBuffer, bufferSize);
-
-		stagingBuffer.Destroy();
+		vertexBuffer.Create(sizeof(vertices[0]) * vertices.size(), vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer);
+		vertexBuffer.Stage(vertices.data());
 	}
 
 	void CreateIndexBuffer() {
-		vk::DeviceSize bufferSize = sizeof(indices[0]) * indices.size();
-
-		Buffer stagingBuffer;
-		stagingBuffer.Create(bufferSize, vk::BufferUsageFlagBits::eTransferSrc, true);
-		stagingBuffer.Copy(indices.data(), bufferSize);
-		indexBuffer.Create(bufferSize, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer);
-		stagingBuffer.Copy(indexBuffer, bufferSize);
-		stagingBuffer.Destroy();
+		indexBuffer.Create(sizeof(indices[0]) * indices.size(), vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer);
+		indexBuffer.Stage(indices.data());
 	}
 
 	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
@@ -663,7 +648,7 @@ private:
 		ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		ubo.proj = glm::perspective(glm::radians(45.0f), swapchain.Extent().width / (float) swapchain.Extent().height, 0.1f, 10.0f);
 		ubo.proj[1][1] *= -1;
-		uniformBuffers[currentImage].Copy(&ubo, sizeof(ubo));
+		uniformBuffers[currentImage].CopyData(&ubo, sizeof(ubo));
 	}
 
 
