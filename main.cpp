@@ -19,6 +19,8 @@
 #include "loader/shader.hpp"
 #include "core/pipeline.hpp"
 #include "core/vertex.hpp"
+#include "core/object.hpp"
+#include "core/descriptorPool.hpp"
 
 #include <chrono>
 #include <iostream>
@@ -41,11 +43,6 @@ const std::string MODEL_PATH = "test_files/viking_room.obj";
 const std::string TEXTURE_PATH = "test_files/viking_room.png";
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
-struct UniformBufferObject {
-	glm::mat4 model;
-	glm::mat4 view;
-	glm::mat4 proj;
-};
 
 class VulkanApp {
 public:
@@ -68,14 +65,12 @@ private:
 	std::vector<VkFence> inFlightFences;
 	Buffer vertexBuffer;
 	Buffer indexBuffer;
-	std::vector<Buffer> uniformBuffers;
-	VkDescriptorPool descriptorPool;
-	std::vector<VkDescriptorSet> descriptorSets;
 	uint32_t mipLevels;
 	Image textureImage;
 	Image depthImage;
 	Image colorImage;
 	VkSampler textureSampler;
+	Object object;
 	uint32_t currentFrame = 0;
 
 	std::vector<Vertex> vertices;
@@ -99,9 +94,8 @@ private:
 		LoadModel();
 		CreateVertexBuffer();
 		CreateIndexBuffer();
-		CreateUniformBuffers();
-		CreateDescriptorPool();
-		CreateDescriptorSets();
+		object.Create(pipeline);
+		object.SetImage(textureImage, textureSampler);
 		CreateCommandBuffers();
 		CreateSyncObjects();
 	}
@@ -125,72 +119,6 @@ private:
 				throw std::runtime_error("Failed to create semaphores!");
 			}
 			
-		}
-		
-	}
-
-	void CreateDescriptorPool() {
-		std::array<VkDescriptorPoolSize, 2> poolSizes{};
-		poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		poolSizes[0].descriptorCount = uint32_t(MAX_FRAMES_IN_FLIGHT);
-		poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		poolSizes[1].descriptorCount = uint32_t(MAX_FRAMES_IN_FLIGHT);
-
-		VkDescriptorPoolCreateInfo poolInfo{};
-		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		poolInfo.poolSizeCount = uint32_t(poolSizes.size());
-		poolInfo.pPoolSizes = poolSizes.data();
-		poolInfo.maxSets = uint32_t(MAX_FRAMES_IN_FLIGHT);
-
-		if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to create descriptor pool!");
-		}
-	}
-
-	void CreateDescriptorSets() {
-		std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, pipeline.descriptorLayout);
-		VkDescriptorSetAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = descriptorPool;
-		allocInfo.descriptorSetCount = uint32_t(MAX_FRAMES_IN_FLIGHT);
-		allocInfo.pSetLayouts = layouts.data();
-		
-		descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-		if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to allocate descriptor sets!");
-		}
-
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-		{
-			VkDescriptorBufferInfo bufferInfo{};
-			bufferInfo.buffer = uniformBuffers[i].buffer;
-			bufferInfo.offset = 0;
-			bufferInfo.range = sizeof(UniformBufferObject);
-
-			VkDescriptorImageInfo imageInfo{};
-			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo.imageView = textureImage.View();
-			imageInfo.sampler = textureSampler;
-
-			std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
-			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[0].dstSet = descriptorSets[i];
-			descriptorWrites[0].dstBinding = 0;
-			descriptorWrites[0].dstArrayElement = 0;
-			descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			descriptorWrites[0].descriptorCount = 1;
-			descriptorWrites[0].pBufferInfo = &bufferInfo;
-			
-			descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrites[1].dstSet = descriptorSets[i];
-			descriptorWrites[1].dstBinding = 1;
-			descriptorWrites[1].dstArrayElement = 0;
-			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			descriptorWrites[1].descriptorCount = 1;
-			descriptorWrites[1].pImageInfo = &imageInfo;
-
-
-			vkUpdateDescriptorSets(device, int32_t(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}
 		
 	}
@@ -290,7 +218,7 @@ private:
 		scissor.extent = swapchain.Extent();
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.layout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
+		object.Bind(commandBuffer, currentFrame);
 
 		vkCmdDrawIndexed(commandBuffer, uint32_t(indices.size()), 1, 0, 0, 0);
 		vkCmdEndRenderPass(commandBuffer);
@@ -376,18 +304,6 @@ private:
 		if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create texture sampler!");
 		}
-	}
-
-	void CreateUniformBuffers() {
-		VkDeviceSize bufferSize = sizeof(UniformBufferObject);
-		uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-		
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-		{
-			uniformBuffers[i].Create(bufferSize, vk::BufferUsageFlagBits::eUniformBuffer, true);
-
-		}
-		
 	}
 
 	void RecreateSwapChain() {
@@ -529,11 +445,8 @@ private:
 		vkDestroySampler(device, textureSampler, nullptr);
 		textureImage.Destroy();
 
-		vkDestroyDescriptorPool(device, descriptorPool, nullptr);
-		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-		{
-			uniformBuffers[i].Destroy();
-		}
+		DescriptorPool::Cleanup();
+		object.Destroy();
 		indexBuffer.Destroy();
 		vertexBuffer.Destroy();
 		for (size_t i = 0; i < renderFinishedSemaphores.size(); i++)
@@ -577,7 +490,7 @@ private:
 		ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		ubo.proj = glm::perspective(glm::radians(45.0f), swapchain.Extent().width / (float) swapchain.Extent().height, 0.1f, 10.0f);
 		ubo.proj[1][1] *= -1;
-		uniformBuffers[currentImage].CopyData(&ubo, sizeof(ubo));
+		object.uniformBuffers[currentImage].CopyData(&ubo, sizeof(ubo));
 	}
 
 	void CreateRenderPass() {

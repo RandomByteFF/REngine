@@ -8,6 +8,9 @@ add_library(core
 	queue.cpp
 	buffer.cpp
 	pipeline.cpp
+	descriptorPool.cpp
+	object.cpp
+	renderer.cpp
 )
 target_link_libraries(core PRIVATE
 	submodules
