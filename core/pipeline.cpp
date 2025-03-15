@@ -4,6 +4,10 @@
 #include "instance.hpp"
 #include "vertex.hpp"
 
+/* TODO: Descriptor sets should be reusable. My idea for this is:
+- Instead of SetLayout, create an AddLayout. This can either take a new layout, or a reference to an existing one.
+- On binding, we won't try to bind the already bound descriptors.
+*/
 namespace REngine::Core {
 	void Pipeline::Create(const char *vertShader, const char *fragShader, Swapchain &swapchain, vk::RenderPass renderPass) {
 		vk::ShaderModule vertShaderModule = Loader::Shader::Get(vertShader);
@@ -134,8 +138,13 @@ namespace REngine::Core {
 		layoutInfo.pBindings = bindings.data();
 
 		descriptorLayout = Instance::GetInfo().device.createDescriptorSetLayout(layoutInfo);
+
 	}
-	void Pipeline::Destroy() {
+	vk::DescriptorSetLayout Pipeline::GetLayout() {
+		return descriptorLayout;
+	}
+	void Pipeline::Destroy()
+	{
 		Instance::GetInfo().device.destroyDescriptorSetLayout(descriptorLayout);
 		Instance::GetInfo().device.destroyPipeline(pipeline);
 		Instance::GetInfo().device.destroyPipelineLayout(layout);

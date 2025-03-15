@@ -5,10 +5,10 @@
 
 namespace REngine::Core {
 	class Buffer {
-		vk::DeviceSize size;
 		VmaAllocation alloc;
-
-	public:
+		
+		public:
+		vk::DeviceSize size;
 		vk::Buffer buffer;
 		void Create(vk::DeviceSize size, vk::BufferUsageFlags usage, bool mappable = false);
 		void CopyData(const void *data, vk::DeviceSize size = std::numeric_limits<uint64_t>::max());
