@@ -73,8 +73,12 @@ namespace REngine::Core {
 		return extent;
 	}
 
-	VkFormat Swapchain::ImageFormat() const {
-		return VkFormat(imageFormat);
+	vk::Format Swapchain::ImageFormat() const {
+		return imageFormat;
+	}
+
+	vk::SwapchainKHR Swapchain::GetSwapchain() const {
+		return swapchain;
 	}
 
 	const std::vector<vk::ImageView> &Swapchain::Views() const {

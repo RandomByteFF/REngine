@@ -11,6 +11,7 @@ add_library(core
 	descriptorPool.cpp
 	object.cpp
 	renderer.cpp
+	commandBuffer.cpp
 )
 target_link_libraries(core PRIVATE
 	submodules
