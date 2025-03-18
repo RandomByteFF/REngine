@@ -17,8 +17,8 @@ struct UniformBufferObject {
 namespace REngine::Core {
 	class Object {
 		std::vector<vk::DescriptorSet> descriptorSets;
-		Pipeline pipeline;
 		public:
+		Pipeline pipeline;
 		std::vector<Buffer> uniformBuffers;
 		void Create(Pipeline pipeline);
 		void Bind(vk::CommandBuffer cb, uint32_t currentFrame);

@@ -9,7 +9,7 @@
 - On binding, we won't try to bind the already bound descriptors.
 */
 namespace REngine::Core {
-	void Pipeline::Create(const char *vertShader, const char *fragShader, Swapchain &swapchain, vk::RenderPass renderPass) {
+	void Pipeline::Create(const char *vertShader, const char *fragShader, const Swapchain &swapchain, const vk::RenderPass renderPass) {
 		vk::ShaderModule vertShaderModule = Loader::Shader::Get(vertShader);
 		vk::ShaderModule fragShaderModule = Loader::Shader::Get(fragShader);
 		
