@@ -19,6 +19,7 @@ namespace REngine::Core {
 		vk::CommandPool commandPool;
 		int fbWidth;
 		int fbHeight;
-		const uint32_t MAX_FRAMES_IN_FLIGHT = 1;
+		const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
+		uint32_t currentFrame = 0;
 	};
 }

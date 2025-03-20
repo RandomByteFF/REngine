@@ -59,38 +59,41 @@ namespace REngine::Core {
 		return renderPass;
 	}
 
-	void Renderer::Render(std::vector<Object> objects, Buffer vertexBuffer, Buffer indexBuffer, uint32_t indicesSize) {
-		device.waitForFences(1, &inFlightFences[currentFrame], true, std::numeric_limits<uint64_t>::max());
+	void Renderer::Render(std::vector<Mesh> &objects) {
+		vk::Result res = device.waitForFences(1, &inFlightFences[currentFrame], true, std::numeric_limits<uint64_t>::max());
+		if (res != vk::Result::eSuccess) throw std::runtime_error("Failed to wait for fence");
 		
 		uint32_t imageIndex;
-		vk::ResultValue<uint32_t> result = device.acquireNextImageKHR(swapchain.GetSwapchain(), std::numeric_limits<uint64_t>::max(), imageAvailableSemaphores[currentFrame], {});
-		imageIndex = result.value;
-		
-		if (result.result == vk::Result::eErrorOutOfDateKHR || result.result == vk::Result::eSuboptimalKHR) {
+		try {
+			vk::ResultValue<uint32_t> result = device.acquireNextImageKHR(swapchain.GetSwapchain(), std::numeric_limits<uint64_t>::max(), imageAvailableSemaphores[currentFrame], {});
+			imageIndex = result.value;
+			
+			if (result.result == vk::Result::eSuboptimalKHR) {
+				RecreateSwapchain();
+				return;
+			}
+			else if (result.result != vk::Result::eSuccess) {
+				throw std::runtime_error("Failed to acquire swap chain image!");
+			}
+		}
+		catch (vk::OutOfDateKHRError error) {
 			RecreateSwapchain();
 			return;
 		}
-		else if (result.result != vk::Result::eSuccess) {
-			throw std::runtime_error("Failed to acquire swap chain image!");
-		}
 
-		device.resetFences(1, &inFlightFences[currentFrame]);
+		res = device.resetFences(1, &inFlightFences[currentFrame]);
+		if (res != vk::Result::eSuccess) throw std::runtime_error("Failed to reset fence");
 
 		commandBuffers[currentFrame].Reset();
 		commandBuffers[currentFrame].BeginPass(swapchain.Extent(), swapChainFrameBuffers[imageIndex]);
 
-		//TODO: Bind objects
-		std::array<vk::Buffer, 1> vertexBuffers = {vertexBuffer.buffer};
-		vk::DeviceSize offset[] = {0};
-		commandBuffers[currentFrame].commandBuffer.bindVertexBuffers(0, vertexBuffers, offset);
-		commandBuffers[currentFrame].commandBuffer.bindIndexBuffer(indexBuffer.buffer, 0, vk::IndexType::eUint32);
-		commandBuffers[currentFrame].commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, objects[0].pipeline.pipeline);
-		objects[0].Bind(commandBuffers[currentFrame].commandBuffer, currentFrame);
-
-		commandBuffers[currentFrame].commandBuffer.drawIndexed(indicesSize, 1, 0, 0, 0);
+		for (auto i : objects) {
+			i.Update();
+			i.Bind(commandBuffers[currentFrame].commandBuffer);
+			i.Draw(commandBuffers[currentFrame].commandBuffer);
+		}
 
 		commandBuffers[currentFrame].End();
-		// UpdateUniformBuffer(currentFrame);
 
 		vk::SubmitInfo submitInfo{};
 
@@ -117,16 +120,22 @@ namespace REngine::Core {
 		presentInfo.pSwapchains = swapChains;
 		presentInfo.pImageIndices = &imageIndex;
 
-		vk::Result res2 = Instance::GetInfo().presentQueue.presentKHR(presentInfo);
-
-		currentFrame = (currentFrame + 1) % Instance::GetInfo().MAX_FRAMES_IN_FLIGHT;
-
-		if (res2 == vk::Result::eErrorOutOfDateKHR || res2 == vk::Result::eSuboptimalKHR || window.IsDirty(true)) {
+		try {
+			vk::Result res2 = Instance::GetInfo().presentQueue.presentKHR(presentInfo);
+			if (res2 == vk::Result::eSuboptimalKHR || window.IsDirty(true)) {
+				RecreateSwapchain();
+			}
+			else if (res2 != vk::Result::eSuccess) {
+				throw std::runtime_error("Failed to acquire swap chain image!");
+			}
+		}
+		catch (vk::OutOfDateKHRError error) {
 			RecreateSwapchain();
 		}
-		else if (res2 != vk::Result::eSuccess) {
-			throw std::runtime_error("Failed to acquire swap chain image!");
-		}
+		
+
+		currentFrame = (currentFrame + 1) % Instance::GetInfo().MAX_FRAMES_IN_FLIGHT;
+		Instance::SetCurrentFrame(currentFrame);
 	}
 
 	void Renderer::CreateRenderPass() {

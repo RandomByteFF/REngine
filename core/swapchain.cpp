@@ -111,7 +111,6 @@ namespace REngine::Core {
 		}
 		else {
 			Info info = Instance::GetInfo();
-			int width, height;
 
 			VkExtent2D actualExtent = {
 				uint32_t(info.fbWidth),

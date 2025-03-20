@@ -193,6 +193,10 @@ namespace REngine::Core {
 		info.commandPool = commandPool;
 	}
 
+	void Instance::SetCurrentFrame(uint32_t frame) {
+		info.currentFrame = frame;
+	}
+
 	void Instance::Destroy() {
 		vmaDestroyAllocator(allocator);
 	}

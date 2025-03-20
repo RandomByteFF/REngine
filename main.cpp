@@ -8,8 +8,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-#define TINYOBJLOADER_IMPLEMENTATION
-#include "tiny_obj_loader.h"
 
 #include "core/windowManager.hpp"
 #include "core/instance.hpp"
@@ -19,9 +17,11 @@
 #include "loader/shader.hpp"
 #include "core/pipeline.hpp"
 #include "core/vertex.hpp"
-#include "core/object.hpp"
+#include "core/mesh.hpp"
 #include "core/descriptorPool.hpp"
 #include "core/renderer.cpp"
+#include "loader/obj.hpp"
+#include "core/time.hpp"
 
 #include <chrono>
 #include <iostream>
@@ -58,15 +58,12 @@ private:
 	vk::Device device;
 	Pipeline pipeline;
 	Renderer renderer;
-	Buffer vertexBuffer;
-	Buffer indexBuffer;
 	uint32_t mipLevels;
 	Image textureImage;
 	VkSampler textureSampler;
-	std::vector<Object> objects;
+	std::vector<Mesh> objects;
+	REngine::Loader::Obj model;
 
-	std::vector<Vertex> vertices;
-	std::vector<uint32_t> indices;
 
 	void InitVulkan() {
 		Instance::Initialize(window);
@@ -79,53 +76,16 @@ private:
 		pipeline.Create("vert", "frag", renderer.Swapchain(), renderer.RenderPass());
 		CreateTextureImage();
 		CreateTextureSampler();
-		LoadModel();
-		CreateVertexBuffer();
-		CreateIndexBuffer();
-		objects.push_back(Object());
-		objects[0].Create(pipeline);
+		model.Load("test_files/viking_room.obj");
+		objects.push_back(Mesh());
+		objects[0].Create(pipeline, model.Verticies(), model.Indices());
 		objects[0].SetImage(textureImage, textureSampler);
+		objects.push_back(Mesh());
+		objects[1].Create(pipeline, model.Verticies(), model.Indices());
+		objects[1].SetImage(textureImage, textureSampler);
+		model.Destroy();
 	}
 
-	void LoadModel() {
-		tinyobj::attrib_t attrib;
-		std::vector<tinyobj::shape_t> shapes;
-		std::vector<tinyobj::material_t> materials;
-		std::string warn, err;
-
-		if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, MODEL_PATH.c_str())) {
-			throw std::runtime_error(warn + err);
-		}
-
-		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
-
-		for (auto &shape : shapes) {
-			for (auto &index : shape.mesh.indices) {
-				Vertex vertex{};
-
-				vertex.pos = {
-					attrib.vertices[3 * index.vertex_index + 0],
-					attrib.vertices[3 * index.vertex_index + 1],
-					attrib.vertices[3 * index.vertex_index + 2],
-				};
-
-				vertex.texCoord = {
-					attrib.texcoords [2 * index.texcoord_index + 0],
-					1.0f - attrib.texcoords [2 * index.texcoord_index + 1]
-				};
-
-				vertex.color = {1.0f, 1.0f, 1.0f};
-
-				if (uniqueVertices.count(vertex) == 0) {
-					uniqueVertices[vertex] = uint32_t(vertices.size());
-					vertices.push_back(vertex);
-				}
-
-				vertices.push_back(vertex);
-				indices.push_back(uniqueVertices[vertex]);
-			}
-		}
-	}
 
 
 	void CreateTextureImage() {
@@ -174,16 +134,6 @@ private:
 		}
 	}
 
-	void CreateVertexBuffer() {
-		vertexBuffer.Create(sizeof(vertices[0]) * vertices.size(), vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eVertexBuffer);
-		vertexBuffer.Stage(vertices.data());
-	}
-
-	void CreateIndexBuffer() {
-		indexBuffer.Create(sizeof(indices[0]) * indices.size(), vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer);
-		indexBuffer.Stage(indices.data());
-	}
-
 	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
 		VkPhysicalDeviceMemoryProperties memProperties;
 		vkGetPhysicalDeviceMemoryProperties(Instance::GetInfo().physicalDevice, &memProperties);
@@ -199,10 +149,12 @@ private:
 
 	void MainLoop() {
 		int i = 0;
+		Time::Start();
 		while(window.Update()) {
 			i %= 1;
-			UpdateUniformBuffer(i++);
-			renderer.Render(objects, vertexBuffer, indexBuffer, indices.size());
+			Time::Tick();
+			UpdateUniformBuffer();
+			renderer.Render(objects);
 		}
 
 		vkDeviceWaitIdle(device);
@@ -214,9 +166,9 @@ private:
 		textureImage.Destroy();
 
 		DescriptorPool::Cleanup();
-		objects[0].Destroy();
-		indexBuffer.Destroy();
-		vertexBuffer.Destroy();
+		for(auto i : objects) {
+			i.Destroy();
+		}
 		
 		REngine::Loader::Shader::Cleanup();
 		
@@ -229,17 +181,9 @@ private:
 		window.Destroy();
 	}
 	
-	void UpdateUniformBuffer(uint32_t currentImage) {
-		static auto startTime = std::chrono::high_resolution_clock::now();
-
-		auto currentTime = std::chrono::high_resolution_clock::now();
-		float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-		UniformBufferObject ubo{};
-		ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		ubo.proj = glm::perspective(glm::radians(45.0f), renderer.swapchain.Extent().width / (float) renderer.swapchain.Extent().height, 0.1f, 10.0f);
-		ubo.proj[1][1] *= -1;
-		objects[0].uniformBuffers[currentImage].CopyData(&ubo, sizeof(ubo));
+	void UpdateUniformBuffer() {
+		objects[0].Rotate(Time::Delta() * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		objects[1].Rotate(Time::Delta() * glm::radians(10.0f), glm::vec3(0.0f, 1.0f, 1.0f));
 	}
 };
 
