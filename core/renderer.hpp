@@ -2,7 +2,7 @@
 #include "headers.h"
 #include "swapchain.hpp"
 #include "image.hpp"
-#include "object.hpp"
+#include "mesh.hpp"
 #include "commandBuffer.hpp"
 #include "windowManager.hpp"
 
@@ -32,7 +32,7 @@ namespace REngine::Core {
 		void Create(WindowManager window);
 		const Swapchain Swapchain() const;
 		const vk::RenderPass RenderPass() const;
-		void Render(std::vector<Object> objects, Buffer vertexBuffer, Buffer indexBuffer, uint32_t indicesSize);
+		void Render(std::vector<Mesh> &objects);
 		void RecreateSwapchain();
 
 		void Destroy();

@@ -47,6 +47,7 @@ namespace REngine::Core {
 		static vk::SampleCountFlagBits GetMaxUsableSampleCount();
 		static void FrameBufferResized(int width, int height);
 		static void CreateLogicalDevice();
+		static void SetCurrentFrame(uint32_t frame);
 
 		static void Destroy();
 	};

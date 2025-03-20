@@ -1,3 +1,4 @@
+#pragma once
 #include "headers.h"
 
 #define GLM_ENABLE_EXPERIMENTAL

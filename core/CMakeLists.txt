@@ -9,9 +9,10 @@ add_library(core
 	buffer.cpp
 	pipeline.cpp
 	descriptorPool.cpp
-	object.cpp
+	mesh.cpp
 	renderer.cpp
 	commandBuffer.cpp
+	time.cpp
 )
 target_link_libraries(core PRIVATE
 	submodules
