@@ -21,8 +21,9 @@ namespace REngine::Core {
 		for (size_t i = 0; i < Instance::GetInfo().MAX_FRAMES_IN_FLIGHT; i++) {
 			commandBuffers[i].Create(renderPass);
 		}
+		CreateSampler();	
 	}
-	
+	// FIXME: rename things here
 	void Renderer::CreateSwapchain() {
 		colorImage.CreateImage(swapchain.Extent().width, swapchain.Extent().height, 1, Instance::GetInfo().maxMsaa, vk::Format(colorFormat), 
 		vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment);
@@ -57,6 +58,10 @@ namespace REngine::Core {
 
 	const vk::RenderPass Renderer::RenderPass() const {
 		return renderPass;
+	}
+
+	const vk::Sampler Renderer::Sampler() const {
+		return sampler;
 	}
 
 	void Renderer::Render(std::vector<Mesh> &objects) {
@@ -133,11 +138,11 @@ namespace REngine::Core {
 			RecreateSwapchain();
 		}
 		
-
+		
 		currentFrame = (currentFrame + 1) % Instance::GetInfo().MAX_FRAMES_IN_FLIGHT;
 		Instance::SetCurrentFrame(currentFrame);
 	}
-
+	
 	void Renderer::CreateRenderPass() {
 		vk::AttachmentDescription colorAttachment{};
 		colorAttachment.format = swapchain.ImageFormat();
@@ -148,7 +153,7 @@ namespace REngine::Core {
 		colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
 		colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
 		colorAttachment.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
-
+		
 		vk::AttachmentDescription depthAttachment{};
 		depthAttachment.format = depthFormat;
 		depthAttachment.samples = Instance::GetInfo().maxMsaa;
@@ -158,7 +163,7 @@ namespace REngine::Core {
 		depthAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
 		depthAttachment.initialLayout = vk::ImageLayout::eUndefined;
 		depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
-
+		
 		vk::AttachmentDescription colorAttachmentResolve{};
 		colorAttachmentResolve.format = swapchain.ImageFormat();
 		colorAttachmentResolve.samples = vk::SampleCountFlagBits::e1;
@@ -168,34 +173,34 @@ namespace REngine::Core {
 		colorAttachmentResolve.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
 		colorAttachmentResolve.initialLayout = vk::ImageLayout::eUndefined;
 		colorAttachmentResolve.finalLayout = vk::ImageLayout::ePresentSrcKHR;
-
+		
 		vk::AttachmentReference colorAttachmentResolveRef{};
 		colorAttachmentResolveRef.attachment = 2;
 		colorAttachmentResolveRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
-
+		
 		vk::AttachmentReference depthAttachmentRef{};
 		depthAttachmentRef.attachment = 1;
 		depthAttachmentRef.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
-
+		
 		vk::AttachmentReference colorAttachmentRef{};
 		colorAttachmentRef.attachment = 0;
 		colorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
-
+		
 		vk::SubpassDescription subpass{};
 		subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorAttachmentRef;
 		subpass.pDepthStencilAttachment = &depthAttachmentRef;
 		subpass.pResolveAttachments = &colorAttachmentResolveRef;
-
+		
 		std::array<vk::AttachmentDescription, 3> attachments = {colorAttachment, depthAttachment, colorAttachmentResolve};
-
+		
 		vk::RenderPassCreateInfo renderPassInfo{};
 		renderPassInfo.attachmentCount = uint32_t(attachments.size());
 		renderPassInfo.pAttachments = attachments.data();
 		renderPassInfo.subpassCount = 1;
 		renderPassInfo.pSubpasses = &subpass;
-
+		
 		vk::SubpassDependency dependency{};
 		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 		dependency.dstSubpass = 0;
@@ -205,10 +210,34 @@ namespace REngine::Core {
 		dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
 		renderPassInfo.dependencyCount = 1;
 		renderPassInfo.pDependencies = &dependency;
-
+		
 		renderPass = Instance::GetInfo().device.createRenderPass(renderPassInfo);
 	}
 
+	void Renderer::CreateSampler() {
+		vk::SamplerCreateInfo samplerInfo{};
+		samplerInfo.magFilter = vk::Filter::eLinear;
+		samplerInfo.minFilter = vk::Filter::eLinear;
+		samplerInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
+		samplerInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
+		samplerInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
+		samplerInfo.anisotropyEnable = VK_TRUE;
+
+		auto properties = Instance::GetInfo().physicalDevice.getProperties();
+
+		samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+		samplerInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
+		samplerInfo.unnormalizedCoordinates = VK_FALSE;
+		samplerInfo.compareEnable = VK_FALSE;
+		samplerInfo.compareOp = vk::CompareOp::eAlways;
+		samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+		samplerInfo.mipLodBias = 0.0f;
+		samplerInfo.minLod = 0;
+		samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
+
+		sampler = device.createSampler(samplerInfo);
+	}
+	
 	void Renderer::CreateSyncObjects() {
 		uint32_t frames = Instance::GetInfo().MAX_FRAMES_IN_FLIGHT;
 		vk::Device device = Instance::GetInfo().device;
@@ -244,6 +273,7 @@ namespace REngine::Core {
 	void Renderer::Destroy() {
 		CleanupSwapchain();
 
+		device.destroySampler(sampler);
 		for (size_t i = 0; i < renderFinishedSemaphores.size(); i++)
 		{
 			device.destroySemaphore(imageAvailableSemaphores[i]);
