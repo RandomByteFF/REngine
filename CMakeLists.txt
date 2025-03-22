@@ -47,6 +47,7 @@ if (NOT MSVC)
         Xxf86vm
         Xrandr
         Xi
+		glfw
     )
 endif()
 
