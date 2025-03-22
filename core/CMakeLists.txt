@@ -13,6 +13,7 @@ add_library(core
 	renderer.cpp
 	commandBuffer.cpp
 	time.cpp
+	runner.cpp
 )
 target_link_libraries(core PRIVATE
 	submodules
