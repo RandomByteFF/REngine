@@ -51,7 +51,7 @@ namespace REngine::Core {
 		}
 	}
 
-	const Swapchain Renderer::Swapchain() const {
+	const Swapchain Renderer::GetSwapchain() const {
 		return swapchain;
 	}
 

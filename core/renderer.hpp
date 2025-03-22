@@ -30,7 +30,7 @@ namespace REngine::Core {
 		public:
 		Swapchain swapchain;
 		void Create(WindowManager window);
-		const Swapchain Swapchain() const;
+		const Swapchain GetSwapchain() const;
 		const vk::RenderPass RenderPass() const;
 		void Render(std::vector<Mesh> &objects);
 		void RecreateSwapchain();

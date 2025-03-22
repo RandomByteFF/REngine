@@ -6,9 +6,6 @@
 #include "queueFamily.hpp"
 #include "swapchain.hpp"
 
-// namespace {
-// }
-
 namespace REngine::Core {
 	void Instance::Initialize(WindowManager manager) {
 		InitializeInstance();

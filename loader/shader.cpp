@@ -34,7 +34,7 @@ namespace REngine::Loader {
 		else return (*r).second;
 	}
 
-	void Shader::Cleanup() {
+	void Shader::Destroy() {
 		for (auto i : store) {
 			Core::Instance::GetInfo().device.destroyShaderModule(i.second);
 		}
