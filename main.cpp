@@ -7,7 +7,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 
 #include "core/windowManager.hpp"
 #include "core/instance.hpp"
@@ -68,13 +67,13 @@ private:
 	void InitVulkan() {
 		Instance::Initialize(window);
 		device = Instance::GetInfo().device;
-		renderer.Create(window);	
+		renderer.Create(window);
 		pipeline.SetLayout({
 			{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex},
 			{vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment}
 		});
-		pipeline.Create("vert", "frag", renderer.Swapchain(), renderer.RenderPass());
-		CreateTextureImage();
+		pipeline.Create("vert", "frag", renderer.GetSwapchain(), renderer.RenderPass());
+		textureImage.CreateImage(REngine::Loader::Image(TEXTURE_PATH));
 		CreateTextureSampler();
 		model.Load("test_files/viking_room.obj");
 		objects.push_back(Mesh());
@@ -85,27 +84,7 @@ private:
 		objects[1].SetImage(textureImage, textureSampler);
 		model.Destroy();
 	}
-
-
-
-	void CreateTextureImage() {
-		int texWidth, texHeight, texChannels;
-		stbi_uc *pixels = stbi_load(TEXTURE_PATH.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-		mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
-		VkDeviceSize imageSize = texWidth * texHeight * 4;
-		if (!pixels) {
-			throw std::runtime_error("Failed to load image");
-		}
-
-		textureImage.CreateImage(texWidth, texHeight, mipLevels, imageSize, pixels);
-
-		stbi_image_free(pixels);
-	}
-
-	bool HasStencilComponent(VkFormat format) {
-		return format== VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
-	}
-
+	
 	void CreateTextureSampler() {
 		VkSamplerCreateInfo samplerInfo{};
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -134,19 +113,6 @@ private:
 		}
 	}
 
-	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
-		VkPhysicalDeviceMemoryProperties memProperties;
-		vkGetPhysicalDeviceMemoryProperties(Instance::GetInfo().physicalDevice, &memProperties);
-
-		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
-		{
-			if (typeFilter & (1 << i) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-				return i;
-			}
-		}
-		throw std::runtime_error("No memory type found!");
-	}
-
 	void MainLoop() {
 		int i = 0;
 		Time::Start();
@@ -170,7 +136,7 @@ private:
 			i.Destroy();
 		}
 		
-		REngine::Loader::Shader::Cleanup();
+		REngine::Loader::Shader::Destroy();
 		
 		vkDestroyCommandPool(device, Instance::GetInfo().commandPool, nullptr);
 		pipeline.Destroy();

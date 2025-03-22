@@ -1,7 +1,10 @@
 #include "image.hpp"
+
 #include "instance.hpp"
 #include "queue.hpp"
 #include "buffer.hpp"
+
+#include <cmath>
 
 namespace REngine::Core {
 	void Image::CreateImage(uint32_t width, uint32_t height, int mipLevels,
@@ -30,7 +33,9 @@ namespace REngine::Core {
 		allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
 		VkImage img;
 		VkImageCreateInfo ii = imageInfo;
-		vmaCreateImage(Instance::GetInfo().allocator, &ii, &allocCreateInfo, &img, &alloc, &allocInfo);
+		if (vmaCreateImage(Instance::GetInfo().allocator, &ii, &allocCreateInfo, &img, &alloc, &allocInfo) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create image!");
+		}
 		image = img;
 		view = CreateImageView(image, format, mipLevels, aspect);
 	}
@@ -54,6 +59,13 @@ namespace REngine::Core {
 		GenerateMipmaps(mipLevels);
 
 		stagingBuffer.Destroy();
+	}
+
+	void Image::CreateImage(const Loader::Image &image, int mipLevels) {
+		if (mipLevels == 0) {
+			mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(image.Width(), image.Height())))) + 1;
+		}
+		CreateImage(image.Width(), image.Height(), mipLevels, image.Size(), image.Pixels());
 	}
 
 	void Image::TransitionLayout(vk::ImageLayout oldLayout, vk::ImageLayout newLayout) {

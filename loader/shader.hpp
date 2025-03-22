@@ -10,6 +10,6 @@ namespace REngine::Loader {
 		inline static std::unordered_map<std::string, vk::ShaderModule> store;
 	public:
 		static const vk::ShaderModule Get(const std::string &name);
-		static void Cleanup();
+		static void Destroy();
 	};
 }
