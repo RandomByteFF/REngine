@@ -31,8 +31,7 @@ namespace REngine::Core {
 		try {
 			descriptorSets = Instance::GetInfo().device.allocateDescriptorSets(allocInfo);
 		}
-		catch (std::exception e){
-			//TODO: check this
+		catch (vk::OutOfDeviceMemoryError e){
 			AllocatePool();
 			std::cout << "Allocating new pool" << std::endl;
 			descriptorSets = Instance::GetInfo().device.allocateDescriptorSets(allocInfo);
@@ -42,9 +41,9 @@ namespace REngine::Core {
 
 	void DescriptorPool::SetUniform(vk::DescriptorSet descriptorSet, uint32_t binding, Buffer uniformBuffer) {
 		vk::DescriptorBufferInfo bufferInfo{};
-		bufferInfo.buffer = uniformBuffer.buffer;
+		bufferInfo.buffer = uniformBuffer.GetBuffer();
 		bufferInfo.offset = 0;
-		bufferInfo.range = uniformBuffer.size;
+		bufferInfo.range = uniformBuffer.Size();
 
 		vk::WriteDescriptorSet descriptorWrites;
 		descriptorWrites.dstSet = descriptorSet;

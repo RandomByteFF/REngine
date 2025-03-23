@@ -4,7 +4,7 @@ add_library(loader
 	obj.cpp
 	image.cpp
 )
-#FIXME: quickfix
+
 target_link_libraries(loader PRIVATE
 	submodules
 )

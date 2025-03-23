@@ -1,7 +1,7 @@
 #include "image.hpp"
 
 #include "instance.hpp"
-#include "queue.hpp"
+#include "commandBuffer.hpp"
 #include "buffer.hpp"
 
 #include <cmath>
@@ -69,7 +69,7 @@ namespace REngine::Core {
 	}
 
 	void Image::TransitionLayout(vk::ImageLayout oldLayout, vk::ImageLayout newLayout) {
-		vk::CommandBuffer commandBuffer = Queue::BeginSingleTimeCommands();
+		vk::CommandBuffer commandBuffer = CommandBuffer::BeginSingleTimeCommands();
 		vk::ImageMemoryBarrier barrier{};
 		barrier.oldLayout = oldLayout;
 		barrier.newLayout = newLayout;
@@ -109,7 +109,7 @@ namespace REngine::Core {
 
 		commandBuffer.pipelineBarrier(sourceStage, destinationStage, vk::DependencyFlags(), nullptr, nullptr, barrier);
 
-		Queue::EndSingleTimeCommands(commandBuffer);
+		CommandBuffer::EndSingleTimeCommands(commandBuffer);
 	}
 	
 	vk::ImageView Image::CreateImageView(vk::Image image, vk::Format format, uint32_t mipLevels, vk::ImageAspectFlagBits aspectFlags) {
@@ -131,7 +131,7 @@ namespace REngine::Core {
 	void Image::GenerateMipmaps(uint32_t mipLevels) {
 		vk::FormatProperties formatProperties = Instance::GetInfo().physicalDevice.getFormatProperties(format);
 
-		vk::CommandBuffer commandBuffer = Queue::BeginSingleTimeCommands();
+		vk::CommandBuffer commandBuffer = CommandBuffer::BeginSingleTimeCommands();
 
 		vk::ImageMemoryBarrier barrier{};
 		barrier.image = image;
@@ -201,7 +201,7 @@ namespace REngine::Core {
 		{},
 		{barrier});
 
-		Queue::EndSingleTimeCommands(commandBuffer);
+		CommandBuffer::EndSingleTimeCommands(commandBuffer);
 	}
 
 	vk::ImageView Image::View() const {

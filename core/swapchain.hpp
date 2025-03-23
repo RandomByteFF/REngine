@@ -20,7 +20,7 @@ namespace REngine::Core {
 		vk::PresentModeKHR ChooseSwapPresentMode(const std::vector<vk::PresentModeKHR> &availablePresentModes);
 		vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities);
 		
-		public:
+	public:
 		static SwapchainSupportDetails QuerySwapchainSupport(vk::PhysicalDevice device);
 		void CreateSwapchain();
 		vk::Extent2D Extent() const;

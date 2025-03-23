@@ -25,13 +25,13 @@ namespace REngine::Core {
 		void CreateRenderPass();
 		void CreateFrameBuffers();
 		void CreateSyncObjects();
-		void CreateSwapchain();
+		void CreateImages();
 		void CleanupSwapchain();
 		void CreateSampler();
 		
 		uint32_t currentFrame = 0;
 
-		public:
+	public:
 		Swapchain swapchain;
 		void Create(WindowManager window);
 		const Swapchain GetSwapchain() const;

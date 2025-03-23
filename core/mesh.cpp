@@ -25,12 +25,12 @@ namespace REngine::Core {
 		indexBuffer.Stage(indices.data());
 	}
 	void Mesh::Bind(vk::CommandBuffer cb) {
-		cb.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline.layout, 0, descriptorSets[Instance::GetInfo().currentFrame], nullptr);
+		cb.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline.GetPipelineLayout(), 0, descriptorSets[Instance::GetInfo().currentFrame], nullptr);
 
 		vk::DeviceSize offset[] = {0};
-		cb.bindVertexBuffers(0, vertexBuffer.buffer, offset);
-		cb.bindIndexBuffer(indexBuffer.buffer, 0, vk::IndexType::eUint32);
-		cb.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.pipeline);
+		cb.bindVertexBuffers(0, vertexBuffer.GetBuffer(), offset);
+		cb.bindIndexBuffer(indexBuffer.GetBuffer(), 0, vk::IndexType::eUint32);
+		cb.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.GetPipeline());
 	}
 
 	void Mesh::Draw(vk::CommandBuffer cb) {

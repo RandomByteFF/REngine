@@ -5,7 +5,6 @@ add_library(core
 	queueFamily.cpp
 	swapchain.cpp
 	image.cpp
-	queue.cpp
 	buffer.cpp
 	pipeline.cpp
 	descriptorPool.cpp
@@ -15,10 +14,11 @@ add_library(core
 	time.cpp
 	runner.cpp
 )
+
 target_link_libraries(core PRIVATE
 	submodules
 )
 
-target_precompile_headers(core PUBLIC 
+target_precompile_headers(core PRIVATE
 	headers.h
 )
