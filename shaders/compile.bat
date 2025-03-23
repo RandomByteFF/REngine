@@ -1,3 +1,3 @@
-glslc.exe vertex.vert -o vert.spv
-glslc.exe fragment.frag -o frag.spv
+glslc.exe vertex.vert -o vertex.spv
+glslc.exe fragment.frag -o fragment.spv
 pause

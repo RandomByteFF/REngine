@@ -3,9 +3,10 @@
 #include "headers.h"
 #include "swapchain.hpp"
 #include "image.hpp"
-#include "mesh.hpp"
+#include "drawable/mesh.hpp"
 #include "commandBuffer.hpp"
 #include "windowManager.hpp"
+#include "camera.hpp"
 
 namespace REngine::Core {
 	class Renderer {
@@ -37,7 +38,7 @@ namespace REngine::Core {
 		const Swapchain GetSwapchain() const;
 		const vk::RenderPass RenderPass() const;
 		const vk::Sampler Sampler() const;
-		void Render(std::vector<Mesh> &objects);
+		void Render(std::vector<Mesh> &objects, Camera &camera);
 		void RecreateSwapchain();
 
 		void Destroy();

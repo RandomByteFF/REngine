@@ -8,15 +8,17 @@ add_library(core
 	buffer.cpp
 	pipeline.cpp
 	descriptorPool.cpp
-	mesh.cpp
 	renderer.cpp
 	commandBuffer.cpp
 	time.cpp
 	runner.cpp
+	camera.cpp
 )
+add_subdirectory(drawable)
 
 target_link_libraries(core PRIVATE
 	submodules
+	drawable
 )
 
 target_precompile_headers(core PRIVATE

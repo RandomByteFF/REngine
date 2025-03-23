@@ -15,19 +15,21 @@ namespace REngine::Core {
 		objects.push_back(Mesh());
 		objects[0].Create(pipeline, model.Verticies(), model.Indices());
 		objects[0].SetImage(textureImage, renderer.Sampler());
-		objects.push_back(Mesh());
-		objects[1].Create(pipeline, model.Verticies(), model.Indices());
-		objects[1].SetImage(textureImage, renderer.Sampler());
+		// objects.push_back(Mesh());
+		// objects[1].Create(pipeline, model.Verticies(), model.Indices());
+		// objects[1].SetImage(textureImage, renderer.Sampler());
+		camera.SetLook(glm::vec3(0.0f, 0.f, 3.f), glm::vec3(0.0f, 0.0f, 0.0f));
 		model.Destroy();
 	}
 
 	void Runner::MainLoop() {
+		objects[0].Rotate(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		Time::Start();
 		while(window.Update()) {
 			Time::Tick();
 			objects[0].Rotate(Time::Delta() * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-			objects[1].Rotate(Time::Delta() * glm::radians(10.0f), glm::vec3(0.0f, 1.0f, 1.0f));
-			renderer.Render(objects);
+			// objects[1].Rotate(Time::Delta() * glm::radians(10.0f), glm::vec3(0.0f, 1.0f, 1.0f));
+			renderer.Render(objects, camera);
 		}
 
 		vkDeviceWaitIdle(device);

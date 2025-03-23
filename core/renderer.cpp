@@ -64,7 +64,7 @@ namespace REngine::Core {
 		return sampler;
 	}
 
-	void Renderer::Render(std::vector<Mesh> &objects) {
+	void Renderer::Render(std::vector<Mesh> &objects, Camera &camera) {
 		vk::Result res = device.waitForFences(1, &inFlightFences[currentFrame], true, std::numeric_limits<uint64_t>::max());
 		if (res != vk::Result::eSuccess) throw std::runtime_error("Failed to wait for fence");
 		
@@ -93,7 +93,7 @@ namespace REngine::Core {
 		commandBuffers[currentFrame].BeginPass(swapchain.Extent(), swapChainFrameBuffers[imageIndex]);
 
 		for (auto i : objects) {
-			i.Update();
+			i.Update(camera);
 			i.Bind(commandBuffers[currentFrame].GetBuffer());
 			i.Draw(commandBuffers[currentFrame].GetBuffer());
 		}

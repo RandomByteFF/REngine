@@ -194,12 +194,19 @@ namespace REngine::Core {
 		info.currentFrame = frame;
 	}
 
+	void Instance::OnResize(ResizedCallback cb) {
+		callbacks.push_back(cb);
+	}
+
 	void Instance::Destroy() {
 		vmaDestroyAllocator(allocator);
 	}
 
 	void Instance::FrameBufferResized(int width, int height) {
-		info.fbHeight = height;
 		info.fbWidth = width;
+		info.fbHeight = height;
+		for(auto i : callbacks) {
+			i(width, height);
+		}
 	}
 }
