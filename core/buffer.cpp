@@ -1,7 +1,7 @@
 #include "buffer.hpp"
 
 #include "instance.hpp"
-#include "queue.hpp"
+#include "commandBuffer.hpp"
 
 namespace REngine::Core {
 	void Buffer::Create(vk::DeviceSize size, vk::BufferUsageFlags usage, bool mappable) {
@@ -26,8 +26,8 @@ namespace REngine::Core {
 		vmaCopyMemoryToAllocation(Instance::GetInfo().allocator, data, alloc, 0, size);
 	}
 
-	void Buffer::Copy(vk::Image image, uint32_t width, uint32_t height) {
-		vk::CommandBuffer commandBuffer = Queue::BeginSingleTimeCommands();
+	void Buffer::Copy(const vk::Image image, uint32_t width, uint32_t height) {
+		vk::CommandBuffer commandBuffer = CommandBuffer::BeginSingleTimeCommands();
 
 		vk::BufferImageCopy region{};
 		region.bufferOffset = 0;
@@ -44,17 +44,17 @@ namespace REngine::Core {
 
 		commandBuffer.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal, region);
 
-		Queue::EndSingleTimeCommands(commandBuffer);
+		CommandBuffer::EndSingleTimeCommands(commandBuffer);
 	}
 
-	void Buffer::Copy(Buffer dst) {
-		vk::CommandBuffer commandBuffer = Queue::BeginSingleTimeCommands();
+	void Buffer::Copy(Buffer dst) const {
+		vk::CommandBuffer commandBuffer = CommandBuffer::BeginSingleTimeCommands();
 
 		vk::BufferCopy copyRegion{};
 		copyRegion.size = size;
 		commandBuffer.copyBuffer(buffer, dst.buffer, copyRegion);		
 
-		Queue::EndSingleTimeCommands(commandBuffer);
+		CommandBuffer::EndSingleTimeCommands(commandBuffer);
 	}
 
 	void Buffer::Stage(void *data) {
@@ -63,6 +63,14 @@ namespace REngine::Core {
 		staging.CopyData(data);
 		staging.Copy(*this);
 		staging.Destroy();
+	}
+
+	const vk::Buffer &Buffer::GetBuffer() const {
+		return buffer;
+	}
+
+	vk::DeviceSize Buffer::Size() const {
+		return size;
 	}
 
 	void Buffer::Destroy() {

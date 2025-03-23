@@ -25,7 +25,8 @@ namespace REngine::Core {
 		std::vector<Buffer> uniformBuffers;
 		MVP mvp; 
 		bool changed = true;
-		public:
+		
+	public:
 		void Create(Pipeline pipeline, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices);
 		void Bind(vk::CommandBuffer cb);
 		void Draw(vk::CommandBuffer cb);

@@ -140,9 +140,19 @@ namespace REngine::Core {
 		descriptorLayout = Instance::GetInfo().device.createDescriptorSetLayout(layoutInfo);
 
 	}
-	vk::DescriptorSetLayout Pipeline::GetLayout() {
+
+	const vk::Pipeline &Pipeline::GetPipeline() const {
+		return pipeline;
+	}
+
+	const vk::DescriptorSetLayout &Pipeline::GetLayout() const {
 		return descriptorLayout;
 	}
+
+	const vk::PipelineLayout &Pipeline::GetPipelineLayout() const {
+		return layout;
+	}
+
 	void Pipeline::Destroy()
 	{
 		Instance::GetInfo().device.destroyDescriptorSetLayout(descriptorLayout);

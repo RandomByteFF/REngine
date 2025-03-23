@@ -8,6 +8,7 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost 1.87.0 REQUIRED COMPONENTS python313)
 find_package(Python REQUIRED COMPONENTS Development)
 find_package(Vulkan REQUIRED)
+
 set(SOURCE_FILES
 	main.cpp
 )
@@ -30,7 +31,8 @@ add_subdirectory(loader)
 
 add_executable(REngine ${SOURCE_FILES})
 target_compile_definitions(REngine PRIVATE BOOST_ALL_NO_LIB)
-target_link_libraries(REngine ${Python_LIBRARIES} ${Boost_LIBRARIES}
+target_link_libraries(REngine
+	${Python_LIBRARIES} ${Boost_LIBRARIES}
 	glfw
     ${Vulkan_LIBRARY}
     submodules

@@ -13,7 +13,7 @@ namespace REngine::Core {
 		depthFormat = FindSupportedFormat({vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint},
 			vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment);
 			
-		CreateSwapchain();
+		CreateImages();
 		CreateRenderPass();
 		CreateFrameBuffers();
 		CreateSyncObjects();
@@ -21,10 +21,10 @@ namespace REngine::Core {
 		for (size_t i = 0; i < Instance::GetInfo().MAX_FRAMES_IN_FLIGHT; i++) {
 			commandBuffers[i].Create(renderPass);
 		}
-		CreateSampler();	
+		CreateSampler();
 	}
-	// FIXME: rename things here
-	void Renderer::CreateSwapchain() {
+
+	void Renderer::CreateImages() {
 		colorImage.CreateImage(swapchain.Extent().width, swapchain.Extent().height, 1, Instance::GetInfo().maxMsaa, vk::Format(colorFormat), 
 		vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment);
 		depthImage.CreateImage(swapchain.Extent().width, swapchain.Extent().height, 1, Instance::GetInfo().maxMsaa, vk::Format(depthFormat), 
@@ -94,8 +94,8 @@ namespace REngine::Core {
 
 		for (auto i : objects) {
 			i.Update();
-			i.Bind(commandBuffers[currentFrame].commandBuffer);
-			i.Draw(commandBuffers[currentFrame].commandBuffer);
+			i.Bind(commandBuffers[currentFrame].GetBuffer());
+			i.Draw(commandBuffers[currentFrame].GetBuffer());
 		}
 
 		commandBuffers[currentFrame].End();
@@ -108,7 +108,7 @@ namespace REngine::Core {
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffers[currentFrame].commandBuffer;
+		submitInfo.pCommandBuffers = &commandBuffers[currentFrame].GetBuffer();
 
 		vk::Semaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
 		submitInfo.signalSemaphoreCount = 1;
@@ -294,7 +294,7 @@ namespace REngine::Core {
 		CleanupSwapchain();
 
 		swapchain.CreateSwapchain();
-		CreateSwapchain();
+		CreateImages();
 		CreateFrameBuffers();
 	}
 
