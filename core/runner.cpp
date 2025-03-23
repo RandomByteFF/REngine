@@ -9,7 +9,7 @@ namespace REngine::Core {
 			{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex},
 			{vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment}
 		});
-		pipeline.Create("vert", "frag", renderer.GetSwapchain(), renderer.RenderPass());
+		pipeline.Create("vertex", "fragment", renderer.GetSwapchain(), renderer.RenderPass());
 		textureImage.CreateImage(REngine::Loader::Image("test_files/viking_room.png"));
 		model.Load("test_files/viking_room.obj");
 		objects.push_back(Mesh());

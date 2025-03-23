@@ -28,6 +28,7 @@ include_directories(${CMAKE_SOURCE_DIR})
 add_subdirectory(submodules)
 add_subdirectory(core)
 add_subdirectory(loader)
+add_subdirectory(shaders)
 
 add_executable(REngine ${SOURCE_FILES})
 target_compile_definitions(REngine PRIVATE BOOST_ALL_NO_LIB)
@@ -53,3 +54,5 @@ if (NOT MSVC)
     )
 endif()
 
+# TODO: doesn't work on windows yet
+# add_dependencies(REngine copy_spv_files)
