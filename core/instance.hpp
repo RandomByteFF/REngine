@@ -4,6 +4,7 @@
 #include "swapchain.hpp"
 #include "windowManager.hpp"
 #include "vk_mem_alloc.h"
+#include <functional>
 
 #ifdef NDEBUG
 	const bool enableValidationLayers = false;
@@ -19,6 +20,9 @@ const std::vector<const char*> deviceExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
+using ResizedCallback = std::function<void(int, int)>;
+using ResizedCallbackVector = std::vector<ResizedCallback>;
+
 namespace REngine::Core {
 	class Instance {
 		Instance() = delete;
@@ -33,6 +37,7 @@ namespace REngine::Core {
 		inline static vk::Queue presentQueue;
 		inline static VmaAllocator allocator;
 		inline static Info info;
+		inline static ResizedCallbackVector callbacks;
 		
 		static bool CheckValidationLayerSupport();
 		static void InitializeInstance();
@@ -40,7 +45,7 @@ namespace REngine::Core {
 		static bool IsDeviceSuitable(vk::PhysicalDevice device);
 		static bool CheckDeviceExtensionSupport(vk::PhysicalDevice device, const std::vector<const char*> &requiredExtensions);
 		
-		public:
+	public:
 		static void Initialize(WindowManager manager);
 		static const vk::Instance &Get();
 		static const Info &GetInfo();
@@ -48,6 +53,7 @@ namespace REngine::Core {
 		static void FrameBufferResized(int width, int height);
 		static void CreateLogicalDevice();
 		static void SetCurrentFrame(uint32_t frame);
+		static void OnResize(ResizedCallback cb);
 
 		static void Destroy();
 	};

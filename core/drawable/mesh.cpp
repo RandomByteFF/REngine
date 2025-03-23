@@ -1,16 +1,16 @@
 #include "mesh.hpp"
-#include "descriptorPool.hpp"
-#include "instance.hpp"
+#include "core/descriptorPool.hpp"
+#include "core/instance.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace REngine::Core {
 	void Mesh::Create(Pipeline pipeline, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices) {
 		this->pipeline = pipeline;
 		indicesSize = uint32_t(indices.size());
-		mvp.model = glm::mat4(1.0f);
+		model = glm::mat4(1.0f);
 		descriptorSets = DescriptorPool::CreateDescriptor(pipeline.GetLayout(), Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
 		
-		VkDeviceSize bufferSize = sizeof(MVP);
+		VkDeviceSize bufferSize = sizeof(mvp);
 		uniformBuffers.resize(Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
 		
 		for (size_t i = 0; i < Instance::GetInfo().MAX_FRAMES_IN_FLIGHT; i++) {
@@ -44,18 +44,13 @@ namespace REngine::Core {
 	}
 
 	void Mesh::Rotate(glm::f32 angle, glm::vec3 pivot) {
-		mvp.model = glm::rotate(mvp.model, angle, pivot);
-		mvp.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		mvp.proj = glm::perspective(glm::radians(45.0f), float(800 / 600), 0.1f, 10.0f);
-		mvp.proj[1][1] *= -1;
-		changed = true;
+		model = glm::rotate(model, angle, pivot);
 	}
 
-	void Mesh::Update() {
-		if (changed) {
-			uniformBuffers[Instance::GetInfo().currentFrame].CopyData(&mvp, sizeof(MVP));
-			changed = false;
-		}
+	void Mesh::Update(Camera &camera) {
+		// TODO: don't upload if camera and model hasn't changed
+		mvp = camera.VP() * model;
+		uniformBuffers[Instance::GetInfo().currentFrame].CopyData(&mvp, sizeof(mvp));
 	}
 	void Mesh::Destroy() {
 		for (auto i : uniformBuffers) {

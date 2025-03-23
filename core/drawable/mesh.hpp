@@ -1,19 +1,13 @@
 #pragma once
 
-#include "headers.h"
-#include "pipeline.hpp"
-#include "buffer.hpp"
-#include "image.hpp"
+#include "core/pipeline.hpp"
+#include "core/buffer.hpp"
+#include "core/image.hpp"
+#include "core/camera.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "vertex.hpp"
-
-struct MVP {
-	glm::mat4 model;
-	glm::mat4 view;
-	glm::mat4 proj;
-};
+#include "core/vertex.hpp"
 
 namespace REngine::Core {
 	class Mesh {
@@ -23,8 +17,8 @@ namespace REngine::Core {
 		Buffer indexBuffer;
 		uint32_t indicesSize = 0;
 		std::vector<Buffer> uniformBuffers;
-		MVP mvp; 
-		bool changed = true;
+		glm::mat4 model;
+		glm::mat4 mvp; 
 		
 	public:
 		void Create(Pipeline pipeline, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices);
@@ -32,7 +26,7 @@ namespace REngine::Core {
 		void Draw(vk::CommandBuffer cb);
 		void SetImage(Image image, vk::Sampler sampler);
 		void Rotate(glm::f32 angle, glm::vec3 pivot);
-		void Update();
+		void Update(Camera &camera);
 		void Destroy();
 	};
 }

@@ -1,15 +1,16 @@
 #pragma once
 
-#include "core/windowManager.hpp"
-#include "core/instance.hpp"
-#include "core/image.hpp"
+#include "windowManager.hpp"
+#include "instance.hpp"
+#include "image.hpp"
 #include "loader/shader.hpp"
-#include "core/pipeline.hpp"
-#include "core/mesh.hpp"
-#include "core/descriptorPool.hpp"
-#include "core/renderer.hpp"
+#include "pipeline.hpp"
+#include "drawable/mesh.hpp"
+#include "descriptorPool.hpp"
+#include "renderer.hpp"
 #include "loader/obj.hpp"
-#include "core/time.hpp"
+#include "time.hpp"
+#include "camera.hpp"
 
 #include <iostream>
 
@@ -22,6 +23,7 @@ namespace REngine::Core {
 		Image textureImage;
 		std::vector<Mesh> objects;
 		REngine::Loader::Obj model;
+		Camera camera;
 		void InitVulkan();
 		void MainLoop();
 		void Cleanup();
