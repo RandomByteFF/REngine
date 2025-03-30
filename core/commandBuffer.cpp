@@ -3,8 +3,7 @@
 #include "instance.hpp"
 
 namespace REngine::Core {
-	void CommandBuffer::Create(vk::RenderPass renderPass) {
-		this->renderPass = renderPass;
+	void CommandBuffer::Create() {
 		vk::CommandBufferAllocateInfo allocInfo{};
 		allocInfo.commandPool = Instance::GetInfo().commandPool;
 		allocInfo.level = vk::CommandBufferLevel::ePrimary;
@@ -17,9 +16,12 @@ namespace REngine::Core {
 		commandBuffer.reset();
 	}
 
-	void CommandBuffer::BeginPass(vk::Extent2D extent, vk::Framebuffer frameBuffer) {
+	void CommandBuffer::Begin() {
 		vk::CommandBufferBeginInfo info{};
 		commandBuffer.begin(info);
+	}
+
+	void CommandBuffer::BeginPass(vk::RenderPass renderPass, vk::Extent2D extent, vk::Framebuffer frameBuffer) {
 		vk::RenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.renderPass = renderPass;
 		renderPassInfo.framebuffer = frameBuffer;
@@ -49,8 +51,11 @@ namespace REngine::Core {
 		
 	}
 	
-	void CommandBuffer::End() {
+	void CommandBuffer::EndPass() {
 		commandBuffer.endRenderPass();
+	}
+
+	void CommandBuffer::End() {
 		commandBuffer.end();
 	}
 

@@ -17,11 +17,17 @@ namespace REngine::Core {
 		Image depthImage;
 		Image colorImage;
 		vk::RenderPass renderPass;
+		vk::RenderPass viewportRenderPass;
 		std::vector<vk::Fence> inFlightFences;
 		std::vector<vk::Semaphore> imageAvailableSemaphores;
 		std::vector<vk::Semaphore> renderFinishedSemaphores;
+		std::vector<vk::Semaphore> uiRenderFinishedSemaphores;
 		std::vector<vk::Framebuffer> swapChainFrameBuffers;
+		std::vector<Image> viewportImages;
+		std::vector<vk::Framebuffer> viewportFrambuffers;
+		// std::vector<CommandBuffer> viewportCommandBuffers;
 		std::vector<CommandBuffer> commandBuffers;
+		std::vector<vk::DescriptorSet> renderedViewports;
 		vk::Sampler sampler;
 		void CreateRenderPass();
 		void CreateFrameBuffers();
@@ -29,6 +35,7 @@ namespace REngine::Core {
 		void CreateImages();
 		void CleanupSwapchain();
 		void CreateSampler();
+		int i = 0;
 		
 		uint32_t currentFrame = 0;
 

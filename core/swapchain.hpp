@@ -27,5 +27,6 @@ namespace REngine::Core {
 		vk::Format ImageFormat() const;
 		vk::SwapchainKHR GetSwapchain() const;
 		const std::vector<vk::ImageView> &Views() const;
+		uint32_t SwapchainImageCount() const;
 	};
 }
