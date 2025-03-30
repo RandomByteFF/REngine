@@ -6,7 +6,7 @@ namespace REngine::Core {
 		Store(const Store&) = delete;
 		Store &operator=(const Store&) = delete;
 	public:
-		static Store *instance;
+		inline static Store *instance;
 
 		static Store &Inst();
 

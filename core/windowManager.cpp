@@ -1,5 +1,6 @@
 #include "windowManager.hpp"
 #include "instance.hpp"
+#include "imgui_impl_glfw.h"
 
 namespace REngine::Core {
 	
@@ -9,6 +10,7 @@ namespace REngine::Core {
 		handle = glfwCreateWindow(WIDTH, HEIGHT, "REngine", nullptr, nullptr);
 		glfwSetWindowUserPointer(handle, this);
 		glfwSetFramebufferSizeCallback(handle, FramebufferResizeCallback);
+		ImGui_ImplGlfw_InitForVulkan(handle, true);
 	}
 
 	void WindowManager::GetFrameBufferSize(int &width, int &height) {

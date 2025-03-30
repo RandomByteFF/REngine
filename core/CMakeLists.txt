@@ -1,26 +1,20 @@
-add_library(core
-	store.cpp
-	windowManager.cpp
-	instance.cpp
-	queueFamily.cpp
-	swapchain.cpp
-	image.cpp
-	buffer.cpp
-	pipeline.cpp
-	descriptorPool.cpp
-	renderer.cpp
-	commandBuffer.cpp
-	time.cpp
-	runner.cpp
-	camera.cpp
-)
 add_subdirectory(drawable)
 
-target_link_libraries(core PRIVATE
-	submodules
-	drawable
-)
-
-target_precompile_headers(core PRIVATE
-	headers.h
+set(core_sources
+	${CMAKE_CURRENT_SOURCE_DIR}/store.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/windowManager.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/instance.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/queueFamily.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/swapchain.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/image.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/buffer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/pipeline.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/descriptorPool.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/renderer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/commandBuffer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/time.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/runner.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/camera.cpp
+	${drawable_sources}
+	PARENT_SCOPE
 )
