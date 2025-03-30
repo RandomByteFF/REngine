@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 project(submodules)
 find_package(Vulkan REQUIRED)
 
@@ -13,7 +13,8 @@ set(ImguiSources
 	imgui/backends/imgui_impl_vulkan.cpp
 )
 
-include_directories(imgui 
+include_directories(
+	imgui 
 	imgui/backends 
 	${Vulkan_INCLUDE_DIR}
 )
@@ -44,8 +45,11 @@ target_link_libraries(
 )
 
 add_subdirectory(glfw)
-
+add_subdirectory(VulkanMemoryAllocator)
 target_include_directories(submodules
 	INTERFACE stb
 	INTERFACE tinyobjloader
+	INTERFACE glfw/include
+	INTERFACE glm
+	INTERFACE VulkanMemoryAllocator/include
 )
