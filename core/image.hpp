@@ -5,7 +5,6 @@
 
 namespace REngine::Core {
 	class Image {
-		vk::Image image;
 		VmaAllocation alloc;
 		VmaAllocationInfo allocInfo;
 		vk::ImageView view;
@@ -13,8 +12,9 @@ namespace REngine::Core {
 		uint32_t mipLevels;
 		int width;
 		int height;
-
-		public:
+		
+	public:
+		vk::Image image;
 		void CreateImage(uint32_t width, uint32_t height, int mipLevels,
 			vk::SampleCountFlagBits numSample, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage, 
 			vk::ImageAspectFlagBits aspect = vk::ImageAspectFlagBits::eColor);

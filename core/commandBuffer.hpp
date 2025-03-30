@@ -8,10 +8,12 @@ namespace REngine::Core {
 		vk::CommandBuffer commandBuffer;
 		
 	public:
-		void Create(vk::RenderPass renderPass);
+		void Create();
 		void Reset();
-		void BeginPass(vk::Extent2D extent, vk::Framebuffer frameBuffer);
+		void Begin();
+		void BeginPass(vk::RenderPass renderPass, vk::Extent2D extent, vk::Framebuffer frameBuffer);
 		void End();
+		void EndPass();
 
 		vk::CommandBuffer &GetBuffer();
 		

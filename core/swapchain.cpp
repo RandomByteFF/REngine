@@ -85,6 +85,10 @@ namespace REngine::Core {
 		return imageViews;
 	}
 
+	uint32_t Swapchain::SwapchainImageCount() const {
+		return imageViews.size();
+	}
+
 	vk::SurfaceFormatKHR Swapchain::ChooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats) {
 		for (const auto &availableFormat : availableFormats) {
 			if (availableFormat.format == vk::Format::eB8G8R8A8Srgb && availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
