@@ -4,14 +4,17 @@ find_package(Vulkan REQUIRED)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(ImguiSources
-	imgui/imgui_draw.cpp
-	imgui/imgui_tables.cpp
-	imgui/imgui_widgets.cpp
-	imgui/imgui.cpp
-	imgui/backends/imgui_impl_glfw.cpp
-	imgui/backends/imgui_impl_vulkan.cpp
+set(Imgui_sources
+	${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_draw.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_tables.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_widgets.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends/imgui_impl_glfw.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends/imgui_impl_vulkan.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_demo.cpp
 )
+
+set (Imgui_sources ${Imgui_sources} PARENT_SCOPE)
 
 include_directories(
 	imgui 
@@ -22,7 +25,7 @@ include_directories(
 add_executable(ImGui 
 	imgui/imgui_demo.cpp
 	imgui/examples/example_glfw_vulkan/main.cpp
-	${ImguiSources}
+	${Imgui_sources}
 )
 
 add_library(submodules INTERFACE)
@@ -52,4 +55,6 @@ target_include_directories(submodules
 	INTERFACE glfw/include
 	INTERFACE glm
 	INTERFACE VulkanMemoryAllocator/include
+	INTERFACE imgui
+	INTERFACE imgui/backends
 )

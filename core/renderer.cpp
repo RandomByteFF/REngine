@@ -1,6 +1,9 @@
 #include "renderer.hpp"
 
 #include "instance.hpp"
+#include "imgui.h"
+#include "imgui_impl_vulkan.h"
+#include "imgui_impl_glfw.h"
 
 namespace REngine::Core {
 	
@@ -65,6 +68,10 @@ namespace REngine::Core {
 	}
 
 	void Renderer::Render(std::vector<Mesh> &objects, Camera &camera) {
+		ImGui_ImplVulkan_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		ImGui::ShowDemoWindow();
 		vk::Result res = device.waitForFences(1, &inFlightFences[currentFrame], true, std::numeric_limits<uint64_t>::max());
 		if (res != vk::Result::eSuccess) throw std::runtime_error("Failed to wait for fence");
 		
@@ -97,6 +104,8 @@ namespace REngine::Core {
 			i.Bind(commandBuffers[currentFrame].GetBuffer());
 			i.Draw(commandBuffers[currentFrame].GetBuffer());
 		}
+		ImGui::Render();
+		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffers[currentFrame].GetBuffer());
 
 		commandBuffers[currentFrame].End();
 

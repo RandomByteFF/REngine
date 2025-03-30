@@ -1,5 +1,4 @@
-add_library(drawable
-	mesh.cpp
+set(drawable_sources
+	${CMAKE_CURRENT_SOURCE_DIR}/mesh.cpp
+	PARENT_SCOPE
 )
-
-target_link_libraries(drawable PRIVATE submodules)

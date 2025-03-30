@@ -1,4 +1,6 @@
 #include "runner.hpp"
+#include "imgui_impl_vulkan.h"
+#include "imgui_impl_glfw.h"
 
 namespace REngine::Core {
 	void Runner::InitVulkan() {
@@ -20,6 +22,20 @@ namespace REngine::Core {
 		// objects[1].SetImage(textureImage, renderer.Sampler());
 		camera.SetLook(glm::vec3(0.0f, 0.f, 3.f), glm::vec3(0.0f, 0.0f, 0.0f));
 		model.Destroy();
+
+		ImGui_ImplVulkan_InitInfo init_info = {};
+		init_info.Instance = Instance::Get();
+		init_info.PhysicalDevice = Instance::GetInfo().physicalDevice;
+		init_info.Device = Instance::GetInfo().device;
+		init_info.QueueFamily = Instance::GetInfo().queues.graphicsFamily.value();
+		init_info.Queue = Instance::GetInfo().graphicsQueue;
+		init_info.DescriptorPoolSize = 100;
+		init_info.MSAASamples = VkSampleCountFlagBits(Instance::GetInfo().maxMsaa);
+		//TODO: understand why i need this here
+		init_info.MinImageCount = uint32_t(renderer.GetSwapchain().Views().size());
+		init_info.ImageCount = init_info.MinImageCount;
+		init_info.RenderPass = renderer.RenderPass();
+		ImGui_ImplVulkan_Init(&init_info);
 	}
 
 	void Runner::MainLoop() {
@@ -36,6 +52,9 @@ namespace REngine::Core {
 	}
 
 	void Runner::Cleanup() {
+		ImGui_ImplVulkan_Shutdown();
+		ImGui_ImplGlfw_Shutdown();
+		ImGui::DestroyContext();
 		renderer.Destroy();
 		textureImage.Destroy();
 
@@ -57,6 +76,7 @@ namespace REngine::Core {
 
 	int Runner::Run() {
 		try	{
+			ImGui::CreateContext();
 			window.CreateWindow();
 			InitVulkan();
 			MainLoop();

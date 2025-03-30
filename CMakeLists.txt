@@ -9,9 +9,6 @@ find_package(Boost 1.87.0 REQUIRED COMPONENTS python313)
 find_package(Python REQUIRED COMPONENTS Development)
 find_package(Vulkan REQUIRED)
 
-set(SOURCE_FILES
-	main.cpp
-)
 
 if (NOT Python_Development_FOUND)
 message(FATAL_ERROR "Python development not found!")
@@ -30,6 +27,12 @@ add_subdirectory(core)
 add_subdirectory(loader)
 add_subdirectory(shaders)
 
+set(SOURCE_FILES
+	main.cpp
+    ${core_sources}
+    ${Imgui_sources}
+)
+
 add_executable(REngine ${SOURCE_FILES})
 target_compile_definitions(REngine PRIVATE BOOST_ALL_NO_LIB)
 target_link_libraries(REngine
@@ -37,7 +40,6 @@ target_link_libraries(REngine
 	glfw
     ${Vulkan_LIBRARY}
     submodules
-    core
     loader
 	VulkanMemoryAllocator
 )
@@ -53,6 +55,10 @@ if (NOT MSVC)
 		glfw
     )
 endif()
+
+target_precompile_headers(REngine PRIVATE
+	core/headers.h
+)
 
 # TODO: doesn't work on windows yet
 # add_dependencies(REngine copy_spv_files)
