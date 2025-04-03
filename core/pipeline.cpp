@@ -78,6 +78,7 @@ namespace REngine::Core {
 		vk::PipelineMultisampleStateCreateInfo multisampling{};
 		multisampling.sampleShadingEnable = VK_FALSE;
 		multisampling.rasterizationSamples = Instance::GetInfo().maxMsaa;
+		// multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
 		
 		vk::PipelineColorBlendAttachmentState colorBlendAttachment{};
 		colorBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;

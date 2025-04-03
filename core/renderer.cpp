@@ -25,34 +25,22 @@ namespace REngine::Core {
 		init_info.QueueFamily = Instance::GetInfo().queues.graphicsFamily.value();
 		init_info.Queue = Instance::GetInfo().graphicsQueue;
 		init_info.DescriptorPoolSize = 100;
-		init_info.MSAASamples = VkSampleCountFlagBits(Instance::GetInfo().maxMsaa);
+		init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 		//TODO: understand why i need this here
 		init_info.MinImageCount = uint32_t(GetSwapchain().Views().size());
 		init_info.ImageCount = init_info.MinImageCount;
-		init_info.RenderPass = RenderPass();
+		init_info.RenderPass = renderPass;
 		ImGui_ImplVulkan_Init(&init_info);
 
 		CreateImages();
 		CreateSampler();
 		
-		viewportImages.resize(swapchain.SwapchainImageCount());
-		for (size_t i = 0; i < swapchain.SwapchainImageCount(); i++) {
-			viewportImages[i].CreateImage(swapchain.Extent().width, swapchain.Extent().height, 1, vk::SampleCountFlagBits::e1, 
-			swapchain.ImageFormat(), vk::ImageTiling::eLinear, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
-			viewportImages[i].TransitionLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal);
-		}
-		renderedViewports.resize(viewportImages.size());
-		for (size_t i = 0; i < viewportImages.size(); i++) {	
-			renderedViewports[i] = ImGui_ImplVulkan_AddTexture(sampler, viewportImages[i].View(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-		}
 		CreateFrameBuffers();
 		CreateSyncObjects();
 			
 		commandBuffers.resize(Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
-		// viewportCommandBuffers.resize(Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
 		for (size_t i = 0; i < Instance::GetInfo().MAX_FRAMES_IN_FLIGHT; i++) {
 			commandBuffers[i].Create();
-			// commandBuffers[i].Create(viewportRenderPass);
 		}
 		
 	}
@@ -62,35 +50,47 @@ namespace REngine::Core {
 		vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransientAttachment | vk::ImageUsageFlagBits::eColorAttachment);
 		depthImage.CreateImage(swapchain.Extent().width, swapchain.Extent().height, 1, Instance::GetInfo().maxMsaa, vk::Format(depthFormat), 
 		vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::ImageAspectFlagBits::eDepth);
+		viewportImages.resize(swapchain.SwapchainImageCount());
+		for (size_t i = 0; i < swapchain.SwapchainImageCount(); i++) {
+			viewportImages[i].CreateImage(swapchain.Extent().width, swapchain.Extent().height, 1, vk::SampleCountFlagBits::e1, 
+			colorFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
+			viewportImages[i].TransitionLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal);
+		}
 	}
 
 	void Renderer::CreateFrameBuffers() {
 		swapChainFrameBuffers.resize(swapchain.Views().size());
-		viewportFrambuffers.resize(swapchain.Views().size());
+		viewportFramebuffers.resize(swapchain.Views().size());
 		for (size_t i = 0; i < swapchain.Views().size(); i++) {
 			std::array<vk::ImageView, 3> attachments = {
 				colorImage.View(),
 				depthImage.View(),
-				swapchain.Views()[i]
+				viewportImages[i].View()
 			};
 
 			vk::FramebufferCreateInfo frameBufferInfo{};
-			frameBufferInfo.renderPass = renderPass;
+			frameBufferInfo.renderPass = viewportRenderPass;
 			frameBufferInfo.attachmentCount = uint32_t(attachments.size());
 			frameBufferInfo.pAttachments = attachments.data();
 			frameBufferInfo.width = swapchain.Extent().width;
 			frameBufferInfo.height = swapchain.Extent().height;
 			frameBufferInfo.layers = 1;
 
-			swapChainFrameBuffers[i] = device.createFramebuffer(frameBufferInfo);
+			viewportFramebuffers[i] = device.createFramebuffer(frameBufferInfo);
 
-			std::array<vk::ImageView, 3> attachments2 = {
-				colorImage.View(),
-				depthImage.View(),
-				viewportImages[i].View()
+			std::array<vk::ImageView, 1> attachments2 = {
+				swapchain.Views()[i]
 			};
 			frameBufferInfo.pAttachments = attachments2.data();
-			viewportFrambuffers[i] = device.createFramebuffer(frameBufferInfo);
+			frameBufferInfo.attachmentCount = uint32_t(attachments2.size());
+			frameBufferInfo.renderPass = renderPass;
+			swapChainFrameBuffers[i] = device.createFramebuffer(frameBufferInfo);
+			
+		}
+
+		renderedViewports.resize(viewportImages.size());
+		for (size_t i = 0; i < viewportImages.size(); i++) {	
+			renderedViewports[i] = ImGui_ImplVulkan_AddTexture(sampler, viewportImages[i].View(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 		}
 	}
 
@@ -99,7 +99,7 @@ namespace REngine::Core {
 	}
 
 	const vk::RenderPass Renderer::RenderPass() const {
-		return renderPass;
+		return viewportRenderPass;
 	}
 
 	const vk::Sampler Renderer::Sampler() const {
@@ -112,9 +112,7 @@ namespace REngine::Core {
 		ImGui::NewFrame();
 		ImGui::ShowDemoWindow();
 		ImGui::Begin("Editor");
-		if (i++ > 0) {
-			ImGui::Image(ImTextureID(VkDescriptorSet(renderedViewports[currentFrame])), ImVec2(300, 300));
-		}
+		ImGui::Image(ImTextureID(VkDescriptorSet(renderedViewports[currentFrame])), ImVec2(300, 300));
 		ImGui::End();
 		vk::Result res = device.waitForFences(1, &inFlightFences[currentFrame], true, std::numeric_limits<uint64_t>::max());
 		if (res != vk::Result::eSuccess) throw std::runtime_error("Failed to wait for fence");
@@ -142,25 +140,15 @@ namespace REngine::Core {
 
 		commandBuffers[currentFrame].Reset();
 		commandBuffers[currentFrame].Begin();
-		commandBuffers[currentFrame].BeginPass(viewportRenderPass, swapchain.Extent(), viewportFrambuffers[imageIndex]);
+		commandBuffers[currentFrame].BeginPass(viewportRenderPass, swapchain.Extent(), viewportFramebuffers[imageIndex]);
 
 		for (auto i : objects) {
 			i.Update(camera);
 			i.Bind(commandBuffers[currentFrame].GetBuffer());
 			i.Draw(commandBuffers[currentFrame].GetBuffer());
 		}
-
-
 		
 		commandBuffers[currentFrame].EndPass();
-		
-		// Submitting graphics draw
-		vk::MemoryBarrier memoryBarrier{};
-		memoryBarrier.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-		memoryBarrier.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentRead;
-		
-		vk::PipelineStageFlags sourceStage = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests | vk::PipelineStageFlagBits::eLateFragmentTests;
-		vk::PipelineStageFlags destinationStage = vk::PipelineStageFlagBits::eFragmentShader | vk::PipelineStageFlagBits::eVertexShader;
 		
 		commandBuffers[currentFrame].BeginPass(renderPass, swapchain.Extent(), swapChainFrameBuffers[imageIndex]);
 		
@@ -168,13 +156,6 @@ namespace REngine::Core {
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffers[currentFrame].GetBuffer());
 		commandBuffers[currentFrame].EndPass();
 		commandBuffers[currentFrame].End();
-		
-		// Submitting UI draw
-		// submitInfo.pCommandBuffers = &commandBuffers[currentFrame].GetBuffer();
-		// vk::Semaphore waitSemaphores2[] = {renderFinishedSemaphores[currentFrame]};
-		// submitInfo.pWaitSemaphores = waitSemaphores2;
-		// vk::Semaphore signalSemaphores2[] = {uiRenderFinishedSemaphores[currentFrame]};
-		// submitInfo.pSignalSemaphores = signalSemaphores2;
 		
 		vk::SubmitInfo submitInfo{};
 
@@ -190,7 +171,6 @@ namespace REngine::Core {
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
-		//Instance::GetInfo().graphicsQueue.submit(submitInfo);
 		Instance::GetInfo().graphicsQueue.submit(submitInfo, inFlightFences[currentFrame]);
 		
 		vk::PresentInfoKHR presentInfo{};
@@ -223,6 +203,7 @@ namespace REngine::Core {
 	void Renderer::CreateRenderPass() {
 		vk::AttachmentDescription colorAttachment{};
 		colorAttachment.format = swapchain.ImageFormat();
+		// colorAttachment.samples = vk::SampleCountFlagBits::e1;
 		colorAttachment.samples = Instance::GetInfo().maxMsaa;
 		colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
 		colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
@@ -233,6 +214,7 @@ namespace REngine::Core {
 		
 		vk::AttachmentDescription depthAttachment{};
 		depthAttachment.format = depthFormat;
+		// depthAttachment.samples = vk::SampleCountFlagBits::e1;
 		depthAttachment.samples = Instance::GetInfo().maxMsaa;
 		depthAttachment.loadOp = vk::AttachmentLoadOp::eClear;
 		depthAttachment.storeOp = vk::AttachmentStoreOp::eDontCare;
@@ -289,8 +271,20 @@ namespace REngine::Core {
 		renderPassInfo.pDependencies = &dependency;
 		
 		viewportRenderPass = Instance::GetInfo().device.createRenderPass(renderPassInfo);
-		attachments[2].finalLayout = vk::ImageLayout::ePresentSrcKHR;
-		renderPassInfo.pAttachments = attachments.data();
+
+		colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+		colorAttachment.samples = vk::SampleCountFlagBits::e1;
+		colorAttachmentRef.attachment = 0;
+		subpass.pDepthStencilAttachment = nullptr;
+		subpass.pResolveAttachments = nullptr;
+		
+		std::array<vk::AttachmentDescription, 1> attachments2 = {colorAttachment};
+		renderPassInfo.attachmentCount = int32_t(attachments2.size());
+		renderPassInfo.pAttachments = attachments2.data();
+		dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+		dependency.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+		dependency.dstStageMask = vk::PipelineStageFlagBits::eFragmentShader;
+		dependency.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 		renderPass = Instance::GetInfo().device.createRenderPass(renderPassInfo);
 	}
 
@@ -361,6 +355,7 @@ namespace REngine::Core {
 			device.destroyFence(inFlightFences[i]);	
 		}
 		device.destroyRenderPass(renderPass);
+		device.destroyRenderPass(viewportRenderPass);
 	}
 
 	void Renderer::RecreateSwapchain() {
@@ -384,9 +379,15 @@ namespace REngine::Core {
 		for (auto framebuffer : swapChainFrameBuffers) {
 			device.destroyFramebuffer(framebuffer);
 		}
-		for (auto imageView : swapchain.Views()) {
-			device.destroyImageView(imageView);
+		for (auto framebuffer : viewportFramebuffers) {
+			device.destroyFramebuffer(framebuffer);
 		}
-		device.destroySwapchainKHR(swapchain.GetSwapchain());
+		for (size_t i = 0; i < renderedViewports.size(); i++) {	
+			ImGui_ImplVulkan_RemoveTexture(renderedViewports[i]);
+		}
+		for (auto image : viewportImages) {
+			image.Destroy();
+		}
+		swapchain.Destroy();
 	}
 }

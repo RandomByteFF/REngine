@@ -86,7 +86,15 @@ namespace REngine::Core {
 	}
 
 	uint32_t Swapchain::SwapchainImageCount() const {
-		return imageViews.size();
+		return uint32_t(imageViews.size());
+	}
+
+	void Swapchain::Destroy() {
+		auto device = Instance::GetInfo().device;
+		for (auto imageView : this->Views()) {
+			device.destroyImageView(imageView);
+		}
+		device.destroySwapchainKHR(swapchain);
 	}
 
 	vk::SurfaceFormatKHR Swapchain::ChooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats) {

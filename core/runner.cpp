@@ -39,12 +39,13 @@ namespace REngine::Core {
 	}
 
 	void Runner::Cleanup() {
+		renderer.Destroy();
+		textureImage.Destroy();
+		
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
-		renderer.Destroy();
-		textureImage.Destroy();
-
+		
 		DescriptorPool::Cleanup();
 		for(auto i : objects) {
 			i.Destroy();
