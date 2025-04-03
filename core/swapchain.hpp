@@ -28,5 +28,7 @@ namespace REngine::Core {
 		vk::SwapchainKHR GetSwapchain() const;
 		const std::vector<vk::ImageView> &Views() const;
 		uint32_t SwapchainImageCount() const;
+
+		void Destroy();
 	};
 }

@@ -24,8 +24,7 @@ namespace REngine::Core {
 		std::vector<vk::Semaphore> uiRenderFinishedSemaphores;
 		std::vector<vk::Framebuffer> swapChainFrameBuffers;
 		std::vector<Image> viewportImages;
-		std::vector<vk::Framebuffer> viewportFrambuffers;
-		// std::vector<CommandBuffer> viewportCommandBuffers;
+		std::vector<vk::Framebuffer> viewportFramebuffers;
 		std::vector<CommandBuffer> commandBuffers;
 		std::vector<vk::DescriptorSet> renderedViewports;
 		vk::Sampler sampler;
@@ -35,7 +34,6 @@ namespace REngine::Core {
 		void CreateImages();
 		void CleanupSwapchain();
 		void CreateSampler();
-		int i = 0;
 		
 		uint32_t currentFrame = 0;
 
