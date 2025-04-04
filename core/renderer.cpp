@@ -131,6 +131,7 @@ namespace REngine::Core {
 			}
 		}
 		catch (vk::OutOfDateKHRError error) {
+			ImGui::Render();
 			RecreateSwapchain();
 			return;
 		}
