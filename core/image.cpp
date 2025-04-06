@@ -215,6 +215,22 @@ namespace REngine::Core {
 		return view;
 	}
 
+	vk::Image Image::Get() const {
+		return image;
+	}
+
+	vk::Format Image::Format() const {
+		return format;
+	}
+
+	uint32_t Image::Width() const {
+		return width;
+	}
+
+	uint32_t Image::Height() const {
+		return height;
+	}
+
 	void Image::Destroy()
 	{
 		Instance::GetInfo().device.destroyImageView(view);

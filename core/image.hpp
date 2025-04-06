@@ -27,6 +27,10 @@ namespace REngine::Core {
 		void GenerateMipmaps(uint32_t mipLevels = 0);
 
 		vk::ImageView View() const;
+		vk::Image Get() const;
+		vk::Format Format() const;
+		uint32_t Width() const;
+		uint32_t Height() const;
 		void Destroy();
 	};
 }

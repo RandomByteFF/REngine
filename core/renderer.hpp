@@ -7,29 +7,25 @@
 #include "commandBuffer.hpp"
 #include "windowManager.hpp"
 #include "camera.hpp"
+#include "viewportRenderer.hpp"
+#include "editor/editor.hpp"
 
 namespace REngine::Core {
 	class Renderer {
 		WindowManager window;
+		ViewportRenderer vpRenderer;
+		Editor::Editor editor;
 		vk::Device device;
 		vk::Format colorFormat;
 		vk::Format depthFormat;
-		Image depthImage;
-		Image colorImage;
-		vk::RenderPass renderPass;
-		vk::RenderPass viewportRenderPass;
 		std::vector<vk::Fence> inFlightFences;
+		std::vector<Image> viewportImages;
 		std::vector<vk::Semaphore> imageAvailableSemaphores;
 		std::vector<vk::Semaphore> renderFinishedSemaphores;
-		std::vector<vk::Semaphore> uiRenderFinishedSemaphores;
-		std::vector<vk::Framebuffer> swapChainFrameBuffers;
-		std::vector<Image> viewportImages;
-		std::vector<vk::Framebuffer> viewportFramebuffers;
 		std::vector<CommandBuffer> commandBuffers;
-		std::vector<vk::DescriptorSet> renderedViewports;
 		vk::Sampler sampler;
-		void CreateRenderPass();
-		void CreateFrameBuffers();
+		vk::ImageMemoryBarrier barrier;
+		std::vector<vk::ImageView> viewportView;
 		void CreateSyncObjects();
 		void CreateImages();
 		void CleanupSwapchain();
