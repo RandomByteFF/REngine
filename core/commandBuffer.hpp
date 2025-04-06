@@ -4,7 +4,6 @@
 
 namespace REngine::Core {
 	class CommandBuffer {
-		vk::RenderPass renderPass;
 		vk::CommandBuffer commandBuffer;
 		
 	public:

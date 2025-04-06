@@ -15,6 +15,7 @@ set(core_sources
 	${CMAKE_CURRENT_SOURCE_DIR}/time.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/runner.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/camera.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/viewportRenderer.cpp
 	${drawable_sources}
 	PARENT_SCOPE
 )

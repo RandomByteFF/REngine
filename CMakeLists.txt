@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 project(REngine)
 
+option(EDITOR "If this is false we compile the exported game, else the whole editor" ON)
+if (EDITOR)
+add_definitions(-DEDITOR)
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(Boost_USE_STATIC_LIBS OFF) 
 set(Boost_USE_MULTITHREADED ON)  
@@ -26,11 +31,13 @@ add_subdirectory(submodules)
 add_subdirectory(core)
 add_subdirectory(loader)
 add_subdirectory(shaders)
+add_subdirectory(editor)
 
 set(SOURCE_FILES
 	main.cpp
     ${core_sources}
     ${Imgui_sources}
+	${editor_sources}
 )
 
 add_executable(REngine ${SOURCE_FILES})

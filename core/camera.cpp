@@ -11,7 +11,9 @@ namespace REngine::Core {
 	
 	Camera::Camera(glm::vec3 position, glm::vec3 lookAt) {
 		SetLook(position, lookAt);
-		proj = glm::perspective(glm::radians(45.0f), float(800 / 600), 0.1f, 10.0f);
+		proj = glm::perspective(glm::radians(45.0f), float(800 / 600), 0.1f, 10.0f); 
+		// TODO: here i probably need to query the current extent from someone. 
+		// I need this to be the render target's, not the swapchain, not the window.
 		proj[1][1] *= -1;
 		auto cb = std::bind(&Camera::resizedCallback, this, std::placeholders::_1, std::placeholders::_2);
 		Instance::OnResize(cb);
