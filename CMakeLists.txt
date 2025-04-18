@@ -32,12 +32,14 @@ add_subdirectory(core)
 add_subdirectory(loader)
 add_subdirectory(shaders)
 add_subdirectory(editor)
+add_subdirectory(input)
 
 set(SOURCE_FILES
 	main.cpp
-    ${core_sources}
-    ${Imgui_sources}
+	${core_sources}
+	${Imgui_sources}
 	${editor_sources}
+	${input_sources}
 )
 
 add_executable(REngine ${SOURCE_FILES})
@@ -45,22 +47,22 @@ target_compile_definitions(REngine PRIVATE BOOST_ALL_NO_LIB)
 target_link_libraries(REngine
 	${Python_LIBRARIES} ${Boost_LIBRARIES}
 	glfw
-    ${Vulkan_LIBRARY}
-    submodules
-    loader
+	${Vulkan_LIBRARY}
+	submodules
+	loader
 	VulkanMemoryAllocator
 )
 if (NOT MSVC)
-    target_link_libraries(
+	target_link_libraries(
 		REngine
-        dl
-        pthread
-        X11
-        Xxf86vm
-        Xrandr
-        Xi
+		dl
+		pthread
+		X11
+		Xxf86vm
+		Xrandr
+		Xi
 		glfw
-    )
+	)
 endif()
 
 target_precompile_headers(REngine PRIVATE

@@ -1,6 +1,8 @@
 #include "windowManager.hpp"
 #include "instance.hpp"
 #include "imgui_impl_glfw.h"
+#include "input/keyboard.hpp"
+#include "input/mouse.hpp"
 
 namespace REngine::Core {
 	
@@ -11,6 +13,8 @@ namespace REngine::Core {
 		glfwSetWindowUserPointer(handle, this);
 		glfwSetFramebufferSizeCallback(handle, FramebufferResizeCallback);
 		ImGui_ImplGlfw_InitForVulkan(handle, true);
+		Input::Keyboard::Initialize(handle);
+		Input::Mouse::Initialize(handle);
 	}
 
 	void WindowManager::GetFrameBufferSize(int &width, int &height) {

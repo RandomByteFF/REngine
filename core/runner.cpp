@@ -1,6 +1,7 @@
 #include "runner.hpp"
 #include "imgui_impl_vulkan.h"
 #include "imgui_impl_glfw.h"
+#include "input/mouse.hpp"
 
 namespace REngine::Core {
 	void Runner::InitVulkan() {
@@ -30,6 +31,7 @@ namespace REngine::Core {
 		Time::Start();
 		while(window.Update()) {
 			Time::Tick();
+			Input::Mouse::RecordDelta();
 			objects[0].Rotate(Time::Delta() * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 			// objects[1].Rotate(Time::Delta() * glm::radians(10.0f), glm::vec3(0.0f, 1.0f, 1.0f));
 			renderer.Render(objects, camera);
