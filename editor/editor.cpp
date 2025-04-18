@@ -3,6 +3,8 @@
 #include "imgui_impl_vulkan.h"
 #include "imgui_impl_glfw.h"
 #include "core/instance.hpp"
+#include "input/keyboard.hpp"
+#include "input/mouse.hpp"
 
 namespace REngine::Editor {
 	void Editor::Initialize(Core::Swapchain swapchain) {
@@ -79,6 +81,16 @@ namespace REngine::Editor {
 		ImGui::ShowDemoWindow();
 		ImGui::Begin("Editor");
 		ImGui::Image(ImTextureID(VkDescriptorSet(renderedViewports[imageIndex])), ImVec2(300, 300));
+		ImGui::End();
+			
+		ImGui::Begin("Debug");
+		ImGui::Text(Input::Mouse::IsDown(GLFW_MOUSE_BUTTON_LEFT) ? "Pressed" : "Not pressed");
+		if (Input::Keyboard::IsDown(GLFW_KEY_1)) Input::Mouse::Lock();
+		if (Input::Keyboard::IsDown(GLFW_KEY_ESCAPE)) Input::Mouse::Unlock();
+		glm::vec2 cursor = Input::Mouse::CursorPos();
+		ImGui::Text(std::format("Cursor position: X: {}, Y: {}", cursor.x, cursor.y).c_str());
+		glm::vec2 delta = Input::Mouse::Delta();
+		ImGui::Text(std::format("Cursor delta: X: {}, Y: {}", delta.x, delta.y).c_str());
 		ImGui::End();
 
 		ImGui::Render();
