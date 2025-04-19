@@ -21,7 +21,8 @@ namespace REngine::Core {
 		// objects.push_back(Mesh());
 		// objects[1].Create(pipeline, model.Verticies(), model.Indices());
 		// objects[1].SetImage(textureImage, renderer.Sampler());
-		camera.SetLook(glm::vec3(0.0f, 0.f, 3.f), glm::vec3(0.0f, 0.0f, 0.0f));
+		camera.SetPosition(glm::vec3(0.f, 0.f, 3.f));
+		camera.Rotate(glm::vec3(0.2f, 0.3f, 0.f));
 		model.Destroy();
 
 	}
