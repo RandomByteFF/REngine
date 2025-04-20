@@ -6,7 +6,6 @@
 namespace REngine::Core {
 	class Camera {
 		Camera(const Camera &) = delete;
-		Camera &operator =(const Camera &) = delete;
 		glm::vec3 position;
 		glm::vec3 rotation;
 		glm::mat4 view;
@@ -19,8 +18,7 @@ namespace REngine::Core {
 
 		void resizedCallback(int width, int height);
 	public:
-		Camera();
-		Camera(glm::vec3 position);
+		Camera(float aspect = 1.f, glm::vec3 position = glm::vec3(0.f, 0.f, 0.f));
 		void SetPosition(glm::vec3 position);
 		glm::vec3 GetPosition();
 		glm::vec3 Forward();

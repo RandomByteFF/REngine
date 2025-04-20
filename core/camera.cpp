@@ -7,10 +7,8 @@ namespace REngine::Core {
 		dirty = true;
 	}
 
-	Camera::Camera() : Camera(glm::vec3(0.f, 0.f, 0.f)){}
-	
-	Camera::Camera(glm::vec3 position) {
-		proj = glm::perspective(glm::radians(45.0f), float(800 / 600), 0.1f, 10.0f); 
+	Camera::Camera(float aspect, glm::vec3 position) {
+		proj = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 10.0f); 
 		// TODO: here i probably need to query the current extent from someone. 
 		// I need this to be the render target's, not the swapchain, not the window.
 		proj[1][1] *= -1;
@@ -23,7 +21,7 @@ namespace REngine::Core {
 	{
 		if (dirty) {
 			glm::vec3 up_dir = glm::vec3(0.f, 1.f, 0.f);
-			if (abs(forward.y) < 0.01) up_dir = glm::normalize(glm::vec3(0.f, 0.99f, 0.1f)); // Calculate normally
+			// if (abs(forward.y) < 0.01) up_dir = glm::normalize(glm::vec3(0.f, 0.99f, 0.1f)); // Calculate normally
 			view = glm::lookAt(position, position + forward, up_dir);
 			vp = proj * view;
 			dirty = false;
@@ -60,7 +58,7 @@ namespace REngine::Core {
 		forward = glm::vec3(glm::rotate(glm::mat4(1.f), rotation.x, glm::vec3(1.f, 0.f, 0.f)) * glm::vec4(forward, 1.f));
 		forward = glm::vec3(glm::rotate(glm::mat4(1.f), rotation.y, glm::vec3(0.f, 1.f, 0.f)) * glm::vec4(forward, 1.f));
 		glm::vec3 up_dir = glm::vec3(0.f, 1.f, 0.f);
-		if (abs(forward.y) < 0.01) up_dir = glm::normalize(glm::vec3(0.f, 0.99f, 0.1f)); // Calculate normally
+		// if (abs(forward.y) < 0.01) up_dir = glm::normalize(glm::vec3(0.f, 0.99f, 0.1f)); // Calculate normally
 		right = glm::cross(forward, up_dir);
 		up = glm::cross(right, forward);
 	}

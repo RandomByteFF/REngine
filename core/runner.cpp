@@ -9,6 +9,7 @@ namespace REngine::Core {
 		Instance::Initialize(window);
 		device = Instance::GetInfo().device;
 		renderer.Create(window);
+		camera = Camera(renderer.AspectRatio());
 		pipeline.SetLayout({
 			{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex},
 			{vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment}
@@ -25,7 +26,6 @@ namespace REngine::Core {
 		camera.SetPosition(glm::vec3(0.f, 0.f, 3.f));
 		camera.Rotate(glm::vec3(0.2f, 0.3f, 0.f));
 		model.Destroy();
-
 	}
 
 	void Runner::MainLoop() {

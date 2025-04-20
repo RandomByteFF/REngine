@@ -94,7 +94,9 @@ namespace REngine::Core {
 			}
 		}
 		catch (vk::OutOfDateKHRError error) {
-			ImGui::Render();
+			#ifdef EDITOR
+				ImGui::Render();
+			#endif
 			RecreateSwapchain();
 			return;
 		}
@@ -248,6 +250,10 @@ namespace REngine::Core {
 		editor.AddTextures(viewportView, sampler);
 		editor.CreateFramebuffers(swapchain);
 		#endif
+	}
+
+	float Renderer::AspectRatio() {
+		return float(swapchain.Extent().width) / float(swapchain.Extent().height);
 	}
 
 	void Renderer::CleanupSwapchain() {
