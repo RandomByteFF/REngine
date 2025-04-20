@@ -2,6 +2,7 @@
 #include "imgui_impl_vulkan.h"
 #include "imgui_impl_glfw.h"
 #include "input/mouse.hpp"
+#include "input/keyboard.hpp"
 
 namespace REngine::Core {
 	void Runner::InitVulkan() {
@@ -33,7 +34,15 @@ namespace REngine::Core {
 		while(window.Update()) {
 			Time::Tick();
 			Input::Mouse::RecordDelta();
-			objects[0].Rotate(Time::Delta() * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+			if (Input::Keyboard::IsDown(GLFW_KEY_1)) Input::Mouse::Lock();
+			camera.Rotate(glm::vec3(-Input::Mouse::Delta().y, -Input::Mouse::Delta().x, 0.f) * Time::Delta());
+			if (Input::Keyboard::IsDown(GLFW_KEY_W)) camera.SetPosition(camera.GetPosition() + camera.Forward() * Time::Delta());
+			if (Input::Keyboard::IsDown(GLFW_KEY_S)) camera.SetPosition(camera.GetPosition() - camera.Forward() * Time::Delta());
+			if (Input::Keyboard::IsDown(GLFW_KEY_D)) camera.SetPosition(camera.GetPosition() + camera.Right() * Time::Delta());
+			if (Input::Keyboard::IsDown(GLFW_KEY_A)) camera.SetPosition(camera.GetPosition() - camera.Right() * Time::Delta());
+			if (Input::Keyboard::IsDown(GLFW_KEY_SPACE)) camera.SetPosition(camera.GetPosition() + camera.Up() * Time::Delta());
+			if (Input::Keyboard::IsDown(GLFW_KEY_Q)) camera.SetPosition(camera.GetPosition() - camera.Up() * Time::Delta());
+			// objects[0].Rotate(Time::Delta() * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 			// objects[1].Rotate(Time::Delta() * glm::radians(10.0f), glm::vec3(0.0f, 1.0f, 1.0f));
 			renderer.Render(objects, camera);
 		}
