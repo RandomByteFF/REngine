@@ -41,6 +41,7 @@ namespace REngine::Core {
 		const vk::Sampler Sampler() const;
 		void Render(std::vector<Mesh> &objects, Camera &camera);
 		void RecreateSwapchain();
+		float AspectRatio();
 
 		void Destroy();
 
