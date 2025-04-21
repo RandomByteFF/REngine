@@ -27,5 +27,7 @@ namespace REngine::Core {
 		glm::vec3 Up();
 		void Rotate(glm::vec3 rotation);
 		const glm::mat4 &VP();
+		const glm::mat4 &V();
+		const glm::mat4 &P();
 	};
 }

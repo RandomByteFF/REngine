@@ -9,7 +9,7 @@
 - On binding, we won't try to bind the already bound descriptors.
 */
 namespace REngine::Core {
-	void Pipeline::Create(const char *vertShader, const char *fragShader, const Swapchain &swapchain, const vk::RenderPass renderPass) {
+	void Pipeline::Create(const char *vertShader, const char *fragShader, const Swapchain &swapchain, const vk::RenderPass renderPass, bool noVertex) {
 		vk::ShaderModule vertShaderModule = Loader::Shader::Get(vertShader);
 		vk::ShaderModule fragShaderModule = Loader::Shader::Get(fragShader);
 		
@@ -38,10 +38,16 @@ namespace REngine::Core {
 		auto attributeDescription = Vertex::GetAttributeDescriptions();
 
 		vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
-		vertexInputInfo.vertexBindingDescriptionCount = 1;
-		vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-		vertexInputInfo.vertexAttributeDescriptionCount = uint32_t(attributeDescription.size());
-		vertexInputInfo.pVertexAttributeDescriptions = attributeDescription.data();
+		if (noVertex) {
+			vertexInputInfo.vertexAttributeDescriptionCount = 0;
+			vertexInputInfo.vertexBindingDescriptionCount = 0;
+		}
+		else {
+			vertexInputInfo.vertexBindingDescriptionCount = 1;
+			vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+			vertexInputInfo.vertexAttributeDescriptionCount = uint32_t(attributeDescription.size());
+			vertexInputInfo.pVertexAttributeDescriptions = attributeDescription.data();
+		}
 		
 		vk::PipelineInputAssemblyStateCreateInfo inputAssembly{};
 		inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
@@ -68,7 +74,7 @@ namespace REngine::Core {
 		rasterizer.rasterizerDiscardEnable = VK_FALSE;
 		rasterizer.polygonMode = vk::PolygonMode::eFill;
 		rasterizer.lineWidth = 1.0f;
-		rasterizer.cullMode = vk::CullModeFlagBits::eBack;
+		rasterizer.cullMode = vk::CullModeFlagBits::eNone; //FIXME: turn this back
 		rasterizer.frontFace = vk::FrontFace::eCounterClockwise;
 		rasterizer.depthBiasEnable = VK_FALSE;
 		rasterizer.depthBiasConstantFactor = 0.0f;

@@ -8,7 +8,7 @@ namespace REngine::Core {
 	void Runner::InitVulkan() {
 		Instance::Initialize(window);
 		device = Instance::GetInfo().device;
-		renderer.Create(window);
+		renderer.Create(window, objects);
 		camera = Camera(renderer.AspectRatio());
 		pipeline.SetLayout({
 			{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex},
@@ -17,9 +17,10 @@ namespace REngine::Core {
 		pipeline.Create("vertex", "fragment", renderer.GetSwapchain(), renderer.RenderPass());
 		textureImage.CreateImage(REngine::Loader::Image("test_files/viking_room.png"));
 		model.Load("test_files/viking_room.obj");
-		objects.push_back(Mesh());
-		objects[0].Create(pipeline, model.Verticies(), model.Indices());
-		objects[0].SetImage(textureImage, renderer.Sampler());
+		testMesh = std::shared_ptr<Mesh>(new Mesh());
+		objects.push_back(testMesh);
+		testMesh->Create(pipeline, model.Verticies(), model.Indices());
+		testMesh->SetImage(textureImage, renderer.Sampler());
 		// objects.push_back(Mesh());
 		// objects[1].Create(pipeline, model.Verticies(), model.Indices());
 		// objects[1].SetImage(textureImage, renderer.Sampler());
@@ -29,7 +30,7 @@ namespace REngine::Core {
 	}
 
 	void Runner::MainLoop() {
-		objects[0].Rotate(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		testMesh->Rotate(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		Time::Start();
 		while(window.Update()) {
 			Time::Tick();
@@ -56,7 +57,7 @@ namespace REngine::Core {
 		
 		DescriptorPool::Cleanup();
 		for(auto i : objects) {
-			i.Destroy();
+			i->Destroy();
 		}
 		
 		REngine::Loader::Shader::Destroy();

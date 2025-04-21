@@ -15,7 +15,7 @@ namespace REngine::Core {
 		vk::DescriptorSetLayout descriptorLayout;
 		vk::PipelineLayout layout;
 	public:
-		void Create(const char *vertShader, const char *fragShader, const Swapchain &swapchain, const vk::RenderPass renderPass);
+		void Create(const char *vertShader, const char *fragShader, const Swapchain &swapchain, const vk::RenderPass renderPass, bool noVertex = false);
 		void SetLayout(std::vector<std::pair<vk::DescriptorType, vk::ShaderStageFlags>> descriptors);
 		const vk::Pipeline &GetPipeline() const;
 		const vk::DescriptorSetLayout &GetLayout() const;

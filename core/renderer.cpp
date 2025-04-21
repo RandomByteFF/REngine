@@ -8,7 +8,7 @@
 
 namespace REngine::Core {
 	
-	void Renderer::Create(WindowManager window) {
+	void Renderer::Create(WindowManager window, std::vector<std::shared_ptr<Drawable>> &objects) {
 		this->window = window;
 		device = Instance::GetInfo().device;
 
@@ -31,7 +31,7 @@ namespace REngine::Core {
 		}
 		
 		#ifdef EDITOR
-		editor.Initialize(swapchain);
+		editor.Initialize(swapchain, vpRenderer.RenderPass(), objects);
 		editor.CreateFramebuffers(swapchain);
 		editor.AddTextures(viewportView, sampler);
 		barrier.oldLayout = vk::ImageLayout::ePresentSrcKHR;
@@ -76,7 +76,7 @@ namespace REngine::Core {
 		return sampler;
 	}
 
-	void Renderer::Render(std::vector<Mesh> &objects, Camera &camera) {
+	void Renderer::Render(std::vector<std::shared_ptr<Drawable>> &objects, Camera &camera) {
 		vk::Result res = device.waitForFences(1, &inFlightFences[currentFrame], true, std::numeric_limits<uint64_t>::max());
 		if (res != vk::Result::eSuccess) throw std::runtime_error("Failed to wait for fence");
 		
@@ -227,10 +227,10 @@ namespace REngine::Core {
 			device.destroySemaphore(renderFinishedSemaphores[i]);
 			device.destroyFence(inFlightFences[i]);
 		}
-		vpRenderer.Destroy();
 		#ifdef EDITOR
 		editor.Destroy();
 		#endif
+		vpRenderer.Destroy();
 	}
 
 	void Renderer::RecreateSwapchain() {

@@ -21,7 +21,8 @@ namespace REngine::Core {
 		Pipeline pipeline;
 		Renderer renderer;
 		Image textureImage;
-		std::vector<Mesh> objects;
+		std::shared_ptr<Mesh> testMesh;
+		std::vector<std::shared_ptr<Drawable>> objects;
 		REngine::Loader::Obj model;
 		Camera camera;
 		void InitVulkan();

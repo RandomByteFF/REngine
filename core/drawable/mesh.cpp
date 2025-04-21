@@ -34,7 +34,7 @@ namespace REngine::Core {
 	}
 
 	void Mesh::Draw(vk::CommandBuffer cb) {
-		cb.drawIndexed(indicesSize, 1, 0, 0, 0);	
+		cb.drawIndexed(indicesSize, 1, 0, 0, 0);
 	}
 
 	void Mesh::SetImage(Image image, vk::Sampler sampler) {
