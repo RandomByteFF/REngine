@@ -14,9 +14,13 @@ namespace REngine::Core {
 		proj[1][1] *= -1;
 		rotation = glm::vec3();
 		auto cb = std::bind(&Camera::resizedCallback, this, std::placeholders::_1, std::placeholders::_2);
-		Instance::OnResize(cb);
+		Instance::OnResize(this, cb);
 	}
-	
+
+	Camera::~Camera() {
+		Instance::UnsubscribeResize(this);
+	}
+
 	const glm::mat4 &Camera::VP()
 	{
 		if (dirty) {

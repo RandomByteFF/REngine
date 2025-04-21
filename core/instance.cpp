@@ -194,8 +194,17 @@ namespace REngine::Core {
 		info.currentFrame = frame;
 	}
 
-	void Instance::OnResize(ResizedCallback cb) {
-		callbacks.push_back(cb);
+	void Instance::OnResize(void *caller, ResizedCallback cb) {
+		callbacks.push_back(std::move(std::pair(caller, cb)));
+	}
+
+	void Instance::UnsubscribeResize(void *caller) {
+		for (auto it = callbacks.begin(); it != callbacks.end(); it++){
+			if (it->first == caller) {
+				callbacks.erase(it);
+				return;
+			}
+		}
 	}
 
 	void Instance::Destroy() {
@@ -206,7 +215,7 @@ namespace REngine::Core {
 		info.fbWidth = width;
 		info.fbHeight = height;
 		for(auto i : callbacks) {
-			i(width, height);
+			i.second(width, height);
 		}
 	}
 }

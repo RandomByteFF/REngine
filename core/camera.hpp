@@ -19,6 +19,7 @@ namespace REngine::Core {
 		void resizedCallback(int width, int height);
 	public:
 		Camera(float aspect = 1.f, glm::vec3 position = glm::vec3(0.f, 0.f, 0.f));
+		~Camera();
 		void SetPosition(glm::vec3 position);
 		glm::vec3 GetPosition();
 		glm::vec3 Forward();
