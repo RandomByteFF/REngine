@@ -21,7 +21,7 @@ const std::vector<const char*> deviceExtensions = {
 };
 
 using ResizedCallback = std::function<void(int, int)>;
-using ResizedCallbackVector = std::vector<ResizedCallback>;
+using ResizedCallbackVector = std::vector<std::pair<void*, ResizedCallback>>;
 
 namespace REngine::Core {
 	class Instance {
@@ -53,7 +53,8 @@ namespace REngine::Core {
 		static void FrameBufferResized(int width, int height);
 		static void CreateLogicalDevice();
 		static void SetCurrentFrame(uint32_t frame);
-		static void OnResize(ResizedCallback cb);
+		static void OnResize(void *caller, ResizedCallback cb);
+		static void UnsubscribeResize(void *caller);
 
 		static void Destroy();
 	};
