@@ -35,11 +35,12 @@ namespace REngine::Core {
 
 	public:
 		Swapchain swapchain;
-		void Create(WindowManager window);
+		//FIXME: objects from here
+		void Create(WindowManager window, std::vector<std::shared_ptr<Drawable>> &objects);
 		const Swapchain GetSwapchain() const;
 		const vk::RenderPass RenderPass() const;
 		const vk::Sampler Sampler() const;
-		void Render(std::vector<Mesh> &objects, Camera &camera);
+		void Render(std::vector<std::shared_ptr<Drawable>> &objects, Camera &camera);
 		void RecreateSwapchain();
 		float AspectRatio();
 

@@ -7,7 +7,7 @@
 #include "input/mouse.hpp"
 
 namespace REngine::Editor {
-	void Editor::Initialize(Core::Swapchain swapchain) {
+	void Editor::Initialize(Core::Swapchain swapchain, vk::RenderPass vpRenderPass, std::vector<std::shared_ptr<Core::Drawable>> &objects) {
 		auto info = Core::Instance::GetInfo();
 		vk::AttachmentDescription colorAttachment{};
 		colorAttachment.format = swapchain.ImageFormat();
@@ -50,6 +50,9 @@ namespace REngine::Editor {
 		init_info.RenderPass = renderPass;
 		ImGui_ImplVulkan_Init(&init_info);
 
+		grid = std::shared_ptr<Grid>(new Grid());
+		grid->Create(swapchain, vpRenderPass);
+		objects.push_back(grid);
 	}
 	
 	void Editor::CreateFramebuffers(Core::Swapchain swapchain) {

@@ -8,9 +8,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "core/vertex.hpp"
+#include "drawable.hpp"
 
 namespace REngine::Core {
-	class Mesh {
+	class Mesh : public Drawable {
 		std::vector<vk::DescriptorSet> descriptorSets;
 		Pipeline pipeline;
 		Buffer vertexBuffer;

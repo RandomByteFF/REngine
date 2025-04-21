@@ -33,6 +33,15 @@ namespace REngine::Core {
 		return vp;
 	}
 
+	const glm::mat4 &Camera::V() {
+		if (dirty) VP();
+		return view;
+	}
+
+	const glm::mat4 &Camera::P() {
+		return proj;
+	}
+
 	void Camera::SetPosition(glm::vec3 position) {
 		this->position = position;
 		dirty = true;
