@@ -30,9 +30,11 @@ namespace REngine::Core {
 	}
 
 	void WindowManager::FramebufferResizeCallback(GLFWwindow *window, int width, int height) {
+		#ifndef EDITOR
 		WindowManager *manager = reinterpret_cast<WindowManager*>(glfwGetWindowUserPointer(window));
 		manager->framebufferResized = true;
 		Instance::FrameBufferResized(width, height);
+		#endif
 	}
 
 	bool WindowManager::IsDirty(bool reset) {
