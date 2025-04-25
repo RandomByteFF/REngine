@@ -49,6 +49,7 @@ namespace REngine::Editor {
 		init_info.ImageCount = init_info.MinImageCount;
 		init_info.RenderPass = renderPass;
 		ImGui_ImplVulkan_Init(&init_info);
+		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 		grid = std::shared_ptr<Grid>(new Grid());
 		grid->Create(swapchain, vpRenderPass);
@@ -81,9 +82,26 @@ namespace REngine::Editor {
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		ImGui::ShowDemoWindow();
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->WorkPos);
+        ImGui::SetNextWindowSize(viewport->WorkSize);
+        ImGui::SetNextWindowViewport(viewport->ID);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        auto window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+        window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+		ImGui::Begin("REngine", nullptr, window_flags);
+		ImGui::End();
+		ImGui::PopStyleVar(2);
 		ImGui::Begin("Editor");
-		ImGui::Image(ImTextureID(VkDescriptorSet(renderedViewports[imageIndex])), ImVec2(300, 300));
+		ImVec2 size = ImGui::GetWindowSize();
+		size.x -= 20;
+		size.y -= 40;
+		if (size.x != prevViewSize.x || size.y != prevViewSize.y) {
+			Core::Instance::FrameBufferResized(size.x, size.y);
+			prevViewSize = size;
+		}
+		ImGui::Image(ImTextureID(VkDescriptorSet(renderedViewports[imageIndex])), size);
 		ImGui::End();
 			
 		ImGui::Begin("Debug");

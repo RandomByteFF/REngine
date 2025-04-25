@@ -18,7 +18,10 @@ namespace REngine::Core {
 		textureImage.CreateImage(REngine::Loader::Image("test_files/viking_room.png"));
 		model.Load("test_files/viking_room.obj");
 		testMesh = std::shared_ptr<Mesh>(new Mesh());
-		objects.push_back(testMesh);
+		objects.resize(2);
+		objects[1] = objects[0];
+		objects[0] = testMesh;
+		// TODO: grid needs to be the last one, kill this and do a singleton type stuff
 		testMesh->Create(pipeline, model.Verticies(), model.Indices());
 		testMesh->SetImage(textureImage, renderer.Sampler());
 		// objects.push_back(Mesh());

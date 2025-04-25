@@ -3,6 +3,7 @@
 #include "drawable/drawable.hpp"
 #include "core/image.hpp"
 #include "commandBuffer.hpp"
+#include <memory>
 
 namespace REngine::Core {
 	class ViewportRenderer {

@@ -3,9 +3,13 @@
 #include "core/swapchain.hpp"
 #include "core/commandBuffer.hpp"
 #include "grid.hpp"
+#include <memory>
+#include "imgui.h"
 
 namespace REngine::Editor {
 	class Editor {
+		ImVec2 prevViewSize = {0, 0};
+
 		vk::RenderPass renderPass;
 		std::vector<vk::Framebuffer> framebuffers;
 		std::vector<vk::DescriptorSet> renderedViewports;
