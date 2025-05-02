@@ -8,26 +8,25 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "core/vertex.hpp"
-#include "drawable.hpp"
+#include "node3d.hpp"
 
-namespace REngine::Core {
-	class Mesh : public Drawable {
+namespace REngine::Scene {
+	class Mesh : public Node3D {
 		std::vector<vk::DescriptorSet> descriptorSets;
-		Pipeline pipeline;
-		Buffer vertexBuffer;
-		Buffer indexBuffer;
+		Core::Pipeline pipeline;
+		Core::Buffer vertexBuffer;
+		Core::Buffer indexBuffer;
 		uint32_t indicesSize = 0;
-		std::vector<Buffer> uniformBuffers;
+		std::vector<Core::Buffer> uniformBuffers;
 		glm::mat4 model;
 		glm::mat4 mvp; 
+		void Bind(vk::CommandBuffer cb);
 		
 	public:
-		void Create(Pipeline pipeline, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices);
-		void Bind(vk::CommandBuffer cb);
+		void Create(Core::Pipeline pipeline, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices);
 		void Draw(vk::CommandBuffer cb);
-		void SetImage(Image image, vk::Sampler sampler);
+		void SetImage(Core::Image image, vk::Sampler sampler);
 		void Rotate(glm::f32 angle, glm::vec3 pivot);
-		void Update(Camera &camera);
 		void Destroy();
 	};
 }

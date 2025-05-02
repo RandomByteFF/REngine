@@ -2,8 +2,11 @@
 #include "core/descriptorPool.hpp"
 #include "core/instance.hpp"
 #include <glm/gtc/matrix_transform.hpp>
+#include "sceneTree.hpp"
 
-namespace REngine::Core {
+using namespace REngine::Core;
+
+namespace REngine::Scene {
 	void Mesh::Create(Pipeline pipeline, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices) {
 		this->pipeline = pipeline;
 		indicesSize = uint32_t(indices.size());
@@ -25,6 +28,9 @@ namespace REngine::Core {
 		indexBuffer.Stage(indices.data());
 	}
 	void Mesh::Bind(vk::CommandBuffer cb) {
+		mvp = SceneTree::Current()->ActiveCamera()->VP() * model;
+		uniformBuffers[Instance::GetInfo().currentFrame].CopyData(&mvp, sizeof(mvp));
+		
 		cb.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline.GetPipelineLayout(), 0, descriptorSets[Instance::GetInfo().currentFrame], nullptr);
 
 		vk::DeviceSize offset[] = {0};
@@ -34,6 +40,7 @@ namespace REngine::Core {
 	}
 
 	void Mesh::Draw(vk::CommandBuffer cb) {
+		Bind(cb);
 		cb.drawIndexed(indicesSize, 1, 0, 0, 0);
 	}
 
@@ -47,12 +54,8 @@ namespace REngine::Core {
 		model = glm::rotate(model, angle, pivot);
 	}
 
-	void Mesh::Update(Camera &camera) {
-		// TODO: don't upload if camera and model hasn't changed
-		mvp = camera.VP() * model;
-		uniformBuffers[Instance::GetInfo().currentFrame].CopyData(&mvp, sizeof(mvp));
-	}
 	void Mesh::Destroy() {
+		Node3D::Destroy();
 		for (auto i : uniformBuffers) {
 			i.Destroy();
 		}

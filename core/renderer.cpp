@@ -8,7 +8,7 @@
 
 namespace REngine::Core {
 	
-	void Renderer::Create(WindowManager window, std::vector<std::shared_ptr<Drawable>> &objects) {
+	void Renderer::Create(WindowManager window) {
 		this->window = window;
 		device = Instance::GetInfo().device;
 
@@ -31,7 +31,7 @@ namespace REngine::Core {
 		}
 		
 		#ifdef EDITOR
-		editor.Initialize(swapchain, vpRenderer.RenderPass(), objects);
+		editor.Initialize(swapchain, vpRenderer.RenderPass());
 		editor.CreateFramebuffers(swapchain);
 		editor.AddTextures(viewportView, sampler);
 		barrier.oldLayout = vk::ImageLayout::ePresentSrcKHR;
@@ -76,7 +76,7 @@ namespace REngine::Core {
 		return sampler;
 	}
 
-	void Renderer::Render(std::vector<std::shared_ptr<Drawable>> &objects, Camera &camera) {
+	void Renderer::Render(Scene::SceneTree &sceneTree, Camera &camera) {
 		vk::Result res = device.waitForFences(1, &inFlightFences[currentFrame], true, std::numeric_limits<uint64_t>::max());
 		if (res != vk::Result::eSuccess) throw std::runtime_error("Failed to wait for fence");
 		
@@ -107,7 +107,7 @@ namespace REngine::Core {
 		commandBuffers[currentFrame].Reset();
 		commandBuffers[currentFrame].Begin();
 	
-		vpRenderer.Render(commandBuffers[currentFrame], swapchain.Extent(), imageIndex, objects, camera);
+		vpRenderer.Render(commandBuffers[currentFrame], swapchain.Extent(), imageIndex, sceneTree, camera);
 
 		#ifdef EDITOR
 		barrier.image = viewportImages[imageIndex].Get();

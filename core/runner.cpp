@@ -8,27 +8,30 @@ namespace REngine::Core {
 	void Runner::InitVulkan() {
 		Instance::Initialize(window);
 		device = Instance::GetInfo().device;
-		renderer.Create(window, objects);
-		camera = Camera(renderer.AspectRatio());
+		tree.SetCurrent();
+		tree.SetRoot(std::shared_ptr<Scene::Node>(new Scene::Node()));
+
+		renderer.Create(window);
+		camera = std::shared_ptr<Camera>(new Camera(renderer.AspectRatio()));
 		pipeline.SetLayout({
 			{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex},
 			{vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment}
 		});
 		pipeline.Create("vertex", "fragment", renderer.GetSwapchain(), renderer.RenderPass());
 		textureImage.CreateImage(REngine::Loader::Image("test_files/viking_room.png"));
+		
 		model.Load("test_files/viking_room.obj");
-		testMesh = std::shared_ptr<Mesh>(new Mesh());
-		objects.resize(2);
-		objects[1] = objects[0];
-		objects[0] = testMesh;
-		// TODO: grid needs to be the last one, kill this and do a singleton type stuff
+		testMesh = std::shared_ptr<Scene::Mesh>(new Scene::Mesh());
 		testMesh->Create(pipeline, model.Verticies(), model.Indices());
 		testMesh->SetImage(textureImage, renderer.Sampler());
+		tree.SetActiveCamera(camera);
+		tree.GetRoot()->AddChild(testMesh);
+
 		// objects.push_back(Mesh());
 		// objects[1].Create(pipeline, model.Verticies(), model.Indices());
 		// objects[1].SetImage(textureImage, renderer.Sampler());
-		camera.SetPosition(glm::vec3(0.f, 0.f, 3.f));
-		camera.Rotate(glm::vec3(0.2f, 0.3f, 0.f));
+		camera->SetPosition(glm::vec3(0.f, 0.f, 3.f));
+		camera->Rotate(glm::vec3(0.2f, 0.3f, 0.f));
 		model.Destroy();
 	}
 
@@ -39,16 +42,16 @@ namespace REngine::Core {
 			Time::Tick();
 			Input::Mouse::RecordDelta();
 			if (Input::Keyboard::IsDown(GLFW_KEY_1)) Input::Mouse::Lock();
-			camera.Rotate(glm::vec3(-Input::Mouse::Delta().y, -Input::Mouse::Delta().x, 0.f) * Time::Delta());
-			if (Input::Keyboard::IsDown(GLFW_KEY_W)) camera.SetPosition(camera.GetPosition() + camera.Forward() * Time::Delta());
-			if (Input::Keyboard::IsDown(GLFW_KEY_S)) camera.SetPosition(camera.GetPosition() - camera.Forward() * Time::Delta());
-			if (Input::Keyboard::IsDown(GLFW_KEY_D)) camera.SetPosition(camera.GetPosition() + camera.Right() * Time::Delta());
-			if (Input::Keyboard::IsDown(GLFW_KEY_A)) camera.SetPosition(camera.GetPosition() - camera.Right() * Time::Delta());
-			if (Input::Keyboard::IsDown(GLFW_KEY_SPACE)) camera.SetPosition(camera.GetPosition() + camera.Up() * Time::Delta());
-			if (Input::Keyboard::IsDown(GLFW_KEY_Q)) camera.SetPosition(camera.GetPosition() - camera.Up() * Time::Delta());
+			camera->Rotate(glm::vec3(-Input::Mouse::Delta().y, -Input::Mouse::Delta().x, 0.f) * Time::Delta());
+			if (Input::Keyboard::IsDown(GLFW_KEY_W)) camera->SetPosition(camera->GetPosition() + camera->Forward() * Time::Delta());
+			if (Input::Keyboard::IsDown(GLFW_KEY_S)) camera->SetPosition(camera->GetPosition() - camera->Forward() * Time::Delta());
+			if (Input::Keyboard::IsDown(GLFW_KEY_D)) camera->SetPosition(camera->GetPosition() + camera->Right() * Time::Delta());
+			if (Input::Keyboard::IsDown(GLFW_KEY_A)) camera->SetPosition(camera->GetPosition() - camera->Right() * Time::Delta());
+			if (Input::Keyboard::IsDown(GLFW_KEY_SPACE)) camera->SetPosition(camera->GetPosition() + camera->Up() * Time::Delta());
+			if (Input::Keyboard::IsDown(GLFW_KEY_Q)) camera->SetPosition(camera->GetPosition() - camera->Up() * Time::Delta());
 			// objects[0].Rotate(Time::Delta() * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 			// objects[1].Rotate(Time::Delta() * glm::radians(10.0f), glm::vec3(0.0f, 1.0f, 1.0f));
-			renderer.Render(objects, camera);
+			renderer.Render(tree, *camera);
 		}
 
 		vkDeviceWaitIdle(device);
@@ -59,9 +62,7 @@ namespace REngine::Core {
 		textureImage.Destroy();
 		
 		DescriptorPool::Cleanup();
-		for(auto i : objects) {
-			i->Destroy();
-		}
+		tree.Destroy();
 		
 		REngine::Loader::Shader::Destroy();
 		

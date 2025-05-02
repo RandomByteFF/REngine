@@ -1,7 +1,4 @@
-add_subdirectory(drawable)
-
 set(core_sources
-	${CMAKE_CURRENT_SOURCE_DIR}/store.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/windowManager.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/instance.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/queueFamily.cpp
@@ -16,6 +13,5 @@ set(core_sources
 	${CMAKE_CURRENT_SOURCE_DIR}/runner.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/camera.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/viewportRenderer.cpp
-	${drawable_sources}
 	PARENT_SCOPE
 )

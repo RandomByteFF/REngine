@@ -80,14 +80,10 @@ namespace REngine::Core {
 		viewportRenderPass = Instance::GetInfo().device.createRenderPass(renderPassInfo);
 	}
 
-	void ViewportRenderer::Render(CommandBuffer cb, vk::Extent2D extent, uint32_t imageIndex, std::vector<std::shared_ptr<Drawable>> &objects, Camera &camera) {
+	void ViewportRenderer::Render(CommandBuffer cb, vk::Extent2D extent, uint32_t imageIndex, Scene::SceneTree &sceneTree, Camera &camera) {
 		cb.BeginPass(viewportRenderPass, extent, framebuffers[imageIndex]);
 
-		for (auto i : objects) {
-			i->Update(camera);
-			i->Bind(cb.GetBuffer());
-			i->Draw(cb.GetBuffer());
-		}
+		sceneTree.Draw(cb.GetBuffer());
 		
 		cb.EndPass();
 	}

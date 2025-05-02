@@ -33,6 +33,7 @@ add_subdirectory(loader)
 add_subdirectory(shaders)
 add_subdirectory(editor)
 add_subdirectory(input)
+add_subdirectory(scene)
 
 set(SOURCE_FILES
 	main.cpp
@@ -40,6 +41,7 @@ set(SOURCE_FILES
 	${Imgui_sources}
 	${editor_sources}
 	${input_sources}
+	${scene_sources}
 )
 
 add_executable(REngine ${SOURCE_FILES})

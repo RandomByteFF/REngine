@@ -5,9 +5,10 @@
 #include "core/instance.hpp"
 #include "input/keyboard.hpp"
 #include "input/mouse.hpp"
+#include "scene/sceneTree.hpp"
 
 namespace REngine::Editor {
-	void Editor::Initialize(Core::Swapchain swapchain, vk::RenderPass vpRenderPass, std::vector<std::shared_ptr<Core::Drawable>> &objects) {
+	void Editor::Initialize(Core::Swapchain swapchain, vk::RenderPass vpRenderPass) {
 		auto info = Core::Instance::GetInfo();
 		vk::AttachmentDescription colorAttachment{};
 		colorAttachment.format = swapchain.ImageFormat();
@@ -53,7 +54,8 @@ namespace REngine::Editor {
 
 		grid = std::shared_ptr<Grid>(new Grid());
 		grid->Create(swapchain, vpRenderPass);
-		objects.push_back(grid);
+		grid->SetDrawOrder(1);
+		Scene::SceneTree::Current()->GetRoot()->AddChild(grid);
 	}
 	
 	void Editor::CreateFramebuffers(Core::Swapchain swapchain) {
@@ -98,7 +100,7 @@ namespace REngine::Editor {
 		size.x -= 20;
 		size.y -= 40;
 		if (size.x != prevViewSize.x || size.y != prevViewSize.y) {
-			Core::Instance::FrameBufferResized(size.x, size.y);
+			Core::Instance::FrameBufferResized(int(size.x), int(size.y));
 			prevViewSize = size;
 		}
 		ImGui::Image(ImTextureID(VkDescriptorSet(renderedViewports[imageIndex])), size);

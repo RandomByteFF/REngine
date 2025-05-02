@@ -1,0 +1,10 @@
+
+set(scene_sources
+	${CMAKE_CURRENT_SOURCE_DIR}/sceneTree.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/store.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/mesh.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/node3d.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/node.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/drawable.cpp
+	PARENT_SCOPE
+)

@@ -3,12 +3,13 @@
 #include "headers.h"
 #include "swapchain.hpp"
 #include "image.hpp"
-#include "drawable/mesh.hpp"
+#include "scene/mesh.hpp"
 #include "commandBuffer.hpp"
 #include "windowManager.hpp"
 #include "camera.hpp"
 #include "viewportRenderer.hpp"
 #include "editor/editor.hpp"
+#include "scene/sceneTree.hpp"
 
 namespace REngine::Core {
 	class Renderer {
@@ -36,11 +37,11 @@ namespace REngine::Core {
 	public:
 		Swapchain swapchain;
 		//FIXME: objects from here
-		void Create(WindowManager window, std::vector<std::shared_ptr<Drawable>> &objects);
+		void Create(WindowManager window);
 		const Swapchain GetSwapchain() const;
 		const vk::RenderPass RenderPass() const;
 		const vk::Sampler Sampler() const;
-		void Render(std::vector<std::shared_ptr<Drawable>> &objects, Camera &camera);
+		void Render(Scene::SceneTree &sceneTree, Camera &camera);
 		void RecreateSwapchain();
 		float AspectRatio();
 

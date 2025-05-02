@@ -5,7 +5,7 @@
 #include "image.hpp"
 #include "loader/shader.hpp"
 #include "pipeline.hpp"
-#include "drawable/mesh.hpp"
+#include "scene/mesh.hpp"
 #include "descriptorPool.hpp"
 #include "renderer.hpp"
 #include "loader/obj.hpp"
@@ -21,10 +21,10 @@ namespace REngine::Core {
 		Pipeline pipeline;
 		Renderer renderer;
 		Image textureImage;
-		std::shared_ptr<Mesh> testMesh;
-		std::vector<std::shared_ptr<Drawable>> objects;
+		Scene::SceneTree tree;
+		std::shared_ptr<Scene::Mesh> testMesh;
 		REngine::Loader::Obj model;
-		Camera camera;
+		std::shared_ptr<Camera> camera;
 		void InitVulkan();
 		void MainLoop();
 		void Cleanup();
