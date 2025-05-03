@@ -12,4 +12,8 @@ namespace REngine::Scene {
 	void Node::Destroy() {
 		for (auto i : children) i->Destroy();
 	}
+	
+	const std::vector<std::shared_ptr<Node>> &Node::Children() const {
+		return children;
+	}
 }

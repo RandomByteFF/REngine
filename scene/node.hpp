@@ -12,5 +12,7 @@ namespace REngine::Scene {
 		void AddChild(std::shared_ptr<Node> child);
 		//TODO: remove child
 		virtual void Destroy();
+
+		const std::vector<std::shared_ptr<Node>> &Children() const;
 	};
 }

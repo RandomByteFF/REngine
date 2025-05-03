@@ -10,6 +10,7 @@ namespace REngine::Core {
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		handle = glfwCreateWindow(WIDTH, HEIGHT, "REngine", nullptr, nullptr);
+		glfwMaximizeWindow(handle);
 		glfwSetWindowUserPointer(handle, this);
 		glfwSetFramebufferSizeCallback(handle, FramebufferResizeCallback);
 		ImGui_ImplGlfw_InitForVulkan(handle, true);
