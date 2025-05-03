@@ -5,6 +5,7 @@
 
 namespace REngine::Editor {
 	void Grid::Create(Core::Swapchain swapchain, vk::RenderPass renderPass) {
+		Scene::Drawable::Initialize();
 		pipeline.SetLayout({{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex}});
 		pipeline.Create("gridVert", "gridFrag", swapchain, renderPass, true);
 
@@ -39,6 +40,7 @@ namespace REngine::Editor {
 
 	void Grid::Destroy() {
 		Drawable::Destroy();
+		Node3D::Destroy();
 		for (auto i : uniformBuffers) {
 			i.Destroy();
 		}

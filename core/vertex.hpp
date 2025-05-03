@@ -1,7 +1,6 @@
 #pragma once
 #include "headers.h"
 
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/hash.hpp>
 
 struct Vertex {

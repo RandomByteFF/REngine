@@ -1,5 +1,6 @@
 #pragma once
 #include "scene/drawable.hpp"
+#include "scene/node3d.hpp"
 #include "core/pipeline.hpp"
 #include "core/buffer.hpp"
 
@@ -9,7 +10,7 @@ namespace REngine::Editor {
 		glm::mat4 P;
 	};
 
-	class Grid : public Scene::Drawable {
+	class Grid : public Scene::Drawable, public Scene::Node3D {
 		Core::Pipeline pipeline;	
 		std::vector<vk::DescriptorSet> descriptorSets;
 		std::vector<Core::Buffer> uniformBuffers;

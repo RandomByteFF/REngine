@@ -8,9 +8,9 @@ using namespace REngine::Core;
 
 namespace REngine::Scene {
 	void Mesh::Create(Pipeline pipeline, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices) {
+		Drawable::Initialize();
 		this->pipeline = pipeline;
 		indicesSize = uint32_t(indices.size());
-		model = glm::mat4(1.0f);
 		descriptorSets = DescriptorPool::CreateDescriptor(pipeline.GetLayout(), Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
 		
 		VkDeviceSize bufferSize = sizeof(mvp);
@@ -28,7 +28,7 @@ namespace REngine::Scene {
 		indexBuffer.Stage(indices.data());
 	}
 	void Mesh::Bind(vk::CommandBuffer cb) {
-		mvp = SceneTree::Current()->ActiveCamera()->VP() * model;
+		mvp = SceneTree::Current()->ActiveCamera()->VP() * GetModel();
 		uniformBuffers[Instance::GetInfo().currentFrame].CopyData(&mvp, sizeof(mvp));
 		
 		cb.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline.GetPipelineLayout(), 0, descriptorSets[Instance::GetInfo().currentFrame], nullptr);
@@ -50,12 +50,9 @@ namespace REngine::Scene {
 		}
 	}
 
-	void Mesh::Rotate(glm::f32 angle, glm::vec3 pivot) {
-		model = glm::rotate(model, angle, pivot);
-	}
-
 	void Mesh::Destroy() {
 		Node3D::Destroy();
+		Drawable::Destroy();
 		for (auto i : uniformBuffers) {
 			i.Destroy();
 		}

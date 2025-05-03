@@ -2,6 +2,7 @@
 
 #include "core/swapchain.hpp"
 #include "core/commandBuffer.hpp"
+#include "sceneTree.hpp"
 #include "grid.hpp"
 #include <memory>
 #include "imgui.h"
@@ -14,6 +15,7 @@ namespace REngine::Editor {
 		std::vector<vk::Framebuffer> framebuffers;
 		std::vector<vk::DescriptorSet> renderedViewports;
 		std::shared_ptr<Grid> grid;
+		SceneTree sceneTree;
 
 	public:
 		void Initialize(Core::Swapchain swapchain, vk::RenderPass vpRenderPass);

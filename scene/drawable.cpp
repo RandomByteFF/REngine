@@ -3,7 +3,7 @@
 
 namespace REngine::Scene {
 	void Drawable::Initialize() {
-		Node::Initialize();
+		// TODO:: dont refer to current, should have a pointer to it's scene tree
 		drawListPos = SceneTree::Current()->AddToDrawList(this, drawOrder);
 	}
 	
@@ -12,7 +12,6 @@ namespace REngine::Scene {
 	}
 
 	void Drawable::Destroy() {
-		Node::Destroy();
 		SceneTree::Current()->RemoveFromDrawList(drawListPos, drawOrder);
 	}
 }

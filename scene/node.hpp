@@ -10,7 +10,7 @@ namespace REngine::Scene {
 	public:
 		virtual void Update();
 		void AddChild(std::shared_ptr<Node> child);
-		virtual void Initialize() {};
+		//TODO: remove child
 		virtual void Destroy();
 	};
 }

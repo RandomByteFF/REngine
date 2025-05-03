@@ -8,7 +8,6 @@ namespace REngine::Scene {
 	void Node::AddChild(std::shared_ptr<Node> child) {
 		children.push_back(child);
 		child->parent = this;
-		child->Initialize();
 	}
 	void Node::Destroy() {
 		for (auto i : children) i->Destroy();

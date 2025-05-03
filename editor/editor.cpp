@@ -53,8 +53,8 @@ namespace REngine::Editor {
 		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 		grid = std::shared_ptr<Grid>(new Grid());
-		grid->Create(swapchain, vpRenderPass);
 		grid->SetDrawOrder(1);
+		grid->Create(swapchain, vpRenderPass);
 		Scene::SceneTree::Current()->GetRoot()->AddChild(grid);
 	}
 	
@@ -115,6 +115,7 @@ namespace REngine::Editor {
 		glm::vec2 delta = Input::Mouse::Delta();
 		ImGui::Text(std::format("Cursor delta: X: {}, Y: {}", delta.x, delta.y).c_str());
 		ImGui::End();
+		sceneTree.Gui();
 
 		ImGui::Render();
 		

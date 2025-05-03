@@ -30,13 +30,12 @@ namespace REngine::Core {
 		// objects.push_back(Mesh());
 		// objects[1].Create(pipeline, model.Verticies(), model.Indices());
 		// objects[1].SetImage(textureImage, renderer.Sampler());
-		camera->SetPosition(glm::vec3(0.f, 0.f, 3.f));
-		camera->Rotate(glm::vec3(0.2f, 0.3f, 0.f));
+		camera->SetPosition(glm::vec3(0.f, 0.f, 6.f));
 		model.Destroy();
 	}
 
 	void Runner::MainLoop() {
-		testMesh->Rotate(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		// testMesh->Rotate(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		Time::Start();
 		while(window.Update()) {
 			Time::Tick();
@@ -49,6 +48,7 @@ namespace REngine::Core {
 			if (Input::Keyboard::IsDown(GLFW_KEY_A)) camera->SetPosition(camera->GetPosition() - camera->Right() * Time::Delta());
 			if (Input::Keyboard::IsDown(GLFW_KEY_SPACE)) camera->SetPosition(camera->GetPosition() + camera->Up() * Time::Delta());
 			if (Input::Keyboard::IsDown(GLFW_KEY_Q)) camera->SetPosition(camera->GetPosition() - camera->Up() * Time::Delta());
+			if (Input::Keyboard::IsDown(GLFW_KEY_F)) testMesh->Rotate(glm::vec3(0.f, 0.f, 1.f) * Time::Delta());
 			// objects[0].Rotate(Time::Delta() * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 			// objects[1].Rotate(Time::Delta() * glm::radians(10.0f), glm::vec3(0.0f, 1.0f, 1.0f));
 			renderer.Render(tree, *camera);

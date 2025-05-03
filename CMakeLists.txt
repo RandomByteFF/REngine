@@ -14,6 +14,9 @@ find_package(Boost 1.87.0 REQUIRED COMPONENTS python313)
 find_package(Python REQUIRED COMPONENTS Development)
 find_package(Vulkan REQUIRED)
 
+add_definitions(
+)
+
 
 if (NOT Python_Development_FOUND)
 message(FATAL_ERROR "Python development not found!")
@@ -42,16 +45,21 @@ set(SOURCE_FILES
 	${editor_sources}
 	${input_sources}
 	${scene_sources}
+	${loader_sources}
 )
 
 add_executable(REngine ${SOURCE_FILES})
-target_compile_definitions(REngine PRIVATE BOOST_ALL_NO_LIB)
+target_compile_definitions(REngine PRIVATE 
+	BOOST_ALL_NO_LIB
+	GLM_FORCE_RADIANS
+	GLM_FORCE_DEPTH_ZERO_TO_ONE
+	GLM_ENABLE_EXPERIMENTAL
+)
 target_link_libraries(REngine
 	${Python_LIBRARIES} ${Boost_LIBRARIES}
 	glfw
 	${Vulkan_LIBRARY}
 	submodules
-	loader
 	VulkanMemoryAllocator
 )
 if (NOT MSVC)

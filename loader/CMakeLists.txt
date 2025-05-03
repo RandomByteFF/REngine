@@ -1,10 +1,6 @@
-
-add_library(loader
-	shader.cpp
-	obj.cpp
-	image.cpp
-)
-
-target_link_libraries(loader PRIVATE
-	submodules
+set(loader_sources
+	${CMAKE_CURRENT_SOURCE_DIR}/shader.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/obj.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/image.cpp
+	PARENT_SCOPE
 )
