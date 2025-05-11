@@ -8,5 +8,6 @@ namespace REngine::Editor {
 		std::optional<std::shared_ptr<Scene::Node>> selected;
 	public:
 		void Gui();
+		std::optional<std::shared_ptr<Scene::Node>> GetSelected();
 	};
 }

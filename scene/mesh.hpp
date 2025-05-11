@@ -26,5 +26,10 @@ namespace REngine::Scene {
 		void Draw(vk::CommandBuffer cb) override;
 		void SetImage(Core::Image image, vk::Sampler sampler);
 		void Destroy() override;
+
+		virtual void AcceptGui(Editor::InspectorVisitor &visitor) override {
+			visitor.Visit(this);
+			Node3D::AcceptGui(visitor);
+		}
 	};
 }

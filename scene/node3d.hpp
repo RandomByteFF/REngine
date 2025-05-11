@@ -23,9 +23,13 @@ namespace REngine::Scene {
 
 		void Position(glm::vec3 position);
 		void Scale(glm::vec3 scale);
+		void Rotation(glm::vec3 rotation);
 		void Rotate(glm::vec3 rotation);
 
 		glm::vec3 Position();
 		glm::vec3 Scale();
+		glm::vec3 Rotation();
+		
+		VISITOR(Node);
 	};
 }

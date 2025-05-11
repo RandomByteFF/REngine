@@ -23,6 +23,11 @@ namespace REngine::Scene {
 		dirty = true;
 	}
 
+	void Node3D::Rotation(glm::vec3 rotation) {
+		this->rotation = glm::quat(std::move(rotation));
+		dirty = true;
+	}
+
 	void Node3D::Rotate(glm::vec3 rotation) {
 		this->rotation = glm::normalize(glm::quat(std::move(rotation)) * this->rotation);
 		dirty = true;
@@ -34,6 +39,10 @@ namespace REngine::Scene {
 
 	glm::vec3 Node3D::Scale() {
 		return scale;
+	}
+
+	glm::vec3 Node3D::Rotation() {
+		return glm::eulerAngles(rotation);
 	}
 
 	void Node3D::ApplyTransforms() {

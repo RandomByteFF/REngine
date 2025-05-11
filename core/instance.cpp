@@ -207,6 +207,10 @@ namespace REngine::Core {
 		}
 	}
 
+	void Instance::ChosenImageFormat(vk::SurfaceFormatKHR format) {
+		info.imageFormat = format;
+	}
+
 	void Instance::Destroy() {
 		vmaDestroyAllocator(allocator);
 	}

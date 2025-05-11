@@ -6,6 +6,7 @@
 #include "grid.hpp"
 #include <memory>
 #include "imgui.h"
+#include "inspector.hpp"
 
 namespace REngine::Editor {
 	class Editor {
@@ -16,6 +17,7 @@ namespace REngine::Editor {
 		std::vector<vk::DescriptorSet> renderedViewports;
 		std::shared_ptr<Grid> grid;
 		SceneTree sceneTree;
+		Inspector inspector;
 
 	public:
 		void Initialize(Core::Swapchain swapchain, vk::RenderPass vpRenderPass);

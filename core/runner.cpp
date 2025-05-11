@@ -24,6 +24,7 @@ namespace REngine::Core {
 		testMesh = std::shared_ptr<Scene::Mesh>(new Scene::Mesh());
 		testMesh->Create(pipeline, model.Verticies(), model.Indices());
 		testMesh->SetImage(textureImage, renderer.Sampler());
+		testMesh->name = "TestMesh";
 		tree.SetActiveCamera(camera);
 		tree.GetRoot()->AddChild(testMesh);
 
@@ -40,17 +41,24 @@ namespace REngine::Core {
 		while(window.Update()) {
 			Time::Tick();
 			Input::Mouse::RecordDelta();
-			if (Input::Keyboard::IsDown(GLFW_KEY_1)) Input::Mouse::Lock();
-			camera->Rotate(glm::vec3(-Input::Mouse::Delta().y, -Input::Mouse::Delta().x, 0.f) * Time::Delta());
-			if (Input::Keyboard::IsDown(GLFW_KEY_W)) camera->SetPosition(camera->GetPosition() + camera->Forward() * Time::Delta());
-			if (Input::Keyboard::IsDown(GLFW_KEY_S)) camera->SetPosition(camera->GetPosition() - camera->Forward() * Time::Delta());
-			if (Input::Keyboard::IsDown(GLFW_KEY_D)) camera->SetPosition(camera->GetPosition() + camera->Right() * Time::Delta());
-			if (Input::Keyboard::IsDown(GLFW_KEY_A)) camera->SetPosition(camera->GetPosition() - camera->Right() * Time::Delta());
-			if (Input::Keyboard::IsDown(GLFW_KEY_SPACE)) camera->SetPosition(camera->GetPosition() + camera->Up() * Time::Delta());
-			if (Input::Keyboard::IsDown(GLFW_KEY_Q)) camera->SetPosition(camera->GetPosition() - camera->Up() * Time::Delta());
-			if (Input::Keyboard::IsDown(GLFW_KEY_F)) testMesh->Rotate(glm::vec3(0.f, 0.f, 1.f) * Time::Delta());
-			// objects[0].Rotate(Time::Delta() * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-			// objects[1].Rotate(Time::Delta() * glm::radians(10.0f), glm::vec3(0.0f, 1.0f, 1.0f));
+			if (Input::Keyboard::IsDown(GLFW_KEY_1)) {
+				Input::Mouse::Lock();
+				locked = true;
+			}
+			if (Input::Keyboard::IsDown(GLFW_KEY_ESCAPE)) {
+				Input::Mouse::Unlock();
+				locked = false;
+			}
+			if (locked) {
+				camera->Rotate(glm::vec3(-Input::Mouse::Delta().y, -Input::Mouse::Delta().x, 0.f) * Time::Delta());
+				if (Input::Keyboard::IsDown(GLFW_KEY_W)) camera->SetPosition(camera->GetPosition() + camera->Forward() * Time::Delta());
+				if (Input::Keyboard::IsDown(GLFW_KEY_S)) camera->SetPosition(camera->GetPosition() - camera->Forward() * Time::Delta());
+				if (Input::Keyboard::IsDown(GLFW_KEY_D)) camera->SetPosition(camera->GetPosition() + camera->Right() * Time::Delta());
+				if (Input::Keyboard::IsDown(GLFW_KEY_A)) camera->SetPosition(camera->GetPosition() - camera->Right() * Time::Delta());
+				if (Input::Keyboard::IsDown(GLFW_KEY_SPACE)) camera->SetPosition(camera->GetPosition() + camera->Up() * Time::Delta());
+				if (Input::Keyboard::IsDown(GLFW_KEY_Q)) camera->SetPosition(camera->GetPosition() - camera->Up() * Time::Delta());
+				if (Input::Keyboard::IsDown(GLFW_KEY_F)) testMesh->Rotate(glm::vec3(0.f, 0.f, 1.f) * Time::Delta());
+			}
 			renderer.Render(tree, *camera);
 		}
 

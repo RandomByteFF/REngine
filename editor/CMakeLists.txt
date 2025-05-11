@@ -1,6 +1,10 @@
+add_subdirectory(widgets)
 set(editor_sources
 	${CMAKE_CURRENT_SOURCE_DIR}/editor.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/grid.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/sceneTree.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/inspectorVisitor.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/inspector.cpp
+	${widgets_sources}
 	PARENT_SCOPE
 )

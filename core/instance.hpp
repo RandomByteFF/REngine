@@ -55,6 +55,7 @@ namespace REngine::Core {
 		static void SetCurrentFrame(uint32_t frame);
 		static void OnResize(void *caller, ResizedCallback cb);
 		static void UnsubscribeResize(void *caller);
+		static void ChosenImageFormat(vk::SurfaceFormatKHR format);
 
 		static void Destroy();
 	};

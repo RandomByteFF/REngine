@@ -8,7 +8,10 @@ namespace REngine::Editor {
 	auto defaultFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
 	
 	void SceneTree::TraverseNode(const std::shared_ptr<Scene::Node> node, int &id) {
-		std::string name = typeid(*node).name();
+		std::string name = node->name;
+		if (name.empty()) {
+			name = typeid(*node).name();
+		}
 		std::string toDisplay = (name + "##" + std::to_string(id)).c_str();
 		bool s = selected.has_value() && selected.value() == node;
 		ImGuiTreeNodeFlags sFlags = s ? ImGuiTreeNodeFlags_Selected : 0;
@@ -31,5 +34,8 @@ namespace REngine::Editor {
 		int id = -1;
 		TraverseNode(root, id);
 		ImGui::End();
+	}
+	std::optional<std::shared_ptr<Scene::Node>> SceneTree::GetSelected() {
+		return selected;
 	}
 }

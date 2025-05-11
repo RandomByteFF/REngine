@@ -1,0 +1,2 @@
+- Do something with the color spaces, create a preference list for the swapchain, and pass it down somehow more elegantly then just passing it to info
+- Swapchain shouldn't have editor macro in it

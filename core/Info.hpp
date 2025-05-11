@@ -17,6 +17,7 @@ namespace REngine::Core {
 		vk::Queue presentQueue;
 		VmaAllocator allocator;
 		vk::CommandPool commandPool;
+		vk::SurfaceFormatKHR imageFormat;
 		int fbWidth;
 		int fbHeight;
 		const uint32_t MAX_FRAMES_IN_FLIGHT = 2;

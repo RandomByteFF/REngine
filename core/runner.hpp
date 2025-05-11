@@ -28,6 +28,7 @@ namespace REngine::Core {
 		void InitVulkan();
 		void MainLoop();
 		void Cleanup();
+		bool locked = false;
 	public: 
 		int Run();
 	};

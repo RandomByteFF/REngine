@@ -6,6 +6,7 @@
 #include "input/keyboard.hpp"
 #include "input/mouse.hpp"
 #include "scene/sceneTree.hpp"
+#include "theme.hpp"
 
 namespace REngine::Editor {
 	void Editor::Initialize(Core::Swapchain swapchain, vk::RenderPass vpRenderPass) {
@@ -50,6 +51,8 @@ namespace REngine::Editor {
 		init_info.ImageCount = init_info.MinImageCount;
 		init_info.RenderPass = renderPass;
 		ImGui_ImplVulkan_Init(&init_info);
+
+		ApplyTheme();
 		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 		grid = std::shared_ptr<Grid>(new Grid());
@@ -108,14 +111,14 @@ namespace REngine::Editor {
 			
 		ImGui::Begin("Debug");
 		ImGui::Text(Input::Mouse::IsDown(GLFW_MOUSE_BUTTON_LEFT) ? "Pressed" : "Not pressed");
-		if (Input::Keyboard::IsDown(GLFW_KEY_1)) Input::Mouse::Lock();
-		if (Input::Keyboard::IsDown(GLFW_KEY_ESCAPE)) Input::Mouse::Unlock();
 		glm::vec2 cursor = Input::Mouse::CursorPos();
 		ImGui::Text(std::format("Cursor position: X: {}, Y: {}", cursor.x, cursor.y).c_str());
 		glm::vec2 delta = Input::Mouse::Delta();
 		ImGui::Text(std::format("Cursor delta: X: {}, Y: {}", delta.x, delta.y).c_str());
 		ImGui::End();
+
 		sceneTree.Gui();
+		inspector.Gui(sceneTree.GetSelected());
 
 		ImGui::Render();
 		

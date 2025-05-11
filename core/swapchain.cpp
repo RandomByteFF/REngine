@@ -20,6 +20,7 @@ namespace REngine::Core {
 		SwapchainSupportDetails swapChainSupport = QuerySwapchainSupport(info.physicalDevice);
 
 		vk::SurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
+		Instance::ChosenImageFormat(surfaceFormat);
 		vk::PresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
 		vk::Extent2D extent = ChooseSwapExtent(swapChainSupport.capabilities);
 
@@ -99,9 +100,15 @@ namespace REngine::Core {
 
 	vk::SurfaceFormatKHR Swapchain::ChooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats) {
 		for (const auto &availableFormat : availableFormats) {
+			#ifdef EDITOR
+			if (availableFormat.format == vk::Format::eR8G8B8A8Unorm) {
+				return availableFormat;
+			}
+			#else
 			if (availableFormat.format == vk::Format::eB8G8R8A8Srgb && availableFormat.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear) {
 				return availableFormat;
 			}
+			#endif
 		}
 		return availableFormats[0];
 	}
