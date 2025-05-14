@@ -17,7 +17,11 @@ namespace REngine::Core {
 			{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex},
 			{vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment}
 		});
+		whitePipeline.SetLayout({
+			{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex}
+		});
 		pipeline.Create("vertex", "fragment", renderer.GetSwapchain(), renderer.RenderPass());
+		whitePipeline.Create("vertex", "whiteFrag", renderer.GetSwapchain(), renderer.RenderPass());
 		textureImage.CreateImage(REngine::Loader::Image("test_files/viking_room.png"));
 		
 		model.Load("test_files/viking_room.obj");
@@ -28,11 +32,19 @@ namespace REngine::Core {
 		tree.SetActiveCamera(camera);
 		tree.GetRoot()->AddChild(testMesh);
 
+		Loader::Obj arrow;
+		arrow.Load("test_files/arrow.obj");
+		arrowMesh = std::shared_ptr<Scene::Mesh>(new Scene::Mesh());
+		arrowMesh->Create(whitePipeline, arrow.Verticies(), arrow.Indices());
+		arrowMesh->name = "Arrow";
+		testMesh->AddChild(arrowMesh);
+
 		// objects.push_back(Mesh());
 		// objects[1].Create(pipeline, model.Verticies(), model.Indices());
 		// objects[1].SetImage(textureImage, renderer.Sampler());
 		camera->SetPosition(glm::vec3(0.f, 0.f, 6.f));
 		model.Destroy();
+		arrow.Destroy();
 	}
 
 	void Runner::MainLoop() {
@@ -59,6 +71,7 @@ namespace REngine::Core {
 				if (Input::Keyboard::IsDown(GLFW_KEY_Q)) camera->SetPosition(camera->GetPosition() - camera->Up() * Time::Delta());
 				if (Input::Keyboard::IsDown(GLFW_KEY_F)) testMesh->Rotate(glm::vec3(0.f, 0.f, 1.f) * Time::Delta());
 			}
+			tree.ApplyTransforms();
 			renderer.Render(tree, *camera);
 		}
 
@@ -76,6 +89,7 @@ namespace REngine::Core {
 		
 		vkDestroyCommandPool(device, Instance::GetInfo().commandPool, nullptr);
 		pipeline.Destroy();
+		whitePipeline.Destroy();
 		Instance::Destroy();
 		vkDestroyDevice(device, nullptr);
 		vkDestroySurfaceKHR(Instance::Get(), Instance::GetInfo().surface, nullptr);

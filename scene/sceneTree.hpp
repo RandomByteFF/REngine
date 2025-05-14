@@ -30,6 +30,7 @@ namespace REngine::Scene {
 
 		void Draw(vk::CommandBuffer &cb);
 		void Update();
+		void ApplyTransforms();
 		void Destroy();
 
 		//TODO: later i would probably need to be able to differentiate between node / node2d / node3d roots

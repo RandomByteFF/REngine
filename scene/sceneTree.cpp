@@ -51,6 +51,11 @@ namespace REngine::Scene {
 		root->Update();
 	}
 
+	void SceneTree::ApplyTransforms() {
+		glm::mat4 mat(1.f);
+		root->ApplyTransforms(mat);
+	}
+
 	void SceneTree::Destroy() {
 		root->Destroy();
 	}

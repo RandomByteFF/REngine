@@ -12,13 +12,12 @@ namespace REngine::Scene {
 		glm::vec3 scale;
 		glm::quat rotation;
 		
-		bool dirty = true;
 		glm::mat4 model;
 		
-		void ApplyTransforms();	
-	public:
+		public:
 		Node3D(glm::vec3 position = {0.f, 0.f, 0.f}, glm::vec3 scale = {1.f, 1.f, 1.f}, glm::vec3 rotation = {0.f, 0.f, 0.f});
-
+		
+		virtual void ApplyTransforms(glm::mat4 &parentMatrix) override;
 		const glm::mat4 &GetModel();
 
 		void Position(glm::vec3 position);
