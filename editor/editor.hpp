@@ -7,6 +7,7 @@
 #include <memory>
 #include "imgui.h"
 #include "inspector.hpp"
+#include "serializer.hpp"
 
 namespace REngine::Editor {
 	class Editor {
@@ -18,6 +19,7 @@ namespace REngine::Editor {
 		std::shared_ptr<Grid> grid;
 		SceneTree sceneTree;
 		Inspector inspector;
+		Serializer serializer;
 
 	public:
 		void Initialize(Core::Swapchain swapchain, vk::RenderPass vpRenderPass);

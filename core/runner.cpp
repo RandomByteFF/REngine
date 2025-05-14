@@ -73,6 +73,7 @@ namespace REngine::Core {
 			}
 			tree.ApplyTransforms();
 			renderer.Render(tree, *camera);
+			Input::Keyboard::EndFrame();
 		}
 
 		vkDeviceWaitIdle(device);

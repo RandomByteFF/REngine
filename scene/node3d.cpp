@@ -39,6 +39,10 @@ namespace REngine::Scene {
 		return glm::eulerAngles(rotation);
 	}
 
+	glm::quat Node3D::RotationQuat() {
+		return rotation;
+	}
+
 	void Node3D::ApplyTransforms(glm::mat4 &parentMatrix) {
 		// TODO: should ensure that root is not null
 		model = parentMatrix * glm::translate(glm::mat4(1.f), position) * glm::toMat4(rotation) * glm::scale(glm::mat4(1.f), scale);

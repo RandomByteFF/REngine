@@ -5,6 +5,7 @@ set(editor_sources
 	${CMAKE_CURRENT_SOURCE_DIR}/sceneTree.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/inspectorVisitor.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/inspector.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/serializer.cpp
 	${widgets_sources}
 	PARENT_SCOPE
 )

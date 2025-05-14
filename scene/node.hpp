@@ -4,11 +4,13 @@
 #include <string>
 #include <glm/gtc/matrix_transform.hpp>
 #include "node.hpp"
-#include "editor/inspectorVisitor.hpp"
+#include "common/nodeVisitor.hpp"
+#include <iterator>
+#include <functional>
 
 #define VISITOR(parentType) \
-	virtual void AcceptGui(Editor::InspectorVisitor &visitor) override { \
-		visitor.Visit(this); \
+	virtual void AcceptGui(Common::NodeVisitor *visitor) override { \
+		visitor->Visit(this); \
 		parentType::AcceptGui(visitor); \
 	}
 
@@ -19,9 +21,12 @@ namespace REngine::Scene {
 		
 	protected:
 		std::vector<std::shared_ptr<Node>> children;
-		virtual void EnteredTree() {};
+		virtual void EnteredTree();
 
 	public:
+		//TODO: keep track of which tree we're in
+		bool editorOnly = false;
+		int64_t id = 0;
 		std::string name = "";
 		virtual void Update();
 		virtual void ApplyTransforms(glm::mat4 &parentMatrix);
@@ -32,8 +37,10 @@ namespace REngine::Scene {
 
 		const std::vector<std::shared_ptr<Node>> &Children() const;
 
-		virtual void AcceptGui(Editor::InspectorVisitor &visitor) {
-			visitor.Visit(this);
+		virtual void AcceptGui(Common::NodeVisitor *visitor) {
+			visitor->Visit(this);
 		}
+
+		void Traverse(const std::function<void(Node*)> &lambda);
 	};
 }

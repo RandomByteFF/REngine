@@ -57,4 +57,5 @@ target_include_directories(submodules
 	INTERFACE VulkanMemoryAllocator/include
 	INTERFACE imgui
 	INTERFACE imgui/backends
+	INTERFACE toml.hpp
 )

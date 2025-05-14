@@ -39,6 +39,10 @@ namespace REngine::Scene {
 		drawList[order].erase(iterator);
 	}
 
+	void SceneTree::EnterTree(Node *node) {
+		node->id = lastFreeId++;
+	}
+
 	void SceneTree::Draw(vk::CommandBuffer &cb) {
 		for(auto i = drawList.begin(); i != drawList.end(); i++) {
 			for(auto j = i->begin(); j != i->end(); j++) {
@@ -62,6 +66,7 @@ namespace REngine::Scene {
 	
 	void SceneTree::SetRoot(std::shared_ptr<Node> root) {
 		this->root = root;
+		root->id = lastFreeId++;
 	}
 	
 	std::shared_ptr<Node> SceneTree::GetRoot() const {

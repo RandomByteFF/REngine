@@ -1,16 +1,9 @@
 #pragma once
-#include "imgui.h"
-namespace REngine::Scene {
-	class Node;
-	class Node3D;
-	class Mesh;
-}
+#include "common/nodeVisitor.hpp"
 
 namespace REngine::Editor {
-	class InspectorVisitor {
+	class InspectorVisitor : public Common::NodeVisitor {
 	public:
-		void Visit(Scene::Node *node);
-		void Visit(Scene::Node3D *node);
-		void Visit(Scene::Mesh *node);
+		VISIT()
 	};
 }

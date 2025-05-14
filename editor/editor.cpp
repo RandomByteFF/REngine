@@ -7,6 +7,7 @@
 #include "input/mouse.hpp"
 #include "scene/sceneTree.hpp"
 #include "theme.hpp"
+#include <iostream>
 
 namespace REngine::Editor {
 	void Editor::Initialize(Core::Swapchain swapchain, vk::RenderPass vpRenderPass) {
@@ -58,6 +59,7 @@ namespace REngine::Editor {
 		grid = std::shared_ptr<Grid>(new Grid());
 		grid->SetDrawOrder(1);
 		grid->Create(swapchain, vpRenderPass);
+		grid->editorOnly = true;
 		Scene::SceneTree::Current()->GetRoot()->AddChild(grid);
 	}
 	
@@ -125,6 +127,10 @@ namespace REngine::Editor {
 		cb.BeginPass(renderPass, extent, framebuffers[imageIndex]);
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb.GetBuffer());
 		cb.EndPass();
+
+		if (Input::Keyboard::IsDown(GLFW_KEY_LEFT_CONTROL) && Input::Keyboard::IsJustPressed(GLFW_KEY_S)) {
+			serializer.SerializeTree(*Scene::SceneTree::Current());
+		}
 	}
 
 	void Editor::DestroyBuffers() {

@@ -1,6 +1,11 @@
 #include "node.hpp"
-
+#include "sceneTree.hpp"
 namespace REngine::Scene {
+	void Node::EnteredTree() {
+		//TODO: abolish this
+		SceneTree::Current()->EnterTree(this);
+	}
+
 	void Node::Update() {
 		for (auto i : children) i->Update();
 	}
@@ -27,5 +32,10 @@ namespace REngine::Scene {
 	
 	const std::vector<std::shared_ptr<Node>> &Node::Children() const {
 		return children;
+	}
+
+	void Node::Traverse(const std::function<void(Node *)> &lambda){
+		lambda(this);
+		for (auto i : children) i->Traverse(lambda);
 	}
 }

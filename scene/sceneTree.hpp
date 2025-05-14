@@ -16,6 +16,7 @@ namespace REngine::Scene {
 		std::shared_ptr<Node> root;
 		
 		std::array<std::list<Drawable*>, 256> drawList;
+		int64_t lastFreeId = 0;
 		
 	public:
 		SceneTree() = default;
@@ -27,6 +28,7 @@ namespace REngine::Scene {
 		std::list<Drawable*>::iterator AddToDrawList(Drawable *drawable, uint8_t order);
 		void RemoveFromDrawList(Drawable *drawable);
 		void RemoveFromDrawList(std::list<Drawable*>::iterator iterator, uint8_t order);
+		void EnterTree(Node* node);
 
 		void Draw(vk::CommandBuffer &cb);
 		void Update();
