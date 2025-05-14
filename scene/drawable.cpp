@@ -2,9 +2,10 @@
 #include "sceneTree.hpp"
 
 namespace REngine::Scene {
-	void Drawable::Initialize() {
+	void Drawable::Initialize(SceneTree *sceneTree) {
 		// TODO:: dont refer to current, should have a pointer to it's scene tree
-		drawListPos = SceneTree::Current()->AddToDrawList(this, drawOrder);
+		tree = sceneTree;
+		drawListPos = tree->AddToDrawList(this, drawOrder);
 	}
 	
 	void Drawable::SetDrawOrder(uint8_t drawOrder) {
@@ -12,6 +13,6 @@ namespace REngine::Scene {
 	}
 
 	void Drawable::Destroy() {
-		SceneTree::Current()->RemoveFromDrawList(drawListPos, drawOrder);
+		tree->RemoveFromDrawList(drawListPos, drawOrder);
 	}
 }

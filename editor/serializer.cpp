@@ -5,7 +5,9 @@
 
 namespace REngine::Editor {
 	void Serializer::SerializeTree(Scene::SceneTree &tree) {
-		serializedTree.clear();
+		toml::table serializedTree;
+		toml::array nodes;
+
 		tree.GetRoot()->Traverse([&](Scene::Node *node) {
 			if (!node->editorOnly) {
 				currentNodeType.clear();
@@ -13,9 +15,12 @@ namespace REngine::Editor {
 
 				node->AcceptGui(this);
 
-				serializedTree.insert(currentNodeType + std::to_string(node->id), currentNode);
+				std::string name = currentNodeType + std::to_string(node->id);
+				nodes.push_back(name);
+				serializedTree.insert(name, currentNode);
 			}
 		});
+		serializedTree.insert("nodes", nodes);
 		std::cout << serializedTree << std::endl;
 		std::ofstream file("tree.rest");
 		file << serializedTree;

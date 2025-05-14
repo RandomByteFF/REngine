@@ -22,7 +22,7 @@ namespace REngine::Core {
 		Pipeline whitePipeline;
 		Renderer renderer;
 		Image textureImage;
-		Scene::SceneTree tree;
+		std::shared_ptr<Scene::SceneTree> tree;
 		std::shared_ptr<Scene::Mesh> testMesh;
 		std::shared_ptr<Scene::Mesh> arrowMesh;
 		REngine::Loader::Obj model;

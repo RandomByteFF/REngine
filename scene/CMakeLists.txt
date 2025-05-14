@@ -6,5 +6,6 @@ set(scene_sources
 	${CMAKE_CURRENT_SOURCE_DIR}/node3d.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/node.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/drawable.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/deserializer.cpp
 	PARENT_SCOPE
 )

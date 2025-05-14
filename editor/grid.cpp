@@ -5,7 +5,7 @@
 
 namespace REngine::Editor {
 	void Grid::Create(Core::Swapchain swapchain, vk::RenderPass renderPass) {
-		Scene::Drawable::Initialize();
+		Scene::Drawable::Initialize(sceneTree);
 		pipeline.SetLayout({{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex}});
 		pipeline.Create("gridVert", "gridFrag", swapchain, renderPass, true);
 

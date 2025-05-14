@@ -23,6 +23,10 @@ namespace REngine::Scene {
 		this->rotation = glm::quat(std::move(rotation));
 	}
 
+	void Node3D::RotationQuat(glm::quat rotation) {
+		this->rotation = rotation;
+	}
+
 	void Node3D::Rotate(glm::vec3 rotation) {
 		this->rotation = glm::normalize(glm::quat(std::move(rotation)) * this->rotation);
 	}

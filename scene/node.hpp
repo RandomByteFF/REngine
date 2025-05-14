@@ -3,7 +3,6 @@
 #include <vector>
 #include <string>
 #include <glm/gtc/matrix_transform.hpp>
-#include "node.hpp"
 #include "common/nodeVisitor.hpp"
 #include <iterator>
 #include <functional>
@@ -14,7 +13,10 @@
 		parentType::AcceptGui(visitor); \
 	}
 
+	
 namespace REngine::Scene {
+	class SceneTree;
+	
 	class Node {
 		Node *parent = nullptr;
 		glm::mat4 identity = glm::mat4(1.f);
@@ -24,7 +26,7 @@ namespace REngine::Scene {
 		virtual void EnteredTree();
 
 	public:
-		//TODO: keep track of which tree we're in
+		SceneTree *sceneTree;
 		bool editorOnly = false;
 		int64_t id = 0;
 		std::string name = "";

@@ -7,7 +7,6 @@ namespace REngine::Editor {
 	class Serializer : public Common::NodeVisitor {
 		toml::table currentNode;
 		std::string currentNodeType = "";
-		toml::table serializedTree;
 	public:
 		void SerializeTree(Scene::SceneTree &tree);
 		VISIT()

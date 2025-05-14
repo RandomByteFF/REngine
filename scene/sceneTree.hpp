@@ -1,10 +1,12 @@
 #pragma once
 #include <memory>
 #include "core/camera.hpp"
-#include "node.hpp"
+// #include "node.hpp"
 #include <list>
 #include <array>
 #include "drawable.hpp"
+
+class Node;
 
 namespace REngine::Scene {
 	class SceneTree {

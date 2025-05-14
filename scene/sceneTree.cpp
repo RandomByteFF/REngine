@@ -1,5 +1,6 @@
 #include "sceneTree.hpp"
 #include <cassert>
+#include "node.hpp"
 
 namespace REngine::Scene {
 	SceneTree *SceneTree::Current() {
@@ -67,6 +68,7 @@ namespace REngine::Scene {
 	void SceneTree::SetRoot(std::shared_ptr<Node> root) {
 		this->root = root;
 		root->id = lastFreeId++;
+		root->sceneTree = this;
 	}
 	
 	std::shared_ptr<Node> SceneTree::GetRoot() const {

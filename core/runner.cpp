@@ -3,13 +3,16 @@
 #include "imgui_impl_glfw.h"
 #include "input/mouse.hpp"
 #include "input/keyboard.hpp"
+#include "scene/deserializer.hpp"
 
 namespace REngine::Core {
 	void Runner::InitVulkan() {
 		Instance::Initialize(window);
 		device = Instance::GetInfo().device;
-		tree.SetCurrent();
-		tree.SetRoot(std::shared_ptr<Scene::Node>(new Scene::Node()));
+		// tree = std::make_shared<Scene::SceneTree>();
+		tree = Scene::Deserializer::loadTree("tree.rest");
+		tree->SetCurrent();
+		// tree->SetRoot(std::shared_ptr<Scene::Node>(new Scene::Node()));
 
 		renderer.Create(window);
 		camera = std::shared_ptr<Camera>(new Camera(renderer.AspectRatio()));
@@ -25,19 +28,22 @@ namespace REngine::Core {
 		textureImage.CreateImage(REngine::Loader::Image("test_files/viking_room.png"));
 		
 		model.Load("test_files/viking_room.obj");
-		testMesh = std::shared_ptr<Scene::Mesh>(new Scene::Mesh());
+		// testMesh = std::shared_ptr<Scene::Mesh>(new Scene::Mesh());
+		testMesh = std::dynamic_pointer_cast<Scene::Mesh>(tree->GetRoot()->Children()[0]);
 		testMesh->Create(pipeline, model.Verticies(), model.Indices());
 		testMesh->SetImage(textureImage, renderer.Sampler());
 		testMesh->name = "TestMesh";
-		tree.SetActiveCamera(camera);
-		tree.GetRoot()->AddChild(testMesh);
+
+		tree->SetActiveCamera(camera);
+		// tree->GetRoot()->AddChild(testMesh);
 
 		Loader::Obj arrow;
 		arrow.Load("test_files/arrow.obj");
-		arrowMesh = std::shared_ptr<Scene::Mesh>(new Scene::Mesh());
+		// arrowMesh = std::shared_ptr<Scene::Mesh>(new Scene::Mesh());
+		arrowMesh = std::dynamic_pointer_cast<Scene::Mesh>(testMesh->Children()[0]);
 		arrowMesh->Create(whitePipeline, arrow.Verticies(), arrow.Indices());
 		arrowMesh->name = "Arrow";
-		testMesh->AddChild(arrowMesh);
+		// testMesh->AddChild(arrowMesh);
 
 		// objects.push_back(Mesh());
 		// objects[1].Create(pipeline, model.Verticies(), model.Indices());
@@ -71,8 +77,8 @@ namespace REngine::Core {
 				if (Input::Keyboard::IsDown(GLFW_KEY_Q)) camera->SetPosition(camera->GetPosition() - camera->Up() * Time::Delta());
 				if (Input::Keyboard::IsDown(GLFW_KEY_F)) testMesh->Rotate(glm::vec3(0.f, 0.f, 1.f) * Time::Delta());
 			}
-			tree.ApplyTransforms();
-			renderer.Render(tree, *camera);
+			tree->ApplyTransforms();
+			renderer.Render(*tree, *camera);
 			Input::Keyboard::EndFrame();
 		}
 
@@ -84,7 +90,7 @@ namespace REngine::Core {
 		textureImage.Destroy();
 		
 		DescriptorPool::Cleanup();
-		tree.Destroy();
+		tree->Destroy();
 		
 		REngine::Loader::Shader::Destroy();
 		

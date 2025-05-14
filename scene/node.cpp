@@ -1,9 +1,11 @@
 #include "node.hpp"
 #include "sceneTree.hpp"
+
 namespace REngine::Scene {
 	void Node::EnteredTree() {
-		//TODO: abolish this
-		SceneTree::Current()->EnterTree(this);
+		//TODO: This doesn't get called on root otherwise ID would get bumped one
+		sceneTree = parent->sceneTree;
+		sceneTree->EnterTree(this);
 	}
 
 	void Node::Update() {

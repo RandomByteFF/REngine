@@ -8,7 +8,7 @@ using namespace REngine::Core;
 
 namespace REngine::Scene {
 	void Mesh::Create(Pipeline pipeline, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices) {
-		Drawable::Initialize();
+		Drawable::Initialize(sceneTree);
 		this->pipeline = pipeline;
 		indicesSize = uint32_t(indices.size());
 		descriptorSets = DescriptorPool::CreateDescriptor(pipeline.GetLayout(), Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
