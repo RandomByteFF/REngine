@@ -43,7 +43,7 @@ namespace REngine::Editor {
 		auto scale = node->Scale();
 		currentNode.insert("scale", toml::array {scale.x, scale.y, scale.z});
 		auto rot = node->RotationQuat();
-		currentNode.insert("rotation", toml::array {rot.x, rot.y, rot.z, rot.w});
+		currentNode.insert("rotation", toml::array {rot.w, rot.x, rot.y, rot.z});
 	}
 	
 	void Serializer::Visit(Scene::Mesh *node) {

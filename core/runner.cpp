@@ -9,10 +9,17 @@ namespace REngine::Core {
 	void Runner::InitVulkan() {
 		Instance::Initialize(window);
 		device = Instance::GetInfo().device;
-		// tree = std::make_shared<Scene::SceneTree>();
+		#ifdef EDITOR
+		tree = std::make_shared<Scene::SceneTree>();
+		tree->SetRoot(std::shared_ptr<Scene::Node>(new Scene::Node()));
+		arrowMesh = std::shared_ptr<Scene::Mesh>(new Scene::Mesh());
+		testMesh = std::shared_ptr<Scene::Mesh>(new Scene::Mesh());
+		tree->GetRoot()->AddChild(testMesh);
+		testMesh->AddChild(arrowMesh);
+		#else
 		tree = Scene::Deserializer::loadTree("tree.rest");
+		#endif
 		tree->SetCurrent();
-		// tree->SetRoot(std::shared_ptr<Scene::Node>(new Scene::Node()));
 
 		renderer.Create(window);
 		camera = std::shared_ptr<Camera>(new Camera(renderer.AspectRatio()));
@@ -28,26 +35,19 @@ namespace REngine::Core {
 		textureImage.CreateImage(REngine::Loader::Image("test_files/viking_room.png"));
 		
 		model.Load("test_files/viking_room.obj");
-		// testMesh = std::shared_ptr<Scene::Mesh>(new Scene::Mesh());
 		testMesh = std::dynamic_pointer_cast<Scene::Mesh>(tree->GetRoot()->Children()[0]);
 		testMesh->Create(pipeline, model.Verticies(), model.Indices());
 		testMesh->SetImage(textureImage, renderer.Sampler());
 		testMesh->name = "TestMesh";
 
 		tree->SetActiveCamera(camera);
-		// tree->GetRoot()->AddChild(testMesh);
 
 		Loader::Obj arrow;
 		arrow.Load("test_files/arrow.obj");
-		// arrowMesh = std::shared_ptr<Scene::Mesh>(new Scene::Mesh());
 		arrowMesh = std::dynamic_pointer_cast<Scene::Mesh>(testMesh->Children()[0]);
 		arrowMesh->Create(whitePipeline, arrow.Verticies(), arrow.Indices());
 		arrowMesh->name = "Arrow";
-		// testMesh->AddChild(arrowMesh);
 
-		// objects.push_back(Mesh());
-		// objects[1].Create(pipeline, model.Verticies(), model.Indices());
-		// objects[1].SetImage(textureImage, renderer.Sampler());
 		camera->SetPosition(glm::vec3(0.f, 0.f, 6.f));
 		model.Destroy();
 		arrow.Destroy();
@@ -56,6 +56,7 @@ namespace REngine::Core {
 	void Runner::MainLoop() {
 		// testMesh->Rotate(glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		Time::Start();
+		camera->Rotate(glm::vec3(0.f));
 		while(window.Update()) {
 			Time::Tick();
 			Input::Mouse::RecordDelta();
