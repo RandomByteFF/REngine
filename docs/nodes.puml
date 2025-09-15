@@ -1,0 +1,21 @@
+class Node {
+	children: Node[]
+}
+class Node3D {
+	position: glm::vec3
+	rotation: glm::quat
+	scale: glm::vec3
+}
+class Mesh{
+	verticies: glm::vec3[]
+	texture
+}
+
+Mesh --|> Node3D
+Node3D --|> Node
+
+class SceneTree {
+	root: Node*
+}
+
+SceneTree *-- Node

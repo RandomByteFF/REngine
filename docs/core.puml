@@ -1,0 +1,57 @@
+class Buffer {
+	Create(): void
+	CopyData(): void
+	Stage(): void
+}
+class CommandBuffer {
+	{static} BeginSingleTimeCommands(): void
+	{static} EndSingleTimeCommands(): void
+	Begin(): void
+	BeginPass(): void
+	EndPass(): void
+	End(): void
+}
+class Image {
+	CreateImage() : Image
+	GenerateMipmaps() : void
+}
+struct Info {
+	physicalDevice
+	device
+	queues
+	graphicsQueue
+	presentQueue
+	commandPool
+}
+class Instance {
+	{static} GetInfo(): Info
+}
+Instance *-- Info
+class Pipeline {
+	SetLayout(): void
+}
+class QueueFamily {
+	FindQueueFamilies(): QueueFamilyIndices
+}
+class Renderer {
+	Render(): void
+	RecreateSwapchain(): void
+}
+Renderer --> Swapchain
+Renderer --> CommandBuffer
+Renderer --> WindowManager
+class Runner {
+	MainLoop(): void
+}
+Runner *-- Pipeline
+Runner --> Renderer
+class Swapchain
+class Time {
+	{static} dt: float
+}
+class WindowManager {
+	CreateWindow(): void
+	CreateSurface(): void
+}
+
+Instance --> QueueFamily
