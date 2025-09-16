@@ -1,6 +1,4 @@
 #include "runner.hpp"
-#include "imgui_impl_vulkan.h"
-#include "imgui_impl_glfw.h"
 #include "input/mouse.hpp"
 #include "input/keyboard.hpp"
 #include "scene/deserializer.hpp"
@@ -12,10 +10,10 @@ namespace REngine::Core {
 		#ifdef EDITOR
 		tree = std::make_shared<Scene::SceneTree>();
 		tree->SetRoot(std::shared_ptr<Scene::Node>(new Scene::Node()));
-		arrowMesh = std::shared_ptr<Scene::Mesh>(new Scene::Mesh());
+		// arrowMesh = std::shared_ptr<Scene::Mesh>(new Scene::Mesh());
 		testMesh = std::shared_ptr<Scene::Mesh>(new Scene::Mesh());
 		tree->GetRoot()->AddChild(testMesh);
-		testMesh->AddChild(arrowMesh);
+		// testMesh->AddChild(arrowMesh);
 		#else
 		tree = Scene::Deserializer::loadTree("tree.rest");
 		#endif
@@ -42,15 +40,15 @@ namespace REngine::Core {
 
 		tree->SetActiveCamera(camera);
 
-		Loader::Obj arrow;
-		arrow.Load("test_files/arrow.obj");
-		arrowMesh = std::dynamic_pointer_cast<Scene::Mesh>(testMesh->Children()[0]);
-		arrowMesh->Create(whitePipeline, arrow.Verticies(), arrow.Indices());
-		arrowMesh->name = "Arrow";
+		// Loader::Obj arrow;
+		// arrow.Load("test_files/arrow.obj");
+		// arrowMesh = std::dynamic_pointer_cast<Scene::Mesh>(testMesh->Children()[0]);
+		// arrowMesh->Create(whitePipeline, arrow.Verticies(), arrow.Indices());
+		// arrowMesh->name = "Arrow";
 
 		camera->SetPosition(glm::vec3(0.f, 0.f, 6.f));
 		model.Destroy();
-		arrow.Destroy();
+		// arrow.Destroy();
 	}
 
 	void Runner::MainLoop() {

@@ -3,6 +3,7 @@
 #include "instance.hpp"
 #include "commandBuffer.hpp"
 #include "buffer.hpp"
+#include <iostream>
 
 #include <cmath>
 
@@ -49,11 +50,8 @@ namespace REngine::Core {
 		stagingBuffer.Create(size, vk::BufferUsageFlagBits::eTransferSrc, true);
 		stagingBuffer.CopyData(pixels);
 		auto format = Instance::GetInfo().imageFormat;
-		//FIXME: please don't leave it like this
+
 		vk::Format actualFormat = vk::Format::eR8G8B8A8Srgb;
-		if (format.format != vk::Format::eB8G8R8A8Srgb) {
-			actualFormat = vk::Format::eR8G8B8A8Unorm;
-		}
 
 		CreateImage(width, height, mipLevels, vk::SampleCountFlagBits::e1, actualFormat, vk::ImageTiling::eOptimal,
 			vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst);

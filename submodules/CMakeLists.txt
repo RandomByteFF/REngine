@@ -10,7 +10,7 @@ set(Imgui_sources
 	${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_widgets.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends/imgui_impl_glfw.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends/imgui_impl_vulkan.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/imgui_impl/imgui_impl_vulkan.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/imgui/imgui_demo.cpp
 )
 
