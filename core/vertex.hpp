@@ -16,8 +16,8 @@ struct Vertex {
 		return bindingDescription;
 	}
 
-	static std::array<vk::VertexInputAttributeDescription, 3> GetAttributeDescriptions() {
-		std::array<vk::VertexInputAttributeDescription, 3> attributeDescriptions{};
+	static std::vector<vk::VertexInputAttributeDescription> GetAttributeDescriptions() {
+		std::vector<vk::VertexInputAttributeDescription> attributeDescriptions(3);
 		attributeDescriptions[0].binding = 0;
 		attributeDescriptions[0].location = 0;
 		attributeDescriptions[0].format = vk::Format::eR32G32B32Sfloat;
@@ -32,7 +32,7 @@ struct Vertex {
 		attributeDescriptions[2].location = 2;
 		attributeDescriptions[2].format = vk::Format::eR32G32B32Sfloat;
 		attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
-		return attributeDescriptions;
+		return std::move(attributeDescriptions);
 	} 
 	
 	bool operator==(const Vertex &other) const {

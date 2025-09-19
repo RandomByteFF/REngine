@@ -1,6 +1,7 @@
 #include "swapchain.hpp"
 
 #include <limits>
+#include <stdexcept>
 
 #include "instance.hpp"
 #include "image.hpp"
@@ -16,6 +17,10 @@ namespace REngine::Core {
 	}
 
 	void Swapchain::CreateSwapchain() {
+		if (instance) {
+			throw std::runtime_error("Swapchain already exists! Multi window functionality is not yet supported");
+		}
+		instance = this;
 		Info info = Instance::GetInfo();
 		SwapchainSupportDetails swapChainSupport = QuerySwapchainSupport(info.physicalDevice);
 
@@ -135,5 +140,12 @@ namespace REngine::Core {
 
 			return actualExtent;
 		}
+	}
+
+	Swapchain *Swapchain::Instance() {
+		if (!instance) {
+			throw std::runtime_error("Swapchain doesn't exist!");
+		}
+		return instance;
 	}
 }

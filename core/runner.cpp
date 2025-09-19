@@ -21,20 +21,11 @@ namespace REngine::Core {
 
 		renderer.Create(window);
 		camera = std::shared_ptr<Camera>(new Camera(renderer.AspectRatio()));
-		pipeline.SetLayout({
-			{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex},
-			{vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment}
-		});
-		whitePipeline.SetLayout({
-			{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex}
-		});
-		pipeline.Create("vertex", "fragment", renderer.GetSwapchain(), renderer.RenderPass());
-		whitePipeline.Create("vertex", "whiteFrag", renderer.GetSwapchain(), renderer.RenderPass());
 		textureImage.CreateImage(REngine::Loader::Image("test_files/viking_room.png"));
 		
 		model.Load("test_files/viking_room.obj");
 		testMesh = std::dynamic_pointer_cast<Scene::Mesh>(tree->GetRoot()->Children()[0]);
-		testMesh->Create(pipeline, model.Verticies(), model.Indices());
+		testMesh->Create(renderer.RenderPass(), model.Verticies(), model.Indices());
 		testMesh->SetImage(textureImage, renderer.Sampler());
 		testMesh->name = "TestMesh";
 
@@ -94,8 +85,6 @@ namespace REngine::Core {
 		REngine::Loader::Shader::Destroy();
 		
 		vkDestroyCommandPool(device, Instance::GetInfo().commandPool, nullptr);
-		pipeline.Destroy();
-		whitePipeline.Destroy();
 		Instance::Destroy();
 		vkDestroyDevice(device, nullptr);
 		vkDestroySurfaceKHR(Instance::Get(), Instance::GetInfo().surface, nullptr);

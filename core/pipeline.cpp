@@ -2,26 +2,25 @@
 
 #include "loader/shader.hpp"
 #include "instance.hpp"
-#include "vertex.hpp"
 
 /* TODO: Descriptor sets should be reusable. My idea for this is:
 - Instead of SetLayout, create an AddLayout. This can either take a new layout, or a reference to an existing one.
 - On binding, we won't try to bind the already bound descriptors.
 */
 namespace REngine::Core {
-	void Pipeline::Create(const char *vertShader, const char *fragShader, const Swapchain &swapchain, const vk::RenderPass renderPass, bool noVertex) {
+	void Pipeline::Create(const char *vertShader, const char *fragShader, const vk::RenderPass renderPass) {
 		vk::ShaderModule vertShaderModule = Loader::Shader::Get(vertShader);
 		vk::ShaderModule fragShaderModule = Loader::Shader::Get(fragShader);
 		
 		vk::PipelineShaderStageCreateInfo vertShaderStageInfo{};
 		vertShaderStageInfo.stage = vk::ShaderStageFlagBits::eVertex;
 		vertShaderStageInfo.module = vertShaderModule;
-		vertShaderStageInfo.pName = "main";
+		vertShaderStageInfo.pName = vertEntry.data();
 		
 		vk::PipelineShaderStageCreateInfo fragShaderStageInfo{};
 		fragShaderStageInfo.stage = vk::ShaderStageFlagBits::eFragment;
 		fragShaderStageInfo.module = fragShaderModule;
-		fragShaderStageInfo.pName = "main";
+		fragShaderStageInfo.pName = fragEntry.data();
 		
 		vk::PipelineShaderStageCreateInfo shaderStages[] = {vertShaderStageInfo, fragShaderStageInfo};
 		
@@ -34,36 +33,15 @@ namespace REngine::Core {
 		dynamicState.dynamicStateCount = uint32_t(dynamicStates.size());
 		dynamicState.pDynamicStates = dynamicStates.data();
 		
-		auto bindingDescription = Vertex::GetBindingDescription();
-		auto attributeDescription = Vertex::GetAttributeDescriptions();
-
 		vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
-		if (noVertex) {
-			vertexInputInfo.vertexAttributeDescriptionCount = 0;
-			vertexInputInfo.vertexBindingDescriptionCount = 0;
-		}
-		else {
-			vertexInputInfo.vertexBindingDescriptionCount = 1;
-			vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-			vertexInputInfo.vertexAttributeDescriptionCount = uint32_t(attributeDescription.size());
-			vertexInputInfo.pVertexAttributeDescriptions = attributeDescription.data();
-		}
+		vertexInputInfo.vertexBindingDescriptionCount = uint32_t(vbinddesc.size());
+		vertexInputInfo.pVertexBindingDescriptions = vbinddesc.data();
+		vertexInputInfo.vertexAttributeDescriptionCount = uint32_t(vattribdesc.size());
+		vertexInputInfo.pVertexAttributeDescriptions = vattribdesc.data();
 		
 		vk::PipelineInputAssemblyStateCreateInfo inputAssembly{};
-		inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
+		inputAssembly.topology = topology;
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
-		
-		vk::Viewport viewport{};
-		viewport.x = 0.0f;
-		viewport.y = 0.0f;
-		viewport.width = float(swapchain.Extent().width);
-		viewport.height = float(swapchain.Extent().height);
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
-		
-		vk::Rect2D scissor{};
-		scissor.offset = vk::Offset2D{0, 0};
-		scissor.extent = swapchain.Extent();
 		
 		vk::PipelineViewportStateCreateInfo	viewportState;
 		viewportState.viewportCount = 1;
@@ -74,7 +52,7 @@ namespace REngine::Core {
 		rasterizer.rasterizerDiscardEnable = VK_FALSE;
 		rasterizer.polygonMode = vk::PolygonMode::eFill;
 		rasterizer.lineWidth = 1.0f;
-		rasterizer.cullMode = vk::CullModeFlagBits::eBack; 
+		rasterizer.cullMode = cullMode; 
 		rasterizer.frontFace = vk::FrontFace::eCounterClockwise;
 		rasterizer.depthBiasEnable = VK_FALSE;
 		rasterizer.depthBiasConstantFactor = 0.0f;
@@ -84,7 +62,6 @@ namespace REngine::Core {
 		vk::PipelineMultisampleStateCreateInfo multisampling{};
 		multisampling.sampleShadingEnable = VK_FALSE;
 		multisampling.rasterizationSamples = Instance::GetInfo().maxMsaa;
-		// multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
 		
 		vk::PipelineColorBlendAttachmentState colorBlendAttachment{};
 		colorBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
@@ -109,11 +86,11 @@ namespace REngine::Core {
 		layout = Instance::GetInfo().device.createPipelineLayout(pipelineLayoutInfo);
 
 		vk::PipelineDepthStencilStateCreateInfo depthStencil{};
-		depthStencil.depthTestEnable = VK_TRUE;
-		depthStencil.depthWriteEnable = VK_TRUE;
+		depthStencil.depthTestEnable = depthTest;
+		depthStencil.depthWriteEnable = depthTest;
 		depthStencil.depthCompareOp = vk::CompareOp::eLess;
 		depthStencil.depthBoundsTestEnable = VK_FALSE;
-		depthStencil.stencilTestEnable = VK_FALSE;
+		depthStencil.stencilTestEnable = stencilTest;
 		
 		vk::GraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.stageCount = 2;
@@ -153,6 +130,23 @@ namespace REngine::Core {
 
 		descriptorLayout = Instance::GetInfo().device.createDescriptorSetLayout(layoutInfo);
 
+	}
+
+	void Pipeline::SetInput(std::vector<vk::VertexInputBindingDescription> bind, std::vector<vk::VertexInputAttributeDescription> attrib) {
+		vbinddesc = bind;
+		vattribdesc = attrib;
+	}
+		
+	void Pipeline::SetVertexEntry(std::string &entry) {
+		vertEntry = entry;
+	}
+
+	void Pipeline::SetFragEntry(std::string &entry) {
+		fragEntry = entry;
+	}
+	
+	void Pipeline::SetPrimitiveTopology(vk::PrimitiveTopology topology) {
+		this->topology = topology;
 	}
 
 	const vk::Pipeline &Pipeline::GetPipeline() const {

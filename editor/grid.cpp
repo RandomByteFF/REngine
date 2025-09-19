@@ -7,7 +7,7 @@ namespace REngine::Editor {
 	void Grid::Create(Core::Swapchain swapchain, vk::RenderPass renderPass) {
 		Scene::Drawable::Initialize(Scene::SceneTree::Current());
 		pipeline.SetLayout({{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex}});
-		pipeline.Create("gridVert", "gridFrag", swapchain, renderPass, true);
+		pipeline.Create("gridVert", "gridFrag", renderPass);
 
 		descriptorSets = Core::DescriptorPool::CreateDescriptor(pipeline.GetLayout(), Core::Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
 		

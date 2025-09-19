@@ -10,6 +10,7 @@ namespace REngine::Core {
 	};
 
 	class Swapchain {
+		inline static Swapchain* instance = nullptr;
 		vk::SwapchainKHR swapchain;
 		std::vector<vk::Image> images;
 		std::vector<vk::ImageView> imageViews;
@@ -21,6 +22,7 @@ namespace REngine::Core {
 		vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities);
 		
 	public:
+		static Swapchain *Instance();
 		static SwapchainSupportDetails QuerySwapchainSupport(vk::PhysicalDevice device);
 		void CreateSwapchain();
 		vk::Extent2D Extent() const;
