@@ -188,6 +188,9 @@ namespace REngine::Core {
 		poolInfo.pNext = nullptr;
 		commandPool = device.createCommandPool(poolInfo);
 		info.commandPool = commandPool;
+
+		info.depthFormat = FindSupportedFormat({vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint},
+			vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment);
 	}
 
 	void Instance::SetCurrentFrame(uint32_t frame) {
@@ -221,5 +224,26 @@ namespace REngine::Core {
 		for(auto i : callbacks) {
 			i.second(width, height);
 		}
+	}
+	
+	vk::Format Instance::FindSupportedFormat(const std::vector<vk::Format> &candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) {
+		for (vk::Format format :candidates) {
+			auto props = physicalDevice.getFormatProperties(format);
+			if (tiling == vk::ImageTiling::eLinear && (props.linearTilingFeatures & features) == features) {
+				return format;
+			}
+			else if (tiling == vk::ImageTiling::eOptimal && (props.optimalTilingFeatures & features) == features) {
+				return format;
+			}
+		}
+		throw std::runtime_error("Failed to find supported format!");
+	}
+
+	void Instance::SetSwapchainExtent(vk::Extent2D extent) {
+		info.swapchainExtent = extent;
+	}
+	
+	void Instance::SetSwapchainSize(uint32_t size) {
+		info.swapchainSize = size;
 	}
 }

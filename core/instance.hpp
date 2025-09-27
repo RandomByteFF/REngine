@@ -2,6 +2,7 @@
 #include "headers.h"
 #include "Info.hpp"
 #include "swapchain.hpp"
+#include "vulkan/vulkan_structs.hpp"
 #include "windowManager.hpp"
 #include "vk_mem_alloc.h"
 #include <functional>
@@ -56,6 +57,9 @@ namespace REngine::Core {
 		static void OnResize(void *caller, ResizedCallback cb);
 		static void UnsubscribeResize(void *caller);
 		static void ChosenImageFormat(vk::SurfaceFormatKHR format);
+		static vk::Format FindSupportedFormat(const std::vector<vk::Format> &candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features);
+		static void SetSwapchainExtent(vk::Extent2D);
+		static void SetSwapchainSize(uint32_t);
 
 		static void Destroy();
 	};

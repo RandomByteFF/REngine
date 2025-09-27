@@ -1,5 +1,6 @@
 #pragma once
 
+#include "IViews.hpp"
 #include "headers.h"
 
 namespace REngine::Core {
@@ -9,7 +10,7 @@ namespace REngine::Core {
 		std::vector<vk::PresentModeKHR> presentModes;
 	};
 
-	class Swapchain {
+	class Swapchain : public IViews {
 		inline static Swapchain* instance = nullptr;
 		vk::SwapchainKHR swapchain;
 		std::vector<vk::Image> images;
@@ -28,7 +29,7 @@ namespace REngine::Core {
 		vk::Extent2D Extent() const;
 		vk::Format ImageFormat() const;
 		vk::SwapchainKHR GetSwapchain() const;
-		const std::vector<vk::ImageView> &Views() const;
+		virtual const std::vector<vk::ImageView> &Views() const override;
 		uint32_t SwapchainImageCount() const;
 
 		void Destroy();

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/IViews.hpp"
 #include "core/swapchain.hpp"
 #include "core/commandBuffer.hpp"
 #include "sceneTree.hpp"
@@ -8,26 +9,28 @@
 #include "imgui.h"
 #include "inspector.hpp"
 #include "serializer.hpp"
+#include "core/renderPass.hpp"
 
 namespace REngine::Editor {
 	class Editor {
 		ImVec2 prevViewSize = {0, 0};
 
-		vk::RenderPass renderPass;
-		std::vector<vk::Framebuffer> framebuffers;
+		Core::RenderPass renderPass;
+		std::weak_ptr<Core::IViews> vpViews;
 		std::vector<vk::DescriptorSet> renderedViewports;
 		std::shared_ptr<Grid> grid;
 		SceneTree sceneTree;
 		Inspector inspector;
 		Serializer serializer;
+		vk::Sampler sampler;
+
 
 	public:
-		void Initialize(Core::Swapchain swapchain, vk::RenderPass vpRenderPass);
-		void CreateFramebuffers(Core::Swapchain swapchain);
-		void AddTextures(std::vector<vk::ImageView> &views, vk::Sampler sampler);
+		void Initialize(std::shared_ptr<Core::Swapchain> swapchain, Core::RenderPass vpRenderPass);
+		void AddTextures(vk::Sampler sampler);
 		void Render(uint32_t imageIndex, Core::CommandBuffer cb, vk::Extent2D extent);
 
-		void DestroyBuffers();
+		void Recreate();
 		void Destroy();
 	};
 }

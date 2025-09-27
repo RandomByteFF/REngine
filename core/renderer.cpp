@@ -2,7 +2,8 @@
 
 #include "instance.hpp"
 #include "imgui.h"
-#include <iostream>
+#include "vulkan/vulkan_enums.hpp"
+#include <memory>
 
 namespace REngine::Core {
 	
@@ -10,17 +11,25 @@ namespace REngine::Core {
 		this->window = window;
 		device = Instance::GetInfo().device;
 
-		swapchain.CreateSwapchain();
-		colorFormat = swapchain.ImageFormat();
-		depthFormat = FindSupportedFormat({vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint},
-			vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment);
-		
-		CreateSampler();
-		CreateImages();
-		
+		swapchain = std::make_shared<Swapchain>();
+		swapchain->CreateSwapchain();
+		colorFormat = swapchain->ImageFormat();
+
+		vpRenderer.AddColorAttachment().samples = Instance::GetInfo().maxMsaa;
+		vpRenderer.AddColorImage();
+		vpRenderer.AddDepthAttachment().samples = Instance::GetInfo().maxMsaa;
+		vpRenderer.AddDepthImage();
+		auto resolve = vpRenderer.AddResolveAttachment();
+		#ifndef EDITOR
+		resolve.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+		vpRenderer.AddResolveImage(swapchain);
+		#else
+		vpRenderer.AddResolveImage();
+		#endif
+
 		vpRenderer.CreateRenderPass();
 		
-		vpRenderer.CreateFramebuffers();
+		CreateSampler();
 		CreateSyncObjects();
 		
 		commandBuffers.resize(Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
@@ -29,9 +38,8 @@ namespace REngine::Core {
 		}
 		
 		#ifdef EDITOR
-		editor.Initialize(swapchain, vpRenderer.RenderPass());
-		editor.CreateFramebuffers(swapchain);
-		editor.AddTextures(viewportView, sampler);
+		editor.Initialize(swapchain, vpRenderer);
+		editor.AddTextures(sampler);
 		barrier.oldLayout = vk::ImageLayout::ePresentSrcKHR;
 		barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		barrier.srcQueueFamilyIndex = vk::QueueFamilyIgnored;
@@ -46,28 +54,12 @@ namespace REngine::Core {
 		#endif
 	}
 
-	void Renderer::CreateImages() {
-		#ifdef EDITOR
-		viewportImages.resize(swapchain.SwapchainImageCount());
-		for (size_t i = 0; i < swapchain.SwapchainImageCount(); i++) {
-			// TODO: don't set it to swapchain's extent, it should be the image extent
-			viewportImages[i].CreateImage(swapchain.Extent().width, swapchain.Extent().height, 1, vk::SampleCountFlagBits::e1, 
-			colorFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
-			viewportImages[i].TransitionLayout(vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal);
-		}
-		for(auto i : viewportImages) viewportView.push_back(i.View());
-		vpRenderer.CreateImages(swapchain.Extent(), swapchain.ImageFormat(), depthFormat, viewportView);
-		#else
-		vpRenderer.CreateImages(swapchain.Extent(), swapchain.ImageFormat(), depthFormat, swapchain.Views());
-		#endif
-	}
-
 	const Swapchain Renderer::GetSwapchain() const {
-		return swapchain;
+		return *swapchain;
 	}
 
 	const vk::RenderPass Renderer::RenderPass() const {
-		return vpRenderer.RenderPass();
+		return vpRenderer.GetRenderPass();
 	}
 
 	const vk::Sampler Renderer::Sampler() const {
@@ -80,7 +72,7 @@ namespace REngine::Core {
 		
 		uint32_t imageIndex;
 		try {
-			vk::ResultValue<uint32_t> result = device.acquireNextImageKHR(swapchain.GetSwapchain(), std::numeric_limits<uint64_t>::max(), imageAvailableSemaphores[currentFrame], {});
+			vk::ResultValue<uint32_t> result = device.acquireNextImageKHR(swapchain->GetSwapchain(), std::numeric_limits<uint64_t>::max(), imageAvailableSemaphores[currentFrame], {});
 			imageIndex = result.value;
 			
 			if (result.result == vk::Result::eSuboptimalKHR) {
@@ -105,14 +97,19 @@ namespace REngine::Core {
 		commandBuffers[currentFrame].Reset();
 		commandBuffers[currentFrame].Begin();
 	
-		vpRenderer.Render(commandBuffers[currentFrame], swapchain.Extent(), imageIndex, sceneTree, camera);
+		// vpRenderer.Render(commandBuffers[currentFrame], swapchain.Extent(), imageIndex, sceneTree, camera);
+		commandBuffers[currentFrame].BeginPass(vpRenderer.GetRenderPass(), swapchain->Extent(), vpRenderer.GetFramebuffer()[imageIndex]);
+
+		sceneTree.Draw(commandBuffers[currentFrame].GetBuffer());
+		
+		commandBuffers[currentFrame].EndPass();
 
 		#ifdef EDITOR
-		barrier.image = viewportImages[imageIndex].Get();
+		barrier.image = vpRenderer.GetImage(2, imageIndex);
 		commandBuffers[currentFrame].GetBuffer().pipelineBarrier(vk::PipelineStageFlagBits::eColorAttachmentOutput,
 			vk::PipelineStageFlagBits::eFragmentShader, vk::DependencyFlags(), nullptr, nullptr, barrier);
 
-		editor.Render(imageIndex, commandBuffers[currentFrame], swapchain.Extent());
+		editor.Render(imageIndex, commandBuffers[currentFrame], swapchain->Extent());
 		#endif
 		
 		commandBuffers[currentFrame].End();
@@ -137,7 +134,7 @@ namespace REngine::Core {
 		presentInfo.waitSemaphoreCount = 1;
 		presentInfo.pWaitSemaphores = signalSemaphores;
 
-		vk::SwapchainKHR swapChains[] = {swapchain.GetSwapchain()};
+		vk::SwapchainKHR swapChains[] = {swapchain->GetSwapchain()};
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = swapChains;
 		presentInfo.pImageIndices = &imageIndex;
@@ -202,22 +199,9 @@ namespace REngine::Core {
 		}
 	}
 
-	vk::Format Renderer::FindSupportedFormat(const std::vector<vk::Format> &candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) {
-		for (vk::Format format :candidates) {
-			auto props = Instance::GetInfo().physicalDevice.getFormatProperties(format);
-			if (tiling == vk::ImageTiling::eLinear && (props.linearTilingFeatures & features) == features) {
-				return format;
-			}
-			else if (tiling == vk::ImageTiling::eOptimal && (props.optimalTilingFeatures & features) == features) {
-				return format;
-			}
-		}
-		throw std::runtime_error("Failed to find supported format!");
-	}
 
 	void Renderer::Destroy() {
-		CleanupSwapchain();
-
+		swapchain->Destroy();
 		device.destroySampler(sampler);
 		for (size_t i = 0; i < renderFinishedSemaphores.size(); i++)
 		{
@@ -225,10 +209,10 @@ namespace REngine::Core {
 			device.destroySemaphore(renderFinishedSemaphores[i]);
 			device.destroyFence(inFlightFences[i]);
 		}
+		vpRenderer.Destroy();
 		#ifdef EDITOR
 		editor.Destroy();
 		#endif
-		vpRenderer.Destroy();
 	}
 
 	void Renderer::RecreateSwapchain() {
@@ -239,30 +223,16 @@ namespace REngine::Core {
 			glfwWaitEvents();
 		}
 		vkDeviceWaitIdle(device);
-		CleanupSwapchain();
-
-		swapchain.CreateSwapchain();
-		CreateImages();
-		vpRenderer.CreateFramebuffers();
+		swapchain->Destroy();
+		swapchain->CreateSwapchain();
+		RenderTarget::RecreateAll();
+		vpRenderer.Recreate();
 		#ifdef EDITOR
-		editor.AddTextures(viewportView, sampler);
-		editor.CreateFramebuffers(swapchain);
+		editor.Recreate();
 		#endif
 	}
 
 	float Renderer::AspectRatio() {
-		return float(swapchain.Extent().width) / float(swapchain.Extent().height);
-	}
-
-	void Renderer::CleanupSwapchain() {
-		vpRenderer.DestroyBuffers();
-		#ifdef EDITOR
-		editor.DestroyBuffers();
-		for (auto image : viewportImages) {
-			image.Destroy();
-		}
-		viewportView.clear();
-		#endif
-		swapchain.Destroy();
+		return float(swapchain->Extent().width) / float(swapchain->Extent().height);
 	}
 }

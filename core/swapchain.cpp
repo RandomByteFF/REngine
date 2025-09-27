@@ -67,7 +67,8 @@ namespace REngine::Core {
 		images = info.device.getSwapchainImagesKHR(swapchain);
 		imageFormat = surfaceFormat.format;
 		this->extent = extent;
-
+		Instance::SetSwapchainExtent(extent);
+		Instance::SetSwapchainSize(images.size());
 
 		imageViews.resize(images.size());
 		for (size_t i = 0; i < images.size(); i++) {
@@ -101,6 +102,7 @@ namespace REngine::Core {
 			device.destroyImageView(imageView);
 		}
 		device.destroySwapchainKHR(swapchain);
+		instance = nullptr;
 	}
 
 	vk::SurfaceFormatKHR Swapchain::ChooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats) {
