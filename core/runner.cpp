@@ -1,7 +1,11 @@
 #include "runner.hpp"
 #include "input/mouse.hpp"
 #include "input/keyboard.hpp"
-#include "scene/deserializer.hpp"
+#include "scene/mesh.hpp"
+#include "time.hpp"
+#include "descriptorPool.hpp"
+#include "loader/shader.hpp"
+#include <iostream>
 
 namespace REngine::Core {
 	void Runner::InitVulkan() {
@@ -11,8 +15,12 @@ namespace REngine::Core {
 		tree = std::make_shared<Scene::SceneTree>();
 		tree->SetRoot(std::shared_ptr<Scene::Node>(new Scene::Node()));
 		// arrowMesh = std::shared_ptr<Scene::Mesh>(new Scene::Mesh());
-		testMesh = std::shared_ptr<Scene::Mesh>(new Scene::Mesh());
+		testMesh = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh());
+		levelMesh = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh());
+		portal1 = std::shared_ptr<Scene::Portal>(new Scene::Portal());
 		tree->GetRoot()->AddChild(testMesh);
+		tree->GetRoot()->AddChild(levelMesh);
+		tree->GetRoot()->AddChild(portal1);
 		// testMesh->AddChild(arrowMesh);
 		#else
 		tree = Scene::Deserializer::loadTree("tree.rest");
@@ -22,17 +30,23 @@ namespace REngine::Core {
 		renderer.Create(window);
 		camera = std::shared_ptr<Camera>(new Camera(renderer.AspectRatio()));
 		textureImage.CreateImage(REngine::Loader::Image("test_files/viking_room.png"));
+		levelTexture.CreateImage(REngine::Loader::Image("test_files/levelTexture.png"));
 		
 		model.Load("test_files/viking_room.obj");
-		testMesh = std::dynamic_pointer_cast<Scene::Mesh>(tree->GetRoot()->Children()[0]);
+		testMesh = std::dynamic_pointer_cast<Scene::TextureMesh>(tree->GetRoot()->Children()[0]);
 		testMesh->Create(renderer.RenderPass(), model.Verticies(), model.Indices());
+		model.Destroy();
+		model.Load("test_files/rengine-level1.obj");
+		levelMesh->Create(renderer.RenderPass(), model.Verticies(), model.Indices());
+		portal1->Create(renderer.RenderPass());
 		testMesh->SetImage(textureImage, renderer.Sampler());
+		levelMesh->SetImage(levelTexture, renderer.Sampler());
+		levelMesh->name = "Level";
 		testMesh->name = "TestMesh";
 
 		tree->SetActiveCamera(camera);
 
 		camera->SetPosition(glm::vec3(0.f, 0.f, 6.f));
-		model.Destroy();
 		// arrow.Destroy();
 	}
 
@@ -72,6 +86,7 @@ namespace REngine::Core {
 	void Runner::Cleanup() {
 		renderer.Destroy();
 		textureImage.Destroy();
+		levelTexture.Destroy();
 		
 		DescriptorPool::Cleanup();
 		tree->Destroy();

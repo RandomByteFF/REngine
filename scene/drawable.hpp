@@ -14,6 +14,8 @@ namespace REngine::Scene {
 		virtual void Draw(vk::CommandBuffer cb) = 0;
 		virtual void Destroy();
 		virtual void Initialize(SceneTree *sceneTree);
+		virtual void PreDraw(vk::CommandBuffer cb) {}
+		virtual void PostDraw(vk::CommandBuffer cb) {}
 		void SetDrawOrder(uint8_t drawOrder);
 	};
 }

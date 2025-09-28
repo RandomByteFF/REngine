@@ -11,19 +11,10 @@ using namespace REngine::Core;
 
 namespace REngine::Scene {
 	void Mesh::Create(vk::RenderPass rp, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices) {
-		meshCounter++;
 		Drawable::Initialize(sceneTree);
-		if (!pipeline) {
-			pipeline = std::make_unique<Core::Pipeline>();
-			pipeline->SetLayout({
-				{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex},
-				{vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment}
-			});
-			pipeline->SetInput({Vertex::GetBindingDescription()}, Vertex::GetAttributeDescriptions());
-			pipeline->Create("vertex", "fragment", rp);
-		}
+
 		indicesSize = uint32_t(indices.size());
-		descriptorSets = DescriptorPool::CreateDescriptor(pipeline->GetLayout(), Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
+		descriptorSets = DescriptorPool::CreateDescriptor(pPipeline.lock()->GetLayout(), Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
 		
 		VkDeviceSize bufferSize = sizeof(mvp);
 		uniformBuffers.resize(Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
@@ -44,12 +35,12 @@ namespace REngine::Scene {
 		mvp = SceneTree::Current()->ActiveCamera()->VP() * GetModel();
 		uniformBuffers[Instance::GetInfo().currentFrame].CopyData(&mvp, sizeof(mvp));
 		
-		cb.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline->GetPipelineLayout(), 0, descriptorSets[Instance::GetInfo().currentFrame], nullptr);
+		cb.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pPipeline.lock()->GetPipelineLayout(), 0, descriptorSets[Instance::GetInfo().currentFrame], nullptr);
 
 		vk::DeviceSize offset[] = {0};
 		cb.bindVertexBuffers(0, vertexBuffer.GetBuffer(), offset);
 		cb.bindIndexBuffer(indexBuffer.GetBuffer(), 0, vk::IndexType::eUint32);
-		cb.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline->GetPipeline());
+		cb.bindPipeline(vk::PipelineBindPoint::eGraphics, pPipeline.lock()->GetPipeline());
 	}
 
 	void Mesh::Draw(vk::CommandBuffer cb) {
@@ -57,11 +48,6 @@ namespace REngine::Scene {
 		cb.drawIndexed(indicesSize, 1, 0, 0, 0);
 	}
 
-	void Mesh::SetImage(Image image, vk::Sampler sampler) {
-		for (size_t i = 0; i < Instance::GetInfo().MAX_FRAMES_IN_FLIGHT; i++) {
-			DescriptorPool::SetImage(descriptorSets[i], 1, image, sampler);
-		}
-	}
 
 	void Mesh::Destroy() {
 		Node3D::Destroy();
@@ -71,8 +57,5 @@ namespace REngine::Scene {
 		}
 		indexBuffer.Destroy();
 		vertexBuffer.Destroy();
-		if (--meshCounter == 0) {
-			pipeline->Destroy();
-		}
 	}
 }

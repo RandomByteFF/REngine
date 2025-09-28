@@ -80,5 +80,4 @@ target_precompile_headers(REngine PRIVATE
 	core/headers.h
 )
 
-# TODO: doesn't work on windows yet
-# add_dependencies(REngine copy_spv_files)
+add_dependencies(REngine copy_spv_files)

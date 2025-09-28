@@ -13,10 +13,6 @@
 
 namespace REngine::Scene {
 	class Mesh : public Node3D, public Drawable {
-		inline static std::unique_ptr<Core::Pipeline> pipeline;
-		inline static uint32_t meshCounter = 0;
-
-		std::vector<vk::DescriptorSet> descriptorSets;
 		Core::Buffer vertexBuffer;
 		Core::Buffer indexBuffer;
 		uint32_t indicesSize = 0;
@@ -25,11 +21,14 @@ namespace REngine::Scene {
 		
 		glm::mat4 mvp;
 		
+	protected:
+		std::weak_ptr<Core::Pipeline> pPipeline;
+		std::vector<vk::DescriptorSet> descriptorSets;
+
 	public:
-		void Create(vk::RenderPass rp, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices);
+		virtual void Create(vk::RenderPass rp, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices);
 		void Draw(vk::CommandBuffer cb) override;
-		void SetImage(Core::Image image, vk::Sampler sampler);
-		void Destroy() override;
+		virtual void Destroy() override;
 
 		VISITOR(Node3D);
 	};
