@@ -48,6 +48,31 @@ namespace REngine::Scene {
 		for(auto i = drawList.begin(); i != drawList.end(); i++) {
 			for(auto j = i->begin(); j != i->end(); j++) {
 				(*j)->Draw(cb);
+				//TODO: switch this out for: CallDrawlist
+			}
+		}
+	}
+
+	void SceneTree::PreDraw(Core::CommandBuffer &cb) {
+		for(auto i = drawList.begin(); i != drawList.end(); i++) {
+			for(auto j = i->begin(); j != i->end(); j++) {
+				(*j)->PreDraw(cb);
+				//FIXME: call this funcction on every node, not just drawable
+			}
+		}
+	}
+
+	void SceneTree::PostDraw(Core::CommandBuffer &cb) {
+		for(auto i = drawList.begin(); i != drawList.end(); i++) {
+			for(auto j = i->begin(); j != i->end(); j++) {
+				(*j)->PostDraw(cb);
+			}
+		}
+	}
+	void SceneTree::CallDrawlist(std::function<void (Drawable &)> function) {
+		for(auto i = drawList.begin(); i != drawList.end(); i++) {
+			for(auto j = i->begin(); j != i->end(); j++) {
+				function(**j);
 			}
 		}
 	}

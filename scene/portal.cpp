@@ -1,5 +1,9 @@
 #include "portal.hpp"
+#include "core/instance.hpp"
 #include "core/vertex.hpp"
+#include "scene/sceneTree.hpp"
+#include "vulkan/vulkan_structs.hpp"
+#include <memory>
 
 namespace REngine::Scene {
 	void Portal::Create(vk::RenderPass rp) {
@@ -11,6 +15,9 @@ namespace REngine::Scene {
 			});
 			pipeline->SetInput({Vertex::GetBindingDescription()}, Vertex::GetAttributeDescriptions());
 			pipeline->Create("portalVert", "portalFrag", rp);
+
+			renderPass.AddColorAttachment().finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+			renderPass.AddColorImage();
 		}
 		pPipeline = pipeline;
 
@@ -23,8 +30,17 @@ namespace REngine::Scene {
 		Mesh::Create(rp, vertices, indices);
 	}
 
+	void Portal::PreDraw(Core::CommandBuffer cb) {
+		auto info = Core::Instance::GetInfo();
+		cb.BeginPass(renderPass.GetRenderPass(), info.swapchainExtent, renderPass.GetFramebuffer()[info.currentFb]);
+		SceneTree::Current()->CallDrawlist([&cb](Drawable &j) {
+			j.DrawFromView(cb.GetBuffer(), *SceneTree::Current()->ActiveCamera());
+		});
+	}
+
 	void Portal::Destroy() {
 		Mesh::Destroy();
+		renderPass.Destroy();
 		if (--portalCounter == 0) {
 			pipeline->Destroy();
 			pipeline = nullptr;

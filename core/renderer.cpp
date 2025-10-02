@@ -74,6 +74,7 @@ namespace REngine::Core {
 		try {
 			vk::ResultValue<uint32_t> result = device.acquireNextImageKHR(swapchain->GetSwapchain(), std::numeric_limits<uint64_t>::max(), imageAvailableSemaphores[currentFrame], {});
 			imageIndex = result.value;
+			Instance::SetCurrentFb(imageIndex);
 			
 			if (result.result == vk::Result::eSuboptimalKHR) {
 				RecreateSwapchain();
@@ -96,6 +97,8 @@ namespace REngine::Core {
 
 		commandBuffers[currentFrame].Reset();
 		commandBuffers[currentFrame].Begin();
+
+		sceneTree.PreDraw(commandBuffers[currentFrame]);
 	
 		// vpRenderer.Render(commandBuffers[currentFrame], swapchain.Extent(), imageIndex, sceneTree, camera);
 		commandBuffers[currentFrame].BeginPass(vpRenderer.GetRenderPass(), swapchain->Extent(), vpRenderer.GetFramebuffer()[imageIndex]);
@@ -103,6 +106,8 @@ namespace REngine::Core {
 		sceneTree.Draw(commandBuffers[currentFrame].GetBuffer());
 		
 		commandBuffers[currentFrame].EndPass();
+		
+		sceneTree.PostDraw(commandBuffers[currentFrame]);
 
 		#ifdef EDITOR
 		barrier.image = vpRenderer.GetImage(2, imageIndex);

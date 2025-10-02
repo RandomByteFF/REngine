@@ -18,6 +18,7 @@ namespace REngine::Core {
 		vk::AttachmentReference depthStencilReference;
 		bool resolveEnable = false;
 		bool depthEnable = false;
+		vk::Extent2D extent;
 
 		std::vector<std::shared_ptr<RenderTarget>> internalImages;
 		std::vector<std::weak_ptr<IViews>> images;

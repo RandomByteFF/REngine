@@ -60,6 +60,7 @@ namespace REngine::Core {
 		static vk::Format FindSupportedFormat(const std::vector<vk::Format> &candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features);
 		static void SetSwapchainExtent(vk::Extent2D);
 		static void SetSwapchainSize(uint32_t);
+		static void SetCurrentFb(uint32_t);
 
 		static void Destroy();
 	};

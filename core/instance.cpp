@@ -246,4 +246,7 @@ namespace REngine::Core {
 	void Instance::SetSwapchainSize(uint32_t size) {
 		info.swapchainSize = size;
 	}
+	void Instance::SetCurrentFb(uint32_t fb) {
+		info.currentFb = fb;
+	}
 }

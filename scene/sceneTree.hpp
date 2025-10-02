@@ -4,6 +4,7 @@
 // #include "node.hpp"
 #include <list>
 #include <array>
+#include "core/commandBuffer.hpp"
 #include "drawable.hpp"
 
 class Node;
@@ -33,6 +34,9 @@ namespace REngine::Scene {
 		void EnterTree(Node* node);
 
 		void Draw(vk::CommandBuffer &cb);
+		void PreDraw(Core::CommandBuffer &cb);
+		void PostDraw(Core::CommandBuffer &cb);
+		void CallDrawlist(std::function<void(Drawable &)>);
 		void Update();
 		void ApplyTransforms();
 		void Destroy();

@@ -31,8 +31,8 @@ namespace REngine::Scene {
 		indexBuffer.Create(sizeof(indices[0]) * indices.size(), vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer);
 		indexBuffer.Stage(indices.data());
 	}
-	void Mesh::Bind(vk::CommandBuffer cb) {
-		mvp = SceneTree::Current()->ActiveCamera()->VP() * GetModel();
+	void Mesh::Bind(vk::CommandBuffer cb, Core::Camera &camera) {
+		mvp = camera.VP() * GetModel();
 		uniformBuffers[Instance::GetInfo().currentFrame].CopyData(&mvp, sizeof(mvp));
 		
 		cb.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pPipeline.lock()->GetPipelineLayout(), 0, descriptorSets[Instance::GetInfo().currentFrame], nullptr);
@@ -44,7 +44,12 @@ namespace REngine::Scene {
 	}
 
 	void Mesh::Draw(vk::CommandBuffer cb) {
-		Bind(cb);
+		Bind(cb, *SceneTree::Current()->ActiveCamera());
+		cb.drawIndexed(indicesSize, 1, 0, 0, 0);
+	}
+	
+	void Mesh::DrawFromView(vk::CommandBuffer cb, Core::Camera &camera) {
+		Bind(cb, camera);
 		cb.drawIndexed(indicesSize, 1, 0, 0, 0);
 	}
 

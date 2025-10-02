@@ -17,7 +17,7 @@ namespace REngine::Scene {
 		Core::Buffer indexBuffer;
 		uint32_t indicesSize = 0;
 		std::vector<Core::Buffer> uniformBuffers;
-		void Bind(vk::CommandBuffer cb);
+		void Bind(vk::CommandBuffer cb, Core::Camera &camera);
 		
 		glm::mat4 mvp;
 		
@@ -28,6 +28,7 @@ namespace REngine::Scene {
 	public:
 		virtual void Create(vk::RenderPass rp, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices);
 		void Draw(vk::CommandBuffer cb) override;
+		void DrawFromView(vk::CommandBuffer cb, Core::Camera &camera) override;
 		virtual void Destroy() override;
 
 		VISITOR(Node3D);
