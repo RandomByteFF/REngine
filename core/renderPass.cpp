@@ -111,7 +111,10 @@ namespace REngine::Core {
 	}
 
 	void RenderPass::Recreate() {
-		Destroy();
+		for(auto i : framebuffers) {
+			Instance::GetInfo().device.destroyFramebuffer(i);
+		}
+		framebuffers.clear();
 		CreateFramebuffers();
 	}
 

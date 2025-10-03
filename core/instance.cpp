@@ -12,6 +12,10 @@ namespace REngine::Core {
 		manager.CreateSurface(Instance::Get(), info.surface);
 		PickPhysicalDevice();
 		CreateLogicalDevice();
+		manager.Update();
+		int width, height;
+		manager.GetFrameBufferSize(width, height);
+		FrameBufferResized(width, height);
 	}
 
 	const vk::Instance &Instance::Get() {

@@ -2,11 +2,13 @@
 #include "core/instance.hpp"
 #include "core/descriptorPool.hpp"
 #include "scene/sceneTree.hpp"
+#include <vulkan/vulkan_enums.hpp>
 
 namespace REngine::Editor {
 	void Grid::Create(Core::Swapchain swapchain, vk::RenderPass renderPass) {
 		Scene::Drawable::Initialize(Scene::SceneTree::Current());
 		pipeline.SetLayout({{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex}});
+		pipeline.SetSampleCount(Core::Instance::GetInfo().maxMsaa);
 		pipeline.Create("gridVert", "gridFrag", renderPass);
 
 		descriptorSets = Core::DescriptorPool::CreateDescriptor(pipeline.GetLayout(), Core::Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);

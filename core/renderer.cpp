@@ -2,13 +2,14 @@
 
 #include "instance.hpp"
 #include "imgui.h"
+#include "scene/drawable.hpp"
+#include "scene/sceneTree.hpp"
 #include "vulkan/vulkan_enums.hpp"
 #include <memory>
 
 namespace REngine::Core {
 	
-	void Renderer::Create(WindowManager window) {
-		this->window = window;
+	void Renderer::Create() {
 		device = Instance::GetInfo().device;
 
 		swapchain = std::make_shared<Swapchain>();
@@ -58,7 +59,7 @@ namespace REngine::Core {
 		return *swapchain;
 	}
 
-	const vk::RenderPass Renderer::RenderPass() const {
+	const vk::RenderPass Renderer::GetRenderPass() const {
 		return vpRenderer.GetRenderPass();
 	}
 
@@ -129,7 +130,7 @@ namespace REngine::Core {
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &commandBuffers[currentFrame].GetBuffer();
 
-		vk::Semaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
+		vk::Semaphore signalSemaphores[] = {renderFinishedSemaphores[imageIndex]};
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
@@ -146,7 +147,7 @@ namespace REngine::Core {
 
 		try {
 			vk::Result res2 = Instance::GetInfo().presentQueue.presentKHR(presentInfo);
-			if (res2 == vk::Result::eSuboptimalKHR || window.IsDirty(true)) {
+			if (res2 == vk::Result::eSuboptimalKHR || WindowManager::Instance()->IsDirty(true)) {
 				RecreateSwapchain();
 			}
 			else if (res2 != vk::Result::eSuccess) {
@@ -187,20 +188,22 @@ namespace REngine::Core {
 	
 	void Renderer::CreateSyncObjects() {
 		uint32_t frames = Instance::GetInfo().MAX_FRAMES_IN_FLIGHT;
+		uint32_t scimages = Instance::GetInfo().swapchainSize;
 		vk::Device device = Instance::GetInfo().device;
 		imageAvailableSemaphores.resize(frames);
-		renderFinishedSemaphores.resize(frames);
+		renderFinishedSemaphores.resize(scimages);
 		inFlightFences.resize(frames);
 
 		vk::SemaphoreCreateInfo semaphoreInfo{};
 
 		vk::FenceCreateInfo fenceInfo{};
 		fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
-		for (size_t i = 0; i < frames; i++)
-		{
-			imageAvailableSemaphores[i] = device.createSemaphore(semaphoreInfo);
-			renderFinishedSemaphores[i] = device.createSemaphore(semaphoreInfo);
+		for (size_t i = 0; i < frames; i++) {
 			inFlightFences[i] = device.createFence(fenceInfo);
+			imageAvailableSemaphores[i] = device.createSemaphore(semaphoreInfo);
+		}
+		for(size_t i = 0; i < scimages; i++) {
+			renderFinishedSemaphores[i] = device.createSemaphore(semaphoreInfo);
 		}
 	}
 
@@ -210,8 +213,10 @@ namespace REngine::Core {
 		device.destroySampler(sampler);
 		for (size_t i = 0; i < renderFinishedSemaphores.size(); i++)
 		{
-			device.destroySemaphore(imageAvailableSemaphores[i]);
 			device.destroySemaphore(renderFinishedSemaphores[i]);
+		}
+		for(size_t i = 0; i < inFlightFences.size(); i++) {
+			device.destroySemaphore(imageAvailableSemaphores[i]);
 			device.destroyFence(inFlightFences[i]);
 		}
 		vpRenderer.Destroy();
@@ -222,9 +227,9 @@ namespace REngine::Core {
 
 	void Renderer::RecreateSwapchain() {
 		int width = 0, height = 0;
-		window.GetFrameBufferSize(width, height);
+		WindowManager::Instance()->GetFrameBufferSize(width, height);
 		while (width == 0 || height == 0) {
-			window.GetFrameBufferSize(width, height);
+			WindowManager::Instance()->GetFrameBufferSize(width, height);
 			glfwWaitEvents();
 		}
 		vkDeviceWaitIdle(device);
@@ -232,6 +237,9 @@ namespace REngine::Core {
 		swapchain->CreateSwapchain();
 		RenderTarget::RecreateAll();
 		vpRenderer.Recreate();
+		Scene::SceneTree::Current()->CallDrawlist([](Scene::Drawable &d) {
+			d.Recreate();
+		});
 		#ifdef EDITOR
 		editor.Recreate();
 		#endif

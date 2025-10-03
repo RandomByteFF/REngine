@@ -8,6 +8,7 @@
 #include <optional>
 #include <vector>
 #include "renderTarget.hpp"
+#include <memory>
 
 namespace REngine::Core {
 	class RenderPass {

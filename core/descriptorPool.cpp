@@ -55,10 +55,15 @@ namespace REngine::Core {
 
 		Instance::GetInfo().device.updateDescriptorSets(descriptorWrites, nullptr);
 	}
+	
 	void DescriptorPool::SetImage(vk::DescriptorSet descriptorSet, uint32_t binding, Image image, vk::Sampler sampler) {
+		SetImage(descriptorSet, binding, image.View(), sampler);
+	}
+	
+	void DescriptorPool::SetImage(vk::DescriptorSet descriptorSet, uint32_t binding, vk::ImageView image, vk::Sampler sampler) {
 		vk::DescriptorImageInfo imageInfo{};
 		imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-		imageInfo.imageView = image.View();
+		imageInfo.imageView = image;
 		imageInfo.sampler = sampler;
 		
 		vk::WriteDescriptorSet descriptorWrites;

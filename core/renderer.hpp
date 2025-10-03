@@ -11,7 +11,6 @@
 
 namespace REngine::Core {
 	class Renderer {
-		WindowManager window;
 		RenderPass vpRenderer;
 		Editor::Editor editor;
 		vk::Device device;
@@ -31,9 +30,9 @@ namespace REngine::Core {
 	public:
 		std::shared_ptr<Swapchain> swapchain;
 		//FIXME: objects from here
-		void Create(WindowManager window);
+		void Create();
 		const Swapchain GetSwapchain() const;
-		const vk::RenderPass RenderPass() const;
+		const vk::RenderPass GetRenderPass() const;
 		const vk::Sampler Sampler() const;
 		void Render(Scene::SceneTree &sceneTree, Camera &camera);
 		void RecreateSwapchain();

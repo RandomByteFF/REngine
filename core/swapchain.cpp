@@ -3,6 +3,7 @@
 #include <limits>
 #include <stdexcept>
 
+#include "core/windowManager.hpp"
 #include "instance.hpp"
 #include "image.hpp"
 
@@ -132,13 +133,16 @@ namespace REngine::Core {
 		else {
 			Info info = Instance::GetInfo();
 
+			int width;
+			int height;
+			WindowManager::Instance()->GetFrameBufferSize(width, height);
 			VkExtent2D actualExtent = {
-				uint32_t(info.fbWidth),
-				uint32_t(info.fbHeight)
+				uint32_t(width),
+				uint32_t(height)
 			};
 
 			actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-			actualExtent.height = std::clamp(actualExtent.height, capabilities.maxImageExtent.height, capabilities.maxImageExtent.height);
+			actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
 
 			return actualExtent;
 		}

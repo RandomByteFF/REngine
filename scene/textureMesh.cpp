@@ -11,6 +11,7 @@ namespace REngine::Scene {
 				{vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment}
 			});
 			pipeline->SetInput({Vertex::GetBindingDescription()}, Vertex::GetAttributeDescriptions());
+			pipeline->SetSampleCount(Core::Instance::GetInfo().maxMsaa);
 			pipeline->Create("vertex", "fragment", rp);
 		}
 		pPipeline = pipeline;

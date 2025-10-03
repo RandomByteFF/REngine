@@ -1,12 +1,15 @@
 #include "windowManager.hpp"
+#include "GLFW/glfw3.h"
 #include "instance.hpp"
 #include "imgui_impl_glfw.h"
 #include "input/keyboard.hpp"
 #include "input/mouse.hpp"
+#include <iostream>
 
 namespace REngine::Core {
 	
 	void WindowManager::CreateWindow() {
+		instance = this;
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		handle = glfwCreateWindow(WIDTH, HEIGHT, "REngine", nullptr, nullptr);
@@ -31,16 +34,16 @@ namespace REngine::Core {
 	}
 
 	void WindowManager::FramebufferResizeCallback(GLFWwindow *window, int width, int height) {
-		#ifndef EDITOR
 		WindowManager *manager = reinterpret_cast<WindowManager*>(glfwGetWindowUserPointer(window));
-		manager->framebufferResized = true;
+		instance->framebufferResized = true;
+		#ifndef EDITOR
 		Instance::FrameBufferResized(width, height);
 		#endif
 	}
 
 	bool WindowManager::IsDirty(bool reset) {
 		bool isDirty = framebufferResized;
-		if (reset) isDirty = false;
+		if (reset) framebufferResized = false;
 		return isDirty;
 	}
 
@@ -55,5 +58,9 @@ namespace REngine::Core {
 	void WindowManager::Destroy() {
 		glfwDestroyWindow(handle);
 		glfwTerminate();
+	}
+	
+	 WindowManager *WindowManager::Instance() {
+		return instance;
 	}
 }

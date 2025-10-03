@@ -25,6 +25,7 @@ namespace REngine::Core {
 		vk::CullModeFlagBits cullMode = vk::CullModeFlagBits::eBack;
 		bool depthTest = true;
 		bool stencilTest = false;
+		vk::SampleCountFlagBits sampleCount = vk::SampleCountFlagBits::e1;
 
 	public:
 		void Create(const char *vertShader, const char *fragShader, const vk::RenderPass renderPass);
@@ -37,6 +38,7 @@ namespace REngine::Core {
 		void SetCullMode(vk::CullModeFlagBits cull) { cullMode = cull; }
 		void setDepthTest(bool test) { depthTest = test; }
 		void setStencilTest(bool test) { stencilTest = test; }
+		void SetSampleCount(vk::SampleCountFlagBits sample) { sampleCount = sample; }
 
 		const vk::Pipeline &GetPipeline() const;
 		const vk::DescriptorSetLayout &GetLayout() const;

@@ -12,6 +12,7 @@ namespace REngine::Core {
 		static std::vector<vk::DescriptorSet> CreateDescriptor(vk::DescriptorSetLayout layout, uint32_t count);
 		static void SetUniform(vk::DescriptorSet descriptorSet, uint32_t binding, Buffer uniformBuffer);
 		static void SetImage(vk::DescriptorSet descriptorSet, uint32_t binding, Image image, vk::Sampler sampler);
+		static void SetImage(vk::DescriptorSet descriptorSet, uint32_t binding, vk::ImageView image, vk::Sampler sampler);
 		static void Cleanup();
 	};
 }

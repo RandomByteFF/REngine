@@ -8,10 +8,11 @@ const int HEIGHT = 600;
 
 namespace REngine::Core {
 	class WindowManager {
-		GLFWwindow *handle;
 		bool framebufferResized = false;
+		GLFWwindow *handle;
 
 		static void FramebufferResizeCallback(GLFWwindow* window, int width, int height);
+		inline static WindowManager *instance;
 	public:
 		void CreateWindow();
 		void GetFrameBufferSize(int &width, int &height);
@@ -19,5 +20,6 @@ namespace REngine::Core {
 		bool IsDirty(bool reset = false);
 		bool Update();
 		void Destroy();
+		static WindowManager *Instance();
 	};
 }
