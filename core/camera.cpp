@@ -8,6 +8,7 @@ namespace REngine::Core {
 	}
 
 	Camera::Camera(float aspect, glm::vec3 position) {
+		this->position = position;
 		proj = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f); 
 		proj[1][1] *= -1;
 		rotation = glm::vec3();
@@ -72,5 +73,13 @@ namespace REngine::Core {
 		// if (abs(forward.y) < 0.01) up_dir = glm::normalize(glm::vec3(0.f, 0.99f, 0.1f)); // Calculate normally
 		right = glm::cross(forward, up_dir);
 		up = glm::cross(right, forward);
+	}
+	void Camera::Rotation(glm::vec3 rotation) {
+		this->rotation = glm::vec3();
+		Rotate(rotation);
+	}
+
+	glm::vec3 Camera::Rotation() {
+		return rotation;
 	}
 }

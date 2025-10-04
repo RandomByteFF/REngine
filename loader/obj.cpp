@@ -39,7 +39,6 @@ namespace REngine::Loader {
 					vertices.push_back(vertex);
 				}
 
-				vertices.push_back(vertex);
 				indices.push_back(uniqueVertices[vertex]);
 			}
 		}

@@ -2,7 +2,9 @@
 #include "GLFW/glfw3.h"
 #include "input/mouse.hpp"
 #include "input/keyboard.hpp"
+#include "loader/image.hpp"
 #include "scene/mesh.hpp"
+#include "scene/textureMesh.hpp"
 #include "time.hpp"
 #include "descriptorPool.hpp"
 #include "loader/shader.hpp"
@@ -19,10 +21,17 @@ namespace REngine::Core {
 		testMesh = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh());
 		levelMesh = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh());
 		portal1 = std::shared_ptr<Scene::Portal>(new Scene::Portal());
+		portal2 = std::shared_ptr<Scene::Portal>(new Scene::Portal());
+		frame = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh());
+		portal2->SetPair(portal1);
+		portal1->SetPair(portal2);
 		portal1->Position(glm::vec3(0, 1.3, 0.5));
+		portal2->Position(glm::vec3(2, 1.3, 0.5));
 		tree->GetRoot()->AddChild(testMesh);
 		tree->GetRoot()->AddChild(levelMesh);
 		tree->GetRoot()->AddChild(portal1);
+		tree->GetRoot()->AddChild(portal2);
+		portal1->AddChild(frame);
 		// testMesh->AddChild(arrowMesh);
 		#else
 		tree = Scene::Deserializer::loadTree("tree.rest");
@@ -33,6 +42,7 @@ namespace REngine::Core {
 		camera = std::shared_ptr<Camera>(new Camera(renderer.AspectRatio()));
 		textureImage.CreateImage(REngine::Loader::Image("test_files/viking_room.png"));
 		levelTexture.CreateImage(REngine::Loader::Image("test_files/levelTexture.png"));
+		frameTexture.CreateImage(REngine::Loader::Image("test_files/black.png"));
 		
 		model.Load("test_files/viking_room.obj");
 		testMesh = std::dynamic_pointer_cast<Scene::TextureMesh>(tree->GetRoot()->Children()[0]);
@@ -40,10 +50,16 @@ namespace REngine::Core {
 		model.Destroy();
 		model.Load("test_files/rengine-level1.obj");
 		levelMesh->Create(renderer.GetRenderPass(), model.Verticies(), model.Indices());
+		model.Destroy();
+		model.Load("test_files/frame.obj");
+		frame->Create(renderer.GetRenderPass(), model.Verticies(), model.Indices());
 		portal1->Create(renderer.GetRenderPass());
 		portal1->SetSampler(renderer.Sampler());
+		portal2->Create(renderer.GetRenderPass());
+		portal2->SetSampler(renderer.Sampler());
 		testMesh->SetImage(textureImage, renderer.Sampler());
 		levelMesh->SetImage(levelTexture, renderer.Sampler());
+		frame->SetImage(frameTexture, renderer.Sampler());
 		levelMesh->name = "Level";
 		testMesh->name = "TestMesh";
 
@@ -90,6 +106,7 @@ namespace REngine::Core {
 		renderer.Destroy();
 		textureImage.Destroy();
 		levelTexture.Destroy();
+		frameTexture.Destroy();
 		
 		DescriptorPool::Cleanup();
 		tree->Destroy();

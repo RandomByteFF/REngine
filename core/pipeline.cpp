@@ -1,7 +1,9 @@
 #include "pipeline.hpp"
 
+#include "glm/ext/matrix_float4x4.hpp"
 #include "loader/shader.hpp"
 #include "instance.hpp"
+#include <vulkan/vulkan_enums.hpp>
 
 /* TODO: Descriptor sets should be reusable. My idea for this is:
 - Instead of SetLayout, create an AddLayout. This can either take a new layout, or a reference to an existing one.
@@ -78,10 +80,18 @@ namespace REngine::Core {
 		colorBlending.logicOpEnable = vk::False;
 		colorBlending.attachmentCount = 1;
 		colorBlending.pAttachments = &colorBlendAttachment;
+
+		vk::PushConstantRange pushConstant;
+		pushConstant.offset = 0;
+		pushConstant.size = sizeof(glm::mat4);
+		pushConstant.stageFlags = vk::ShaderStageFlagBits::eVertex;
 		
 		vk::PipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.setLayoutCount = 1;
 		pipelineLayoutInfo.pSetLayouts = &descriptorLayout;
+		pipelineLayoutInfo.pPushConstantRanges = &pushConstant;
+		pipelineLayoutInfo.pushConstantRangeCount = 1;
+		
 	
 		layout = Instance::GetInfo().device.createPipelineLayout(pipelineLayoutInfo);
 

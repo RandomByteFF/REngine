@@ -7,7 +7,6 @@ namespace REngine::Scene {
 		if (!pipeline) {
 			pipeline = std::make_shared<Core::Pipeline>();
 			pipeline->SetLayout({
-				{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex},
 				{vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment}
 			});
 			pipeline->SetInput({Vertex::GetBindingDescription()}, Vertex::GetAttributeDescriptions());
@@ -21,7 +20,7 @@ namespace REngine::Scene {
 	
 	void TextureMesh::SetImage(Core::Image image, vk::Sampler sampler) {
 		for (size_t i = 0; i < Core::Instance::GetInfo().MAX_FRAMES_IN_FLIGHT; i++) {
-			Core::DescriptorPool::SetImage(descriptorSets[i], 1, image, sampler);
+			Core::DescriptorPool::SetImage(descriptorSets[i], 0, image, sampler);
 		}
 	}
 
