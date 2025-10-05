@@ -1,4 +1,5 @@
 #include "camera.hpp"
+#include "glm/gtc/quaternion.hpp"
 #include <iostream>
 namespace REngine::Core {
 	void Camera::resizedCallback(int width, int height) {
@@ -81,5 +82,9 @@ namespace REngine::Core {
 
 	glm::vec3 Camera::Rotation() {
 		return rotation;
+	}
+	
+	void Camera::Rotation(glm::quat rotation) {
+		Rotation(glm::eulerAngles(rotation));
 	}
 }

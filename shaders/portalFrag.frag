@@ -11,4 +11,5 @@ layout(location = 0) out vec4 outColor;
 void main() {
 	vec2 uv = clipPos.xy / clipPos.w * 0.5 + 0.5;
 	outColor = texture(texSampler, uv);
+	// outColor = vec4(uv, 0., 1.);
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/gtc/matrix_transform.hpp>
+#include "glm/ext/quaternion_float.hpp"
 #include "instance.hpp"
 
 namespace REngine::Core {
@@ -22,6 +23,7 @@ namespace REngine::Core {
 		~Camera();
 		void SetPosition(glm::vec3 position);
 		void Rotation(glm::vec3 rotation);
+		void Rotation(glm::quat rotation);
 		glm::vec3 Rotation();
 		glm::vec3 GetPosition();
 		glm::vec3 Forward();

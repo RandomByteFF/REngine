@@ -2,11 +2,14 @@
 #include "core/camera.hpp"
 #include "core/instance.hpp"
 #include "core/vertex.hpp"
+#include "glm/gtc/quaternion.hpp"
+#include "glm/matrix.hpp"
 #include "scene/sceneTree.hpp"
 #include "core/descriptorPool.hpp"
 #include "vulkan/vulkan_structs.hpp"
 #include <memory>
 #include <vulkan/vulkan_enums.hpp>
+#include <glm/gtx/matrix_decompose.hpp>
 
 namespace REngine::Scene {
 	Portal::Portal() : camera(1.0) {
@@ -97,8 +100,17 @@ namespace REngine::Scene {
 	}
 
 	void Portal::UpdateCamera() {
-		glm::vec3 d = SceneTree::Current()->ActiveCamera()->GetPosition() - pair->Position() + Position();
-		camera.SetPosition(d);
-		camera.Rotation(SceneTree::Current()->ActiveCamera()->Rotation());
+		glm::vec3 scale;
+		glm::quat rotation;
+		glm::vec3 translation;
+		glm::vec3 skew;
+		glm::vec4 perspective;
+		glm::mat4 c = glm::inverse(SceneTree::Current()->ActiveCamera()->V());
+		glm::mat4 m = GetModel() * inverse(pair->GetModel()) * c;
+		glm::decompose(m, scale, rotation, translation, skew, perspective);
+		
+		camera.SetPosition(translation);
+		camera.Rotation(glm::eulerAngles(rotation));
+		//TODO: fix camera quat rotation
 	}
 }
