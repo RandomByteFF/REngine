@@ -10,14 +10,19 @@
 #include "inspector.hpp"
 #include "serializer.hpp"
 #include "core/renderPass.hpp"
+#include "vulkan/vulkan_handles.hpp"
+#include "vulkan/vulkan_structs.hpp"
 
 namespace REngine::Editor {
 	class Editor {
 		ImVec2 prevViewSize = {0, 0};
 
 		Core::RenderPass renderPass;
+		Core::RenderPass editorViewRP;
+		vk::ImageMemoryBarrier barrier;
 		std::weak_ptr<Core::IViews> vpViews;
 		std::vector<vk::DescriptorSet> renderedViewports;
+		std::vector<vk::DescriptorSet> renderedEditorViews;
 		std::shared_ptr<Grid> grid;
 		SceneTree sceneTree;
 		Inspector inspector;

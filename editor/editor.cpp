@@ -7,7 +7,9 @@
 #include "input/mouse.hpp"
 #include "scene/sceneTree.hpp"
 #include "theme.hpp"
-#include <iostream>
+#include "vulkan/vulkan_core.h"
+#include "vulkan/vulkan_enums.hpp"
+#include "vulkan/vulkan_structs.hpp"
 
 namespace REngine::Editor {
 	void Editor::Initialize(std::shared_ptr<Core::Swapchain> swapchain, Core::RenderPass vpRenderPass) {
@@ -16,6 +18,16 @@ namespace REngine::Editor {
 		renderPass.CreateRenderPass();
 		auto info = Core::Instance::GetInfo();
 		vpViews = vpRenderPass.GetView(2);
+
+		editorViewRP.AddColorAttachment().samples = Core::Instance::GetInfo().maxMsaa;
+		editorViewRP.AddColorImage();
+		editorViewRP.AddDepthAttachment().samples = Core::Instance::GetInfo().maxMsaa;
+		editorViewRP.AddDepthImage();
+		vk::AttachmentDescription &resolve = editorViewRP.AddResolveAttachment();
+		resolve.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
+		editorViewRP.AddResolveImage();
+
+		editorViewRP.CreateRenderPass();
 
 		ImGui_ImplVulkan_InitInfo init_info = {};
 		init_info.Instance = Core::Instance::Get();
@@ -39,6 +51,18 @@ namespace REngine::Editor {
 		grid->Create(*swapchain, vpRenderPass.GetRenderPass());
 		grid->editorOnly = true;
 		Scene::SceneTree::Current()->GetRoot()->AddChild(grid);
+
+		barrier.oldLayout = vk::ImageLayout::eColorAttachmentOptimal;
+		barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		barrier.srcQueueFamilyIndex = vk::QueueFamilyIgnored;
+		barrier.dstQueueFamilyIndex = vk::QueueFamilyIgnored;
+		barrier.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+		barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+		barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+		barrier.subresourceRange.baseMipLevel = 0;
+		barrier.subresourceRange.baseArrayLayer = 0;
+		barrier.subresourceRange.layerCount = 1;
+		barrier.subresourceRange.levelCount = 1;
 	}
 	
 	void Editor::AddTextures(vk::Sampler sampler) {
@@ -46,9 +70,24 @@ namespace REngine::Editor {
 		for (auto i : vpViews.lock()->Views()) {
 			renderedViewports.push_back(ImGui_ImplVulkan_AddTexture(sampler, i, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
 		}
+		for (auto i : editorViewRP.GetView(2).lock()->Views()) {
+			renderedEditorViews.push_back(ImGui_ImplVulkan_AddTexture(sampler, i, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+		}
 	}
 
 	void Editor::Render(uint32_t imageIndex, Core::CommandBuffer cb, vk::Extent2D extent) {
+		auto info = Core::Instance::GetInfo();
+		cb.BeginPass(editorViewRP.GetRenderPass(), info.swapchainExtent, editorViewRP.GetFramebuffer()[info.currentFb]);
+		Scene::SceneTree::Current()->CallDrawlist([&cb, this](Scene::Drawable &j) {
+			j.DrawFromView(cb.GetBuffer(), *Scene::SceneTree::Current()->ActiveCamera());
+		});
+		cb.EndPass();
+
+		barrier.image = editorViewRP.GetImage(2, info.currentFb);
+		cb.GetBuffer().pipelineBarrier(vk::PipelineStageFlagBits::eColorAttachmentOutput,
+			vk::PipelineStageFlagBits::eFragmentShader, vk::DependencyFlags(), nullptr, nullptr, barrier);
+
+
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
@@ -72,6 +111,9 @@ namespace REngine::Editor {
 			prevViewSize = size;
 		}
 		ImGui::Image(ImTextureID(VkDescriptorSet(renderedViewports[imageIndex])), size);
+		ImGui::End();
+		ImGui::Begin("Player view");
+		ImGui::Image(ImTextureID(VkDescriptorSet(renderedEditorViews[imageIndex])), ImGui::GetWindowSize());
 		ImGui::End();
 			
 		ImGui::Begin("Debug");
@@ -106,6 +148,7 @@ namespace REngine::Editor {
 	void Editor::Destroy() {
 		for (auto i : renderedViewports) ImGui_ImplVulkan_RemoveTexture(i);
 		renderPass.Destroy();
+		editorViewRP.Destroy();
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();

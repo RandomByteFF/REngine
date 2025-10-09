@@ -20,7 +20,7 @@ namespace REngine::Core {
 		vpRenderer.AddColorImage();
 		vpRenderer.AddDepthAttachment().samples = Instance::GetInfo().maxMsaa;
 		vpRenderer.AddDepthImage();
-		auto resolve = vpRenderer.AddResolveAttachment();
+		vk::AttachmentDescription &resolve = vpRenderer.AddResolveAttachment();
 		#ifndef EDITOR
 		resolve.finalLayout = vk::ImageLayout::ePresentSrcKHR;
 		vpRenderer.AddResolveImage(swapchain);
