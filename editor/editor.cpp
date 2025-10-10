@@ -1,5 +1,8 @@
 #include "editor.hpp"
 
+#include "GLFW/glfw3.h"
+#include "core/time.hpp"
+#include "imgui.h"
 #include "imgui_impl_vulkan.h"
 #include "imgui_impl_glfw.h"
 #include "core/instance.hpp"
@@ -10,6 +13,12 @@
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_enums.hpp"
 #include "vulkan/vulkan_structs.hpp"
+
+namespace {
+	constexpr float MOUSE_SENSITIVITY = 0.003f;
+	constexpr float SCROLL_SENSITIVITY = 1.f;
+	constexpr float SCROLL_FAST_SENSITIVITY = 5.f;
+}
 
 namespace REngine::Editor {
 	void Editor::Initialize(std::shared_ptr<Core::Swapchain> swapchain, Core::RenderPass vpRenderPass) {
@@ -63,6 +72,8 @@ namespace REngine::Editor {
 		barrier.subresourceRange.baseArrayLayer = 0;
 		barrier.subresourceRange.layerCount = 1;
 		barrier.subresourceRange.levelCount = 1;
+
+		editorCamera = Core::Camera(1., glm::vec3(0., 0., 6.), true);
 	}
 	
 	void Editor::AddTextures(vk::Sampler sampler) {
@@ -76,10 +87,27 @@ namespace REngine::Editor {
 	}
 
 	void Editor::Render(uint32_t imageIndex, Core::CommandBuffer cb, vk::Extent2D extent) {
+		if (Input::Mouse::Scroll() != 0.f) {
+			orbitDistance -= Input::Mouse::Scroll() * (Input::Keyboard::IsDown(GLFW_KEY_LEFT_SHIFT) ? SCROLL_FAST_SENSITIVITY : SCROLL_SENSITIVITY);
+			orbitDistance = std::clamp(orbitDistance, 0.1f, 100.f);
+			editorCamera.Orbit(orbitCenter, orbitDistance, -orbitAngle);
+		}
+		if (Input::Mouse::IsDown(GLFW_MOUSE_BUTTON_MIDDLE)) {
+			if (Input::Keyboard::IsDown(GLFW_KEY_LEFT_SHIFT)) {
+				orbitCenter += editorCamera.Up() * Input::Mouse::Delta().y * MOUSE_SENSITIVITY;
+				orbitCenter -= editorCamera.Right() * Input::Mouse::Delta().x * MOUSE_SENSITIVITY;
+			}
+			else {
+				orbitAngle += Input::Mouse::Delta() * MOUSE_SENSITIVITY;
+			}
+			editorCamera.Orbit(orbitCenter, orbitDistance, -orbitAngle);
+		}
+
+
 		auto info = Core::Instance::GetInfo();
 		cb.BeginPass(editorViewRP.GetRenderPass(), info.swapchainExtent, editorViewRP.GetFramebuffer()[info.currentFb]);
 		Scene::SceneTree::Current()->CallDrawlist([&cb, this](Scene::Drawable &j) {
-			j.DrawFromView(cb.GetBuffer(), *Scene::SceneTree::Current()->ActiveCamera());
+			j.DrawFromView(cb.GetBuffer(), editorCamera);
 		});
 		cb.EndPass();
 
@@ -102,7 +130,7 @@ namespace REngine::Editor {
 		ImGui::Begin("REngine", nullptr, window_flags);
 		ImGui::End();
 		ImGui::PopStyleVar(2);
-		ImGui::Begin("Editor");
+		ImGui::Begin("Player view");
 		ImVec2 size = ImGui::GetWindowSize();
 		size.x -= 20;
 		size.y -= 40;
@@ -112,8 +140,13 @@ namespace REngine::Editor {
 		}
 		ImGui::Image(ImTextureID(VkDescriptorSet(renderedViewports[imageIndex])), size);
 		ImGui::End();
-		ImGui::Begin("Player view");
-		ImGui::Image(ImTextureID(VkDescriptorSet(renderedEditorViews[imageIndex])), ImGui::GetWindowSize());
+		ImGui::Begin("Editor");
+		size = ImGui::GetWindowSize();
+		float aspect = float(size.x / size.y);
+		if (abs(aspect - editorCamera.Aspect()) > 0.001) editorCamera.Aspect(aspect);
+		size.x -= 20;
+		size.y -= 40;
+		ImGui::Image(ImTextureID(VkDescriptorSet(renderedEditorViews[imageIndex])), size);
 		ImGui::End();
 			
 		ImGui::Begin("Debug");

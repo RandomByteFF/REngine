@@ -1,4 +1,5 @@
 #include "mouse.hpp"
+#include "GLFW/glfw3.h"
 #include <cassert>
 #ifdef EDITOR
 	// I kinda have to put this here, referencing to renderer or editor would be really weird
@@ -10,7 +11,8 @@ namespace REngine::Input {
 		#ifdef EDITOR
 			ImGuiIO &io = ImGui::GetIO();
 			io.AddMouseButtonEvent(button, action == GLFW_PRESS);
-			if (io.WantCaptureMouse) return;
+			// if (io.WantCaptureMouse) return;
+			// This messes up the controls inside the editor
 		#endif
 		if (button >= 0) {
 			switch(action) {
@@ -24,9 +26,14 @@ namespace REngine::Input {
 		}
 	}
 
+	void Mouse::ScrollCallback(GLFWwindow *window, double xoffset, double yoffset) {
+		scroll += yoffset;
+	}
+
 	void Mouse::Initialize(GLFWwindow *window) {
 		windowHandle = window;
 		glfwSetMouseButtonCallback(window, Mouse::ButtonCallback);
+		glfwSetScrollCallback(window, Mouse::ScrollCallback);
 		if (glfwRawMouseMotionSupported()) {
 			glfwSetInputMode(windowHandle, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 		}
@@ -67,5 +74,13 @@ namespace REngine::Input {
 
 	void Mouse::Unlock() {
 		glfwSetInputMode(windowHandle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
+
+	float Mouse::Scroll() {
+		return scroll;
+	}
+
+	void Mouse::EndFrame() {
+		scroll = 0.f;
 	}
 }

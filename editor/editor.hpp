@@ -28,7 +28,10 @@ namespace REngine::Editor {
 		Inspector inspector;
 		Serializer serializer;
 		vk::Sampler sampler;
-
+		Core::Camera editorCamera;
+		glm::vec2 orbitAngle = glm::vec2(0.f, 0.f);
+		glm::vec3 orbitCenter = glm::vec3(0.f, 0.f, 0.f);
+		float orbitDistance = 5.;
 
 	public:
 		void Initialize(std::shared_ptr<Core::Swapchain> swapchain, Core::RenderPass vpRenderPass);

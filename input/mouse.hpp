@@ -11,8 +11,10 @@ namespace REngine::Input {
 		inline static glm::vec2 previousPos;
 		inline static glm::vec2 delta;
 		inline static bool firstRun = true;
+		inline static float scroll = 0.f;
 
 		static void ButtonCallback(GLFWwindow *window, int button, int action, int mods);
+		static void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 
 	public:
 		static void Initialize(GLFWwindow *window);
@@ -20,7 +22,9 @@ namespace REngine::Input {
 		static glm::vec2 CursorPos();
 		static void RecordDelta();
 		static glm::vec2 Delta();
+		static float Scroll();
 		static void Lock();
 		static void Unlock();
+		static void EndFrame();
 	};
 }

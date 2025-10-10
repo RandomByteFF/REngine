@@ -1,20 +1,22 @@
 #include "camera.hpp"
 #include "glm/gtc/quaternion.hpp"
+#include "scene/node3d.hpp"
 #include <iostream>
 namespace REngine::Core {
 	void Camera::resizedCallback(int width, int height) {
-		proj = glm::perspective(glm::radians(45.0f), (float)width / height, 0.1f, 100.0f);
-		proj[1][1] *= -1;
-		dirty = true;
+		Aspect((float) width/height);
 	}
 
-	Camera::Camera(float aspect, glm::vec3 position) {
+	Camera::Camera(float aspect, glm::vec3 position, bool ignoreResize) {
 		this->position = position;
 		proj = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f); 
 		proj[1][1] *= -1;
 		rotation = glm::vec3();
-		auto cb = std::bind(&Camera::resizedCallback, this, std::placeholders::_1, std::placeholders::_2);
-		Instance::OnResize(this, cb);
+		if (!ignoreResize) {
+			auto cb = std::bind(&Camera::resizedCallback, this, std::placeholders::_1, std::placeholders::_2);
+			Instance::OnResize(this, cb);
+		}
+		Rotate(glm::vec3());
 	}
 
 	Camera::~Camera() {
@@ -31,6 +33,16 @@ namespace REngine::Core {
 			dirty = false;
 		}
 		return vp;
+	}
+
+	void Camera::Orbit(glm::vec3 lookAt, float distance, glm::vec2 rotation) {
+		glm::vec3 pos(0.f, 0.f, distance);
+		position = glm::rotate(glm::quat(glm::vec3(rotation.y, rotation.x, 0.f)), pos) + lookAt;
+		forward = glm::normalize(lookAt - position);
+		glm::vec3 up_dir = glm::vec3(0.f, 1.f, 0.f);
+		right = glm::cross(forward, up_dir);
+		up = glm::cross(right, forward);
+		dirty = true;
 	}
 
 	const glm::mat4 &Camera::V() {
@@ -86,5 +98,16 @@ namespace REngine::Core {
 	
 	void Camera::Rotation(glm::quat rotation) {
 		Rotation(glm::eulerAngles(rotation));
+	}
+
+	void Camera::Aspect(float aspect) {
+		proj = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
+		proj[1][1] *= -1;
+		dirty = true;
+		this->aspect = aspect;
+	}
+
+	float Camera::Aspect() {
+		return aspect;
 	}
 }

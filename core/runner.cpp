@@ -85,18 +85,19 @@ namespace REngine::Core {
 				locked = false;
 			}
 			if (locked) {
-				camera->Rotate(glm::vec3(-Input::Mouse::Delta().y, -Input::Mouse::Delta().x, 0.f) * Time::Delta());
-				if (Input::Keyboard::IsDown(GLFW_KEY_W)) camera->SetPosition(camera->GetPosition() + camera->Forward() * Time::Delta());
-				if (Input::Keyboard::IsDown(GLFW_KEY_S)) camera->SetPosition(camera->GetPosition() - camera->Forward() * Time::Delta());
-				if (Input::Keyboard::IsDown(GLFW_KEY_D)) camera->SetPosition(camera->GetPosition() + camera->Right() * Time::Delta());
-				if (Input::Keyboard::IsDown(GLFW_KEY_A)) camera->SetPosition(camera->GetPosition() - camera->Right() * Time::Delta());
-				if (Input::Keyboard::IsDown(GLFW_KEY_SPACE)) camera->SetPosition(camera->GetPosition() + camera->Up() * Time::Delta());
-				if (Input::Keyboard::IsDown(GLFW_KEY_Q)) camera->SetPosition(camera->GetPosition() - camera->Up() * Time::Delta());
-				if (Input::Keyboard::IsDown(GLFW_KEY_F)) testMesh->Rotate(glm::vec3(0.f, 0.f, 1.f) * Time::Delta());
+				// camera->Rotate(glm::vec3(-Input::Mouse::Delta().y, -Input::Mouse::Delta().x, 0.f) * Time::Delta());
+				// if (Input::Keyboard::IsDown(GLFW_KEY_W)) camera->SetPosition(camera->GetPosition() + camera->Forward() * Time::Delta());
+				// if (Input::Keyboard::IsDown(GLFW_KEY_S)) camera->SetPosition(camera->GetPosition() - camera->Forward() * Time::Delta());
+				// if (Input::Keyboard::IsDown(GLFW_KEY_D)) camera->SetPosition(camera->GetPosition() + camera->Right() * Time::Delta());
+				// if (Input::Keyboard::IsDown(GLFW_KEY_A)) camera->SetPosition(camera->GetPosition() - camera->Right() * Time::Delta());
+				// if (Input::Keyboard::IsDown(GLFW_KEY_SPACE)) camera->SetPosition(camera->GetPosition() + camera->Up() * Time::Delta());
+				// if (Input::Keyboard::IsDown(GLFW_KEY_Q)) camera->SetPosition(camera->GetPosition() - camera->Up() * Time::Delta());
+				// if (Input::Keyboard::IsDown(GLFW_KEY_F)) testMesh->Rotate(glm::vec3(0.f, 0.f, 1.f) * Time::Delta());
 			}
 			tree->ApplyTransforms();
 			renderer.Render(*tree, *camera);
 			Input::Keyboard::EndFrame();
+			Input::Mouse::EndFrame();
 		}
 
 		vkDeviceWaitIdle(device);
