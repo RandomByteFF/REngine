@@ -7,6 +7,7 @@
 #include "descriptorPool.hpp"
 #include "loader/shader.hpp"
 #include <iostream>
+#include <numbers>
 
 namespace REngine::Core {
 	void Runner::InitVulkan() {
@@ -38,6 +39,7 @@ namespace REngine::Core {
 		tree->GetRoot()->AddChild(testMesh);
 		tree->GetRoot()->AddChild(levelMesh);
 		tree->GetRoot()->AddChild(player);
+		player->AddChild(camera);
 		portal1->AddChild(frame);
 		
 		portal1->Create(renderer.GetRenderPass());
@@ -49,7 +51,8 @@ namespace REngine::Core {
 
 		tree->SetActiveCamera(camera);
 
-		camera->Position(glm::vec3(0.f, 0.f, 6.f));
+		camera->Rotation(glm::vec3(0., std::numbers::pi, 0.));
+		camera->Position(glm::vec3(0.f, 0.7f, 0.f));
 	}
 
 	void Runner::MainLoop() {

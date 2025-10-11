@@ -1,8 +1,10 @@
 #include "player.hpp"
+#include "core/camera.hpp"
 #include "core/time.hpp"
 #include "input/mouse.hpp"
 #include "scene/sceneTree.hpp"
 #include "input/keyboard.hpp"
+#include <memory>
 #include <numbers>
 
 namespace {
@@ -19,6 +21,7 @@ namespace REngine::Scene {
 	}
 
 	void Player::Update() {
+		std::shared_ptr<Core::Camera> cam = std::static_pointer_cast<Core::Camera>(Children()[0]);
 		if (Input::Keyboard::IsDown(GLFW_KEY_1)) {
 			Input::Mouse::Lock();
 			locked = true;
@@ -28,10 +31,23 @@ namespace REngine::Scene {
 			locked = false;
 		}
 		if (Input::Keyboard::IsDown(GLFW_KEY_W)) {
-			Position(Position() + glm::vec3(GetModel()[2]) * Core::Time::Delta() * SPEED);
+			Position(Position() + glm::vec3(Forward()) * Core::Time::Delta() * SPEED);
 		}
+		if (Input::Keyboard::IsDown(GLFW_KEY_S)) {
+			Position(Position() + glm::vec3(-Forward()) * Core::Time::Delta() * SPEED);
+		}
+		if (Input::Keyboard::IsDown(GLFW_KEY_A)) {
+			Position(Position() + glm::vec3(Right()) * Core::Time::Delta() * SPEED);
+		}
+		if (Input::Keyboard::IsDown(GLFW_KEY_D)) {
+			Position(Position() + glm::vec3(-Right()) * Core::Time::Delta() * SPEED);
+		}
+		
 		if (locked) {
 			Rotate(glm::vec3(0.f, -Input::Mouse::Delta().x * SENSITIVITY, 0.f));
+			cameraR -= Input::Mouse::Delta().y * SENSITIVITY;
+			cameraR = std::clamp(cameraR, float(-std::numbers::pi / 2.), float(std::numbers::pi / 2.));
+			cam->Rotation(glm::vec3(cameraR, std::numbers::pi, 0.f));
 		}
 	}
 }

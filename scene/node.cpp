@@ -27,6 +27,7 @@ namespace REngine::Scene {
 		children.push_back(child);
 		child->parent = this;
 		child->EnteredTree();
+		ApplyTransforms();
 	}
 	void Node::Destroy() {
 		for (auto i : children) i->Destroy();
