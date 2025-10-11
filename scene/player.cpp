@@ -10,6 +10,7 @@
 namespace {
 	constexpr float SPEED = 10.;
 	constexpr float SENSITIVITY = 0.01;
+	constexpr float yLimit = 0.6;
 }
 
 namespace REngine::Scene {
@@ -21,6 +22,20 @@ namespace REngine::Scene {
 	}
 
 	void Player::Update() {
+		if (Position().y - yLimit > 0.001) {
+			float d = 10.0 * Core::Time::Delta() / 2.0;
+			gravityV += d;
+			Position(Position() + glm::vec3(0.f, -d, 0.f));
+			gravityV += d;
+		}
+		else if (Position().y < yLimit) {
+			Position(glm::vec3(Position().x, yLimit, Position().z));
+			gravityV = 0.f;
+		}
+		else {
+			gravityV = 0.f;
+		}
+
 		std::shared_ptr<Core::Camera> cam = std::static_pointer_cast<Core::Camera>(Children()[0]);
 		if (Input::Keyboard::IsDown(GLFW_KEY_1)) {
 			Input::Mouse::Lock();
@@ -42,7 +57,7 @@ namespace REngine::Scene {
 		if (Input::Keyboard::IsDown(GLFW_KEY_D)) {
 			Position(Position() + glm::vec3(-Right()) * Core::Time::Delta() * SPEED);
 		}
-		
+
 		if (locked) {
 			Rotate(glm::vec3(0.f, -Input::Mouse::Delta().x * SENSITIVITY, 0.f));
 			cameraR -= Input::Mouse::Delta().y * SENSITIVITY;
