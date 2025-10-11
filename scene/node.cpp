@@ -12,10 +12,10 @@ namespace REngine::Scene {
 		for (auto i : children) i->Update();
 	}
 
-	void Node::ApplyTransforms(glm::mat4 &parentMatrix) {
+	void Node::ApplyTransforms() {
 		auto mat = glm::mat4(1.f);
 		for(auto i : children) {
-			i->ApplyTransforms(mat);
+			i->ApplyTransforms();
 		}
 	}
 

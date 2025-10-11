@@ -109,7 +109,7 @@ namespace REngine::Scene {
 		glm::mat4 m = GetModel() * inverse(pair->GetModel()) * c;
 		glm::decompose(m, scale, rotation, translation, skew, perspective);
 		
-		camera.SetPosition(translation);
+		camera.Position(translation);
 		camera.Rotation(glm::eulerAngles(rotation));
 		//TODO: fix camera quat rotation
 	}

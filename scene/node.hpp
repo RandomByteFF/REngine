@@ -31,7 +31,10 @@ namespace REngine::Scene {
 		int64_t id = 0;
 		std::string name = "";
 		virtual void Update();
-		virtual void ApplyTransforms(glm::mat4 &parentMatrix);
+		virtual void ApplyTransforms();
+
+		virtual const glm::mat4 &GetModel() { return identity; }
+
 		Node *GetParent();
 		void AddChild(std::shared_ptr<Node> child);
 		//TODO: remove child

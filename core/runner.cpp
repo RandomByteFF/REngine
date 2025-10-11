@@ -49,7 +49,7 @@ namespace REngine::Core {
 
 		tree->SetActiveCamera(camera);
 
-		camera->SetPosition(glm::vec3(0.f, 0.f, 6.f));
+		camera->Position(glm::vec3(0.f, 0.f, 6.f));
 	}
 
 	void Runner::MainLoop() {
@@ -61,7 +61,6 @@ namespace REngine::Core {
 
 			tree->Update();
 
-			tree->ApplyTransforms();
 			renderer.Render(*tree, *camera);
 			Input::Keyboard::EndFrame();
 			Input::Mouse::EndFrame();

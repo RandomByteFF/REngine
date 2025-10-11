@@ -38,7 +38,6 @@ namespace REngine::Scene {
 		void PostDraw(Core::CommandBuffer &cb);
 		void CallDrawlist(std::function<void(Drawable &)>);
 		void Update();
-		void ApplyTransforms();
 		void Destroy();
 
 		//TODO: later i would probably need to be able to differentiate between node / node2d / node3d roots
