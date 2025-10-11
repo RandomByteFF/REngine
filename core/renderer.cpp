@@ -4,6 +4,7 @@
 #include "imgui.h"
 #include "scene/drawable.hpp"
 #include "scene/sceneTree.hpp"
+#include "scene/textureMesh.hpp"
 #include "vulkan/vulkan_enums.hpp"
 #include <memory>
 
@@ -184,6 +185,7 @@ namespace REngine::Core {
 		samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
 
 		sampler = device.createSampler(samplerInfo);
+		Scene::TextureMesh::SetSampler(sampler);
 	}
 	
 	void Renderer::CreateSyncObjects() {

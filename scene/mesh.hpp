@@ -25,6 +25,8 @@ namespace REngine::Scene {
 		std::weak_ptr<Core::Pipeline> pPipeline;
 		std::vector<vk::DescriptorSet> descriptorSets;
 
+		virtual void EnteredTree() override;
+
 	public:
 		virtual void Create(vk::RenderPass rp, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices);
 		void Draw(vk::CommandBuffer cb) override;

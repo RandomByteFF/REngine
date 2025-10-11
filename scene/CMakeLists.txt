@@ -9,5 +9,6 @@ set(scene_sources
 	${CMAKE_CURRENT_SOURCE_DIR}/drawable.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/deserializer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/portal.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/player.cpp
 	PARENT_SCOPE
 )

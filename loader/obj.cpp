@@ -6,6 +6,9 @@
 
 namespace REngine::Loader {
 	void Obj::Load(const std::string &name) {
+		vertices.clear();
+		indices.clear();
+		
 		tinyobj::attrib_t attrib;
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
