@@ -22,8 +22,6 @@ namespace REngine::Core {
 		portal1->SetPair(portal2);
 		portal1->Position(glm::vec3(0, 1.3, 0.5));
 		portal2->Position(glm::vec3(2, 1.3, 0.5));
-		tree->GetRoot()->AddChild(portal1);
-		tree->GetRoot()->AddChild(portal2);
 		#else
 		tree = Scene::Deserializer::loadTree("tree.rest");
 		#endif
@@ -36,10 +34,13 @@ namespace REngine::Core {
 		levelMesh = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh(renderer.GetRenderPass(), "test_files/rengine-level1.obj", "test_files/levelTexture.png"));
 		frame = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh(renderer.GetRenderPass(), "test_files/frame.obj", "test_files/black.png"));
 		player = std::shared_ptr<Scene::Player>(new Scene::Player(renderer.GetRenderPass()));
+		tree->GetRoot()->AddChild(player);
 		tree->GetRoot()->AddChild(testMesh);
 		tree->GetRoot()->AddChild(levelMesh);
-		tree->GetRoot()->AddChild(player);
 		player->AddChild(camera);
+		
+		tree->GetRoot()->AddChild(portal1);
+		tree->GetRoot()->AddChild(portal2);
 		portal1->AddChild(frame);
 		
 		portal1->Create(renderer.GetRenderPass());

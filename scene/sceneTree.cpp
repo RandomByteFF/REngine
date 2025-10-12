@@ -94,4 +94,18 @@ namespace REngine::Scene {
 	std::shared_ptr<Node> SceneTree::GetRoot() const {
 		return root;
 	}
+	
+	std::shared_ptr<Node> SceneTree::Find(std::string &name, const Node &root) {
+		for (auto i : root.Children()) {
+			if (i->name == name) {
+				return i;
+			}
+		}
+		for (auto i : root.Children()) {
+			auto ret = Find(name, *i);
+			if (ret != nullptr) return ret;
+		}
+
+		return nullptr;
+	}
 }

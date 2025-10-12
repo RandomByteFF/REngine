@@ -10,10 +10,20 @@
 #include <memory>
 #include <vulkan/vulkan_enums.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
+#include <iostream>
 
 namespace REngine::Scene {
 	Portal::Portal() : camera(1.0) {
 	}
+
+	void Portal::EnteredTree() {
+		Mesh::EnteredTree();
+		std::string p = "Player";
+		player = std::dynamic_pointer_cast<Player>(SceneTree::Current()->Find(p, *SceneTree::Current()->GetRoot()));
+
+		wasAhead = glm::dot(Forward(), glm::normalize(player->GlobalPosition() - GlobalPosition())) > 0;
+	}
+
 	void Portal::Create(vk::RenderPass rp) {
 		portalCounter++;
 		if (!pipeline) {
@@ -23,6 +33,7 @@ namespace REngine::Scene {
 			});
 			pipeline->SetInput({Vertex::GetBindingDescription()}, Vertex::GetAttributeDescriptions());
 			pipeline->SetSampleCount(Core::Instance::GetInfo().maxMsaa);
+			pipeline->SetCullMode(vk::CullModeFlagBits::eNone);
 			pipeline->Create("portalVert", "portalFrag", rp);
 
 		}
@@ -112,5 +123,28 @@ namespace REngine::Scene {
 		camera.Position(translation);
 		camera.Rotation(glm::eulerAngles(rotation));
 		//TODO: fix camera quat rotation
+	}
+
+	void Portal::Update() {
+		Mesh::Update();
+		bool ahead = glm::dot(Forward(), glm::normalize(player->GlobalPosition() - GlobalPosition())) > 0;
+
+		if (ahead != wasAhead && wasClose) {
+			glm::vec3 scale;
+			glm::quat rotation;
+			glm::vec3 translation;
+			glm::vec3 skew;
+			glm::vec4 perspective;
+
+			glm::mat4 m = pair->GetModel() * glm::inverse(GetModel()) * player->GetModel();
+			glm::decompose(m, scale, rotation, translation, skew, perspective);
+			player->Position(translation);
+			player->RotationQuat(rotation);
+		}
+
+		glm::vec3 d = player->GlobalPosition() - GlobalPosition();
+		wasClose = glm::length(glm::vec2(d.x, d.z)) < 1.0;
+
+		wasAhead = ahead;
 	}
 }

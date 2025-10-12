@@ -43,5 +43,7 @@ namespace REngine::Scene {
 		//TODO: later i would probably need to be able to differentiate between node / node2d / node3d roots
 		void SetRoot(std::shared_ptr<Node> root);
 		std::shared_ptr<Node> GetRoot() const;
+
+		std::shared_ptr<Node> Find(std::string &name, const Node& root);
 	};
 }

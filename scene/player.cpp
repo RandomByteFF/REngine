@@ -36,7 +36,7 @@ namespace REngine::Scene {
 			gravityV = 0.f;
 		}
 
-		std::shared_ptr<Core::Camera> cam = std::static_pointer_cast<Core::Camera>(Children()[0]);
+		std::shared_ptr<Core::Camera> cam = std::dynamic_pointer_cast<Core::Camera>(Children()[0]);
 		if (Input::Keyboard::IsDown(GLFW_KEY_1)) {
 			Input::Mouse::Lock();
 			locked = true;
