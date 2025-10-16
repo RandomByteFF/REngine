@@ -24,6 +24,7 @@ namespace REngine::Core {
 		void Aspect(float aspect);
 		float Aspect();
 		void Orbit(glm::vec3 lookAt, float distance, glm::vec2 rotation);
+		void ObliqueMatrix(glm::vec4 plane);
 		
 		virtual void ApplyTransforms() override;
 	};

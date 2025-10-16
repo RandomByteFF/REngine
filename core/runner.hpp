@@ -20,6 +20,7 @@ namespace REngine::Core {
 		std::shared_ptr<Scene::Portal> portal1;
 		std::shared_ptr<Scene::Portal> portal2;
 		std::shared_ptr<Scene::TextureMesh> frame;
+		std::shared_ptr<Scene::TextureMesh> testLevel;
 		std::shared_ptr<Scene::Player> player;
 		std::shared_ptr<Camera> camera;
 		void InitVulkan();

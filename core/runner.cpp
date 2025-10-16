@@ -21,6 +21,7 @@ namespace REngine::Core {
 		portal2->SetPair(portal1);
 		portal1->SetPair(portal2);
 		portal1->Position(glm::vec3(0, 1.3, 0.5));
+		// portal1->Position(glm::vec3(5.7, 1, -3));
 		portal2->Position(glm::vec3(2, 1.3, 0.5));
 		#else
 		tree = Scene::Deserializer::loadTree("tree.rest");
@@ -30,13 +31,14 @@ namespace REngine::Core {
 		renderer.Create();
 		camera = std::shared_ptr<Camera>(new Camera(renderer.AspectRatio()));
 		
-		testMesh = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh(renderer.GetRenderPass(), "test_files/viking_room.obj", "test_files/viking_room.png"));
-		levelMesh = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh(renderer.GetRenderPass(), "test_files/rengine-level1.obj", "test_files/levelTexture.png"));
 		frame = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh(renderer.GetRenderPass(), "test_files/frame.obj", "test_files/black.png"));
+		testLevel = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh(renderer.GetRenderPass(), "test_files/test_level.obj", "test_files/checker.png"));
+		testMesh = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh(renderer.GetRenderPass(), "test_files/viking_room.obj", "test_files/viking_room.png"));
 		player = std::shared_ptr<Scene::Player>(new Scene::Player(renderer.GetRenderPass()));
+		testMesh->Position(glm::vec3(0., 1.2, 1.1));
 		tree->GetRoot()->AddChild(player);
+		tree->GetRoot()->AddChild(testLevel);
 		tree->GetRoot()->AddChild(testMesh);
-		tree->GetRoot()->AddChild(levelMesh);
 		player->AddChild(camera);
 		
 		tree->GetRoot()->AddChild(portal1);
@@ -47,8 +49,6 @@ namespace REngine::Core {
 		portal1->SetSampler(renderer.Sampler());
 		portal2->Create(renderer.GetRenderPass());
 		portal2->SetSampler(renderer.Sampler());
-		levelMesh->name = "Level";
-		testMesh->name = "TestMesh";
 
 		tree->SetActiveCamera(camera);
 

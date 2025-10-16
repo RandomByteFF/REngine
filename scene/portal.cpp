@@ -1,4 +1,5 @@
 #include "portal.hpp"
+#include "common/math.hpp"
 #include "core/camera.hpp"
 #include "core/instance.hpp"
 #include "core/vertex.hpp"
@@ -122,6 +123,17 @@ namespace REngine::Scene {
 		
 		camera.Position(translation);
 		camera.Rotation(glm::eulerAngles(rotation));
+
+		float dot = Math::sgn(glm::dot(Forward(), GlobalPosition() - camera.GlobalPosition()));
+
+		glm::vec3 camSpacePos = camera.V() * glm::vec4(GlobalPosition(), 1.);
+		glm::vec3 camSpaceNormal = glm::mat3(camera.V()) * (Forward() * dot);
+		float camSpaceDst = -glm::dot(camSpacePos, camSpaceNormal);
+
+		glm::vec4 clipPlaneCameraSpace = glm::vec4(camSpaceNormal, camSpaceDst);
+
+		camera.ObliqueMatrix(clipPlaneCameraSpace);
+
 		//TODO: fix camera quat rotation
 	}
 

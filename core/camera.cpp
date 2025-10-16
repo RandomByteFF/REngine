@@ -1,5 +1,9 @@
 #include "camera.hpp"
+#include "glm/ext/quaternion_geometric.hpp"
+#include "glm/geometric.hpp"
 #include "scene/node3d.hpp"
+#include "common/math.hpp"
+#include <glm/gtc/matrix_access.hpp>
 
 namespace REngine::Core {
 	void Camera::resizedCallback(int width, int height) {
@@ -32,7 +36,6 @@ namespace REngine::Core {
 	}
 
 	const glm::mat4 &Camera::V() {
-		if (dirty) VP();
 		return view;
 	}
 
@@ -52,6 +55,25 @@ namespace REngine::Core {
 		return aspect;
 	}
 
+	// https://www.terathon.com/lengyel/Lengyel-Oblique.pdf
+	void Camera::ObliqueMatrix(glm::vec4 plane) {
+		Aspect(aspect);
+		// proj[1][1] *= -1;
+
+		glm::vec4 C = plane;
+
+		glm::vec4 Cp = glm::transpose(glm::inverse(P())) * C;
+		
+		glm::vec4 Qp = glm::vec4(Math::sgn(C.x), Math::sgn(C.y), 1.f, 1.f);
+		glm::vec4 Q = glm::inverse(P()) * Qp;
+		
+		glm::vec4 M3p = ((-2.f * Q.z) / glm::dot(C, Q)) * C + glm::vec4(0.f, 0.f, 1.f, 0.f);
+		proj = glm::row(proj, 2, M3p);
+		
+		// proj[1][1] *= -1;
+		
+		ApplyTransforms();
+	}
 
 	void Camera::ApplyTransforms() {
 		Scene::Node3D::ApplyTransforms();
