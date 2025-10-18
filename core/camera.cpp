@@ -11,8 +11,7 @@ namespace REngine::Core {
 	}
 
 	Camera::Camera(float aspect, glm::vec3 position, bool ignoreResize) : Scene::Node3D(position, glm::vec3(1., 1., 1.), glm::vec3()) {
-		proj = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f); 
-		proj[1][1] *= -1;
+		Aspect(aspect);
 		Rotation(glm::vec3());
 		if (!ignoreResize) {
 			auto cb = std::bind(&Camera::resizedCallback, this, std::placeholders::_1, std::placeholders::_2);
@@ -58,19 +57,20 @@ namespace REngine::Core {
 	// https://www.terathon.com/lengyel/Lengyel-Oblique.pdf
 	void Camera::ObliqueMatrix(glm::vec4 plane) {
 		Aspect(aspect);
-		// proj[1][1] *= -1;
 
 		glm::vec4 C = plane;
 
 		glm::vec4 Cp = glm::transpose(glm::inverse(P())) * C;
 		
-		glm::vec4 Qp = glm::vec4(Math::sgn(C.x), Math::sgn(C.y), 1.f, 1.f);
+		glm::vec4 Qp = glm::vec4(Math::sgn(Cp.x), Math::sgn(Cp.y), 1.f, 1.f);
 		glm::vec4 Q = glm::inverse(P()) * Qp;
 		
 		glm::vec4 M3p = ((-2.f * Q.z) / glm::dot(C, Q)) * C + glm::vec4(0.f, 0.f, 1.f, 0.f);
 		proj = glm::row(proj, 2, M3p);
-		
-		// proj[1][1] *= -1;
+		glm::mat4 S(1.0f);
+		S[2][2] = 0.5f;
+		S[3][2] = 0.5f;
+		proj = S * proj;
 		
 		ApplyTransforms();
 	}
@@ -79,5 +79,6 @@ namespace REngine::Core {
 		Scene::Node3D::ApplyTransforms();
 		view = glm::inverse(GetModel());
 		vp = proj * view;
+		auto xd = vp * GetModel();
 	}
 }
