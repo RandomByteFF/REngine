@@ -3,8 +3,10 @@
 #include "core/camera.hpp"
 #include "core/instance.hpp"
 #include "core/vertex.hpp"
+#include "glm/geometric.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include "glm/matrix.hpp"
+#include "node3d.hpp"
 #include "scene/sceneTree.hpp"
 #include "core/descriptorPool.hpp"
 #include "vulkan/vulkan_structs.hpp"
@@ -15,131 +17,71 @@
 
 namespace REngine::Scene {
 	Portal::Portal() : camera(1.0) {
+		portalMesh = std::make_shared<PortalMesh>();
 	}
 
 	void Portal::EnteredTree() {
-		Mesh::EnteredTree();
+		Node3D::EnteredTree();
 		std::string p = "Player";
 		player = std::dynamic_pointer_cast<Player>(SceneTree::Current()->Find(p, *SceneTree::Current()->GetRoot()));
 
 		wasAhead = glm::dot(Forward(), glm::normalize(player->GlobalPosition() - GlobalPosition())) > 0;
+
+		AddChild(portalMesh);
 	}
 
 	void Portal::Create(vk::RenderPass rp) {
-		portalCounter++;
-		if (!pipeline) {
-			pipeline = std::make_shared<Core::Pipeline>();
-			pipeline->SetLayout({
-				{vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment}
-			});
-			pipeline->SetInput({Vertex::GetBindingDescription()}, Vertex::GetAttributeDescriptions());
-			pipeline->SetSampleCount(Core::Instance::GetInfo().maxMsaa);
-			pipeline->SetCullMode(vk::CullModeFlagBits::eNone);
-			pipeline->Create("portalVert", "portalFrag", rp);
-
-		}
-		pPipeline = pipeline;
-		
-		renderPass.AddColorAttachment().samples = Core::Instance::GetInfo().maxMsaa;
-		renderPass.AddColorImage();
-		renderPass.AddDepthAttachment().samples = Core::Instance::GetInfo().maxMsaa;
-		renderPass.AddDepthImage();
-		renderPass.AddResolveAttachment().finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
-		renderPass.AddResolveImage();
-
-		renderPass.CreateRenderPass();
-
-		std::vector<Vertex> vertices {
-			Vertex{glm::vec3(-1, -1, 0), glm::vec3(0, 0, 0), glm::vec2(0, 1)}, 
-			Vertex{glm::vec3(1, -1, 0), glm::vec3(0, 0, 0), glm::vec2(1, 1)},
-			Vertex{glm::vec3(1, 1, 0), glm::vec3(0, 0, 0), glm::vec2(1, 0)},
-			Vertex{glm::vec3(-1, 1, 0), glm::vec3(0, 0, 0), glm::vec2(0, 0)}};
-		std::vector<uint32_t> indices = {0, 1, 2, 0, 2, 3};
-		
-		barrier.oldLayout = vk::ImageLayout::eColorAttachmentOptimal;
-		barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-		barrier.srcQueueFamilyIndex = vk::QueueFamilyIgnored;
-		barrier.dstQueueFamilyIndex = vk::QueueFamilyIgnored;
-		barrier.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
-		barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-		barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.baseArrayLayer = 0;
-		barrier.subresourceRange.layerCount = 1;
-		barrier.subresourceRange.levelCount = 1;
-
-		Mesh::Create(rp, vertices, indices);
-	}
-
-	void Portal::PreDraw(Core::CommandBuffer cb) {
-		auto info = Core::Instance::GetInfo();
-		Core::DescriptorPool::SetImage(descriptorSets[info.currentFrame], 0, renderPass.GetView(2).lock()->Views()[info.currentFb], sampler);
-		pair->UpdateCamera();
-
-		cb.BeginPass(renderPass.GetRenderPass(), info.swapchainExtent, renderPass.GetFramebuffer()[info.currentFb]);
-		SceneTree::Current()->CallDrawlist([&cb, this](Drawable &j) {
-			if (dynamic_cast<Portal*>(&j)) {
-				return;
-			}
-			j.DrawFromView(cb.GetBuffer(), pair->camera);
-		});
-		cb.EndPass();
-
-		barrier.image = renderPass.GetImage(2, info.currentFb);
-		cb.GetBuffer().pipelineBarrier(vk::PipelineStageFlagBits::eColorAttachmentOutput,
-			vk::PipelineStageFlagBits::eFragmentShader, vk::DependencyFlags(), nullptr, nullptr, barrier);
+		portalMesh->Create(rp);
+		portalMesh->SetRenderCam(&pair->camera);
 	}
 
 	void Portal::SetSampler(vk::Sampler sampler) {
-		this->sampler = sampler;
+		portalMesh->SetSampler(sampler);
 	}
 
-	void Portal::Destroy() {
-		Mesh::Destroy();
-		renderPass.Destroy();
-		if (--portalCounter == 0) {
-			pipeline->Destroy();
-			pipeline = nullptr;
-		}
-	}
-
-	void Portal::Recreate() {
-		renderPass.Recreate();
-	}
 
 	void Portal::SetPair(std::shared_ptr<Portal> portal) {
 		pair = portal;
 	}
 
 	void Portal::UpdateCamera() {
+		std::shared_ptr<Core::Camera> mainCamera = SceneTree::Current()->ActiveCamera();
 		glm::vec3 scale;
 		glm::quat rotation;
 		glm::vec3 translation;
 		glm::vec3 skew;
 		glm::vec4 perspective;
-		glm::mat4 c = glm::inverse(SceneTree::Current()->ActiveCamera()->V());
-		glm::mat4 m = GetModel() * inverse(pair->GetModel()) * c;
-		glm::decompose(m, scale, rotation, translation, skew, perspective);
 		
+		// set dynamic scale
+		// bool camFacingPortal = glm::dot(-mainCamera->Forward(), GlobalPosition() - mainCamera->GlobalPosition()) > 0;
+		portalMesh->Scale(glm::vec3(portalMesh->Scale().x, portalMesh->Scale().y, 0.1));
+
+		// set own camera position
+		glm::mat4 c = glm::inverse(mainCamera->V());
+		glm::mat4 m = modelNoScale * inverse(pair->modelNoScale) * c;
+		glm::decompose(m, scale, rotation, translation, skew, perspective);
 		camera.Position(translation);
 		camera.Rotation(glm::eulerAngles(rotation));
 
+		// set oblique near clipping plane
 		float dot = Math::sgn(glm::dot(Forward(), GlobalPosition() - camera.GlobalPosition()));
 
-		glm::vec3 camSpacePos = camera.V() * glm::vec4(GlobalPosition(), 1.);
 		glm::vec3 camSpaceNormal = glm::mat3(camera.V()) * (Forward() * dot);
+		glm::vec3 camSpacePos = camera.V() * glm::vec4(GlobalPosition() - camSpaceNormal * 0.1f, 1.);
 		float camSpaceDst = -glm::dot(camSpacePos, camSpaceNormal);
 
 		glm::vec4 clipPlaneCameraSpace = glm::vec4(camSpaceNormal, camSpaceDst);
 
-		camera.ObliqueMatrix(clipPlaneCameraSpace);
+		if (std::abs(camSpaceDst) < 0.1) camera.ResetProjection();
+		else camera.ObliqueMatrix(clipPlaneCameraSpace);
 
 		//TODO: fix camera quat rotation
 	}
 
 	void Portal::Update() {
-		Mesh::Update();
+		Node3D::Update();
 		bool ahead = glm::dot(Forward(), glm::normalize(player->GlobalPosition() - GlobalPosition())) > 0;
+		portalMesh->Position(glm::vec3(0., 0., ahead ? -0.1 : 0.1));
 
 		if (ahead != wasAhead && wasClose) {
 			glm::vec3 scale;
@@ -148,7 +90,7 @@ namespace REngine::Scene {
 			glm::vec3 skew;
 			glm::vec4 perspective;
 
-			glm::mat4 m = pair->GetModel() * glm::inverse(GetModel()) * player->GetModel();
+			glm::mat4 m = pair->modelNoScale * glm::inverse(modelNoScale) * player->GetModel();
 			glm::decompose(m, scale, rotation, translation, skew, perspective);
 			player->Position(translation);
 			player->RotationQuat(rotation);
@@ -158,5 +100,13 @@ namespace REngine::Scene {
 		wasClose = glm::length(glm::vec2(d.x, d.z)) < 1.0;
 
 		wasAhead = ahead;
+
+		UpdateCamera();
 	}
+
+	void Portal::ApplyTransforms() {
+		Node3D::ApplyTransforms();
+		glm::mat4 pModel = GetParent() ? GetParent()->GetModel() : glm::mat4(1.f);
+		modelNoScale = pModel * glm::translate(glm::mat4(1.f), Position()) * glm::toMat4(RotationQuat());
+	};
 }

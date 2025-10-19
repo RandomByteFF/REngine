@@ -43,7 +43,7 @@ namespace REngine::Core {
 	}
 
 	void Camera::Aspect(float aspect) {
-		proj = glm::perspective(glm::radians(45.0f), aspect, 0.1f, 100.0f);
+		proj = glm::perspective(glm::radians(45.0f), aspect, 0.01f, 100.0f);
 		proj[1][1] *= -1;
 		dirty = true;
 		this->aspect = aspect;
@@ -52,6 +52,10 @@ namespace REngine::Core {
 
 	float Camera::Aspect() {
 		return aspect;
+	}
+
+	void Camera::ResetProjection() {
+		Aspect(aspect);
 	}
 
 	// https://www.terathon.com/lengyel/Lengyel-Oblique.pdf
@@ -79,6 +83,5 @@ namespace REngine::Core {
 		Scene::Node3D::ApplyTransforms();
 		view = glm::inverse(GetModel());
 		vp = proj * view;
-		auto xd = vp * GetModel();
 	}
 }

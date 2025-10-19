@@ -22,6 +22,7 @@ namespace REngine::Core {
 		const glm::mat4 &V();
 		const glm::mat4 &P();
 		void Aspect(float aspect);
+		void ResetProjection();
 		float Aspect();
 		void Orbit(glm::vec3 lookAt, float distance, glm::vec2 rotation);
 		void ObliqueMatrix(glm::vec4 plane);
