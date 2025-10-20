@@ -174,7 +174,9 @@ namespace REngine::Editor {
 	void Editor::Recreate() {
 		for (auto i : renderedViewports) ImGui_ImplVulkan_RemoveTexture(i);
 		renderedViewports.clear();
+		renderedEditorViews.clear();
 		renderPass.Recreate();
+		editorViewRP.Recreate();
 		AddTextures(sampler);
 	}
 
