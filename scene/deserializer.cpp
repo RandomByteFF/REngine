@@ -3,6 +3,7 @@
 #include "mesh.hpp"
 #include <memory>
 #include <stdexcept>
+#include <iostream>
 
 namespace REngine::Scene {
 	void Deserializer::loadMesh(const toml::table &tbl, std::shared_ptr<Mesh> node) {
@@ -31,7 +32,8 @@ namespace REngine::Scene {
 		}
 		catch (const toml::parse_error&) {
 			// TODO: something more elegant
-			throw std::runtime_error("Scene not found!");
+			std::cerr << "Scene not found!";
+			return nullptr;
 		}
 		// std::shared_ptr<SceneTree> tree = std::shared_ptr<SceneTree>(new SceneTree());
 
