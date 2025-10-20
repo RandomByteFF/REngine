@@ -1,5 +1,4 @@
 #include "runner.hpp"
-#include "GLFW/glfw3.h"
 #include "input/mouse.hpp"
 #include "input/keyboard.hpp"
 #include "scene/textureMesh.hpp"
@@ -8,52 +7,59 @@
 #include "loader/shader.hpp"
 #include <iostream>
 #include <numbers>
+#include "scene/deserializer.hpp"
 
 namespace REngine::Core {
 	void Runner::InitVulkan() {
 		Instance::Initialize(window);
 		device = Instance::GetInfo().device;
-		#ifdef EDITOR
+		// Portal setup
 		tree = std::make_shared<Scene::SceneTree>();
 		tree->SetRoot(std::shared_ptr<Scene::Node>(new Scene::Node()));
-		portal1 = std::shared_ptr<Scene::Portal>(new Scene::Portal());
-		portal2 = std::shared_ptr<Scene::Portal>(new Scene::Portal());
-		portal2->SetPair(portal1);
-		portal1->SetPair(portal2);
-		portal1->Position(glm::vec3(0, 1.3, 0.5));
-		// portal1->Position(glm::vec3(5.7, 1, -3));
-		portal2->Position(glm::vec3(2, 1.3, 0.5));
-		#else
-		tree = Scene::Deserializer::loadTree("tree.rest");
-		#endif
+		portals.resize(6);
+		for(size_t i = 0; i < portals.size(); i++) {
+			portals[i] = std::shared_ptr<Scene::Portal>(new Scene::Portal());
+		}
+		for(size_t i = 0; i < portals.size(); i += 2) {
+			portals[i]->SetPair(portals[i + 1]);
+			portals[i + 1]->SetPair(portals[i]);
+		}
+		
+		for(size_t i = 0; i < portals.size(); i++) {
+			portals[i]->name = std::format("Portal {}", i);
+		}
+
 		tree->SetCurrent();
 		
 		renderer.Create();
 		camera = std::shared_ptr<Camera>(new Camera(renderer.AspectRatio()));
 		
-		frame = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh(renderer.GetRenderPass(), "test_files/frame.obj", "test_files/black.png"));
 		testLevel = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh(renderer.GetRenderPass(), "test_files/test_level.obj", "test_files/checker.png"));
-		testMesh = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh(renderer.GetRenderPass(), "test_files/viking_room.obj", "test_files/viking_room.png"));
 		player = std::shared_ptr<Scene::Player>(new Scene::Player(renderer.GetRenderPass()));
-		testMesh->Position(glm::vec3(0., 1.2, 1.1));
 		tree->GetRoot()->AddChild(player);
 		tree->GetRoot()->AddChild(testLevel);
-		tree->GetRoot()->AddChild(testMesh);
 		player->AddChild(camera);
+
+		for (size_t i = 0; i < portals.size(); i++) {
+			tree->GetRoot()->AddChild(portals[i]);
+			portals[i]->Create(renderer.GetRenderPass());
+			portals[i]->SetSampler(renderer.Sampler());
+		}
 		
-		tree->GetRoot()->AddChild(portal1);
-		tree->GetRoot()->AddChild(portal2);
-		portal1->AddChild(frame);
+		// tree->GetRoot()->AddChild(portal1);
+		// tree->GetRoot()->AddChild(portal2);
 		
-		portal1->Create(renderer.GetRenderPass());
-		portal1->SetSampler(renderer.Sampler());
-		portal2->Create(renderer.GetRenderPass());
-		portal2->SetSampler(renderer.Sampler());
+		// portal1->Create(renderer.GetRenderPass());
+		// portal1->SetSampler(renderer.Sampler());
+		// portal2->Create(renderer.GetRenderPass());
+		// portal2->SetSampler(renderer.Sampler());
 
 		tree->SetActiveCamera(camera);
 
 		camera->Rotation(glm::vec3(0., std::numbers::pi, 0.));
 		camera->Position(glm::vec3(0.f, 0.7f, 0.f));
+		
+		Scene::Deserializer::loadTree("tree.rest");
 	}
 
 	void Runner::MainLoop() {

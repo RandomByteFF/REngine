@@ -1,19 +1,14 @@
 #include "portal.hpp"
 #include "common/math.hpp"
 #include "core/camera.hpp"
-#include "core/instance.hpp"
-#include "core/vertex.hpp"
 #include "glm/geometric.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include "glm/matrix.hpp"
 #include "node3d.hpp"
 #include "scene/sceneTree.hpp"
-#include "core/descriptorPool.hpp"
-#include "vulkan/vulkan_structs.hpp"
 #include <memory>
 #include <vulkan/vulkan_enums.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
-#include <iostream>
 
 namespace REngine::Scene {
 	Portal::Portal() : camera(1.0) {
@@ -67,7 +62,7 @@ namespace REngine::Scene {
 		float dot = Math::sgn(glm::dot(Forward(), GlobalPosition() - camera.GlobalPosition()));
 
 		glm::vec3 camSpaceNormal = glm::mat3(camera.V()) * (Forward() * dot);
-		glm::vec3 camSpacePos = camera.V() * glm::vec4(GlobalPosition() - camSpaceNormal * 0.1f, 1.);
+		glm::vec3 camSpacePos = camera.V() * glm::vec4(GlobalPosition(), 1.);
 		float camSpaceDst = -glm::dot(camSpacePos, camSpaceNormal);
 
 		glm::vec4 clipPlaneCameraSpace = glm::vec4(camSpaceNormal, camSpaceDst);

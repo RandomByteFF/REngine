@@ -15,11 +15,7 @@ namespace REngine::Core {
 		Pipeline pipeline;
 		Renderer renderer;
 		std::shared_ptr<Scene::SceneTree> tree;
-		std::shared_ptr<Scene::TextureMesh> testMesh;
-		std::shared_ptr<Scene::TextureMesh> levelMesh;
-		std::shared_ptr<Scene::Portal> portal1;
-		std::shared_ptr<Scene::Portal> portal2;
-		std::shared_ptr<Scene::TextureMesh> frame;
+		std::vector<std::shared_ptr<Scene::Portal>> portals;
 		std::shared_ptr<Scene::TextureMesh> testLevel;
 		std::shared_ptr<Scene::Player> player;
 		std::shared_ptr<Camera> camera;
