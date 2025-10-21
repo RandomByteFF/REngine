@@ -4,6 +4,7 @@ namespace REngine::Scene {
 	class Node;
 	class Node3D;
 	class Mesh;
+	class Portal;
 }
 
 namespace REngine::Common {
@@ -12,10 +13,12 @@ namespace REngine::Common {
 		virtual void Visit(Scene::Node *node) {}
 		virtual void Visit(Scene::Node3D *node) {}
 		virtual void Visit(Scene::Mesh *node) {}
+		virtual void Visit(Scene::Portal *node) {}
 	};
 }
 
 #define VISIT() \
 void Visit(Scene::Node *node) override; \
 void Visit(Scene::Node3D *node) override; \
-void Visit(Scene::Mesh *node) override; 
+void Visit(Scene::Mesh *node) override; \
+void Visit(Scene::Portal *node) override; 

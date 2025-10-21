@@ -30,6 +30,7 @@ namespace REngine::Scene {
 		bool editorOnly = false;
 		int64_t id = 0;
 		std::string name = "";
+		bool visible = true;
 		virtual void Update();
 		virtual void ApplyTransforms();
 

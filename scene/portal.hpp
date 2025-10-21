@@ -23,11 +23,11 @@ namespace REngine::Scene{
 		Core::Camera camera;
 		Portal();
 		virtual void EnteredTree() override;
-		void Create(vk::RenderPass rp);
-		void SetSampler(vk::Sampler sampler);
 		void SetPair(std::shared_ptr<Portal>);
 		void UpdateCamera();
 		virtual void Update() override;
 		virtual void ApplyTransforms() override;
+
+		VISITOR(Node3D);
 	};
 }

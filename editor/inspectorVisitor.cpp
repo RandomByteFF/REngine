@@ -36,4 +36,8 @@ namespace REngine::Editor {
 	void InspectorVisitor::Visit(Scene::Mesh *node) {
 		ImGui::SeparatorText("Mesh");
 	}
+
+	void InspectorVisitor::Visit(Scene::Portal *node) {
+		ImGui::SeparatorText("Portal");
+	}
 }

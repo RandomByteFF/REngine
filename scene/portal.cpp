@@ -1,6 +1,7 @@
 #include "portal.hpp"
 #include "common/math.hpp"
 #include "core/camera.hpp"
+#include "core/renderer.hpp"
 #include "glm/geometric.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include "glm/matrix.hpp"
@@ -23,20 +24,13 @@ namespace REngine::Scene {
 		wasAhead = glm::dot(Forward(), glm::normalize(player->GlobalPosition() - GlobalPosition())) > 0;
 
 		AddChild(portalMesh);
+		portalMesh->Create(Core::Renderer::GetRenderPass());
+		portalMesh->SetSampler(Core::Renderer::Sampler());
 	}
-
-	void Portal::Create(vk::RenderPass rp) {
-		portalMesh->Create(rp);
-		portalMesh->SetRenderCam(&pair->camera);
-	}
-
-	void Portal::SetSampler(vk::Sampler sampler) {
-		portalMesh->SetSampler(sampler);
-	}
-
 
 	void Portal::SetPair(std::shared_ptr<Portal> portal) {
 		pair = portal;
+		portalMesh->SetRenderCam(&pair->camera);
 	}
 
 	void Portal::UpdateCamera() {
@@ -54,6 +48,7 @@ namespace REngine::Scene {
 		// set own camera position
 		glm::mat4 c = glm::inverse(mainCamera->V());
 		glm::mat4 m = modelNoScale * inverse(pair->modelNoScale) * c;
+		// TODO: kill model no scale
 		glm::decompose(m, scale, rotation, translation, skew, perspective);
 		camera.Position(translation);
 		camera.Rotation(glm::eulerAngles(rotation));
@@ -74,6 +69,7 @@ namespace REngine::Scene {
 	}
 
 	void Portal::Update() {
+		if (!pair) return;
 		Node3D::Update();
 		bool ahead = glm::dot(Forward(), glm::normalize(player->GlobalPosition() - GlobalPosition())) > 0;
 		portalMesh->Position(glm::vec3(0., 0., ahead ? -0.1 : 0.1));

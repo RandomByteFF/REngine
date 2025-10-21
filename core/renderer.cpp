@@ -60,11 +60,11 @@ namespace REngine::Core {
 		return *swapchain;
 	}
 
-	const vk::RenderPass Renderer::GetRenderPass() const {
+	const vk::RenderPass Renderer::GetRenderPass() {
 		return vpRenderer.GetRenderPass();
 	}
 
-	const vk::Sampler Renderer::Sampler() const {
+	vk::Sampler Renderer::Sampler() {
 		return sampler;
 	}
 

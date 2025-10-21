@@ -42,8 +42,6 @@ namespace REngine::Core {
 
 		for (size_t i = 0; i < portals.size(); i++) {
 			tree->GetRoot()->AddChild(portals[i]);
-			portals[i]->Create(renderer.GetRenderPass());
-			portals[i]->SetSampler(renderer.Sampler());
 		}
 		
 		// tree->GetRoot()->AddChild(portal1);

@@ -38,11 +38,13 @@ namespace REngine::Scene {
 	}
 
 	void Mesh::Draw(vk::CommandBuffer cb) {
+		if (!visible) return;
 		Bind(cb, *SceneTree::Current()->ActiveCamera());
 		cb.drawIndexed(indicesSize, 1, 0, 0, 0);
 	}
 	
 	void Mesh::DrawFromView(vk::CommandBuffer cb, Core::Camera &camera) {
+		if (!visible) return;
 		Bind(cb, camera);
 		cb.drawIndexed(indicesSize, 1, 0, 0, 0);
 	}

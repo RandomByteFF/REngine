@@ -11,7 +11,7 @@
 
 namespace REngine::Core {
 	class Renderer {
-		RenderPass vpRenderer;
+		inline static RenderPass vpRenderer;
 		Editor::Editor editor;
 		vk::Device device;
 		vk::Format colorFormat;
@@ -19,7 +19,8 @@ namespace REngine::Core {
 		std::vector<vk::Semaphore> imageAvailableSemaphores;
 		std::vector<vk::Semaphore> renderFinishedSemaphores;
 		std::vector<CommandBuffer> commandBuffers;
-		vk::Sampler sampler;
+		inline static vk::Sampler sampler;
+		// TODO: some kind of sampler pool
 		vk::ImageMemoryBarrier barrier;
 		void CreateSyncObjects();
 		void CleanupSwapchain();
@@ -32,8 +33,8 @@ namespace REngine::Core {
 		//FIXME: objects from here
 		void Create();
 		const Swapchain GetSwapchain() const;
-		const vk::RenderPass GetRenderPass() const;
-		const vk::Sampler Sampler() const;
+		static const vk::RenderPass GetRenderPass();
+		static vk::Sampler Sampler();
 		void Render(Scene::SceneTree &sceneTree, Camera &camera);
 		void RecreateSwapchain();
 		float AspectRatio();

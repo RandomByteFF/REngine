@@ -49,4 +49,8 @@ namespace REngine::Editor {
 	void Serializer::Visit(Scene::Mesh *node) {
 		if (currentNodeType.empty()) currentNodeType = "Mesh";
 	}
+
+	void Serializer::Visit(Scene::Portal *portal) {
+		
+	}
 }

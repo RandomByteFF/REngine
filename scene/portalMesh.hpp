@@ -12,7 +12,7 @@ namespace REngine::Scene {
 		Core::RenderPass renderPass;
 		vk::ImageMemoryBarrier barrier;
 		vk::Sampler sampler;
-		Core::Camera *renderCam;
+		Core::Camera *renderCam = nullptr;
 
 	public:
 		void Create(vk::RenderPass rp);

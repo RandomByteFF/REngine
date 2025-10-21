@@ -1,7 +1,13 @@
 #include "sceneTree.hpp"
 #include "imgui.h"
+#include "scene/portal.hpp"
 #include "scene/sceneTree.hpp"
+#include <memory>
 #include <typeinfo>
+
+namespace {
+	std::array<std::string, 1> nodes = {"Portal"};
+}
 
 namespace REngine::Editor {
 	auto leafFlags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen; // ImGuiTreeNodeFlags_Bullet
@@ -33,9 +39,38 @@ namespace REngine::Editor {
 		ImGui::Begin("Scene tree");
 		int id = -1;
 		TraverseNode(root, id);
+		GenericPopup();
 		ImGui::End();
 	}
+
 	std::optional<std::shared_ptr<Scene::Node>> SceneTree::GetSelected() {
 		return selected;
+	}
+
+	void SceneTree::GenericPopup() {
+		int selected = -1;
+		if (ImGui::IsMouseReleased(ImGuiMouseButton_Right)) {
+			ImGui::OpenPopup("sceneTreeGeneric");
+		}
+		if (ImGui::BeginPopup("sceneTreeGeneric")) {
+			if (ImGui::BeginMenu("Add node")) {
+				for (size_t i = 0; i < nodes.size(); i++) {
+					if (ImGui::MenuItem(nodes[i].c_str())) {
+						selected = i;
+					}
+				}
+				ImGui::EndMenu();
+			}
+			ImGui::EndPopup();
+		}
+
+		std::shared_ptr<Scene::Node> newNode;
+		if (selected == 0) {
+			newNode = std::dynamic_pointer_cast<Scene::Node>(std::make_shared<Scene::Portal>());
+		}
+
+		if (newNode) {
+			Scene::SceneTree::Current()->GetRoot()->AddChild(newNode);
+		}
 	}
 }

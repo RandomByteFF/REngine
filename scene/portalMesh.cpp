@@ -4,6 +4,7 @@
 
 namespace REngine::Scene {
 	void PortalMesh::Create(vk::RenderPass rp) {
+		if (!renderCam) visible = false;
 		portalCounter++;
 		if (!pipeline) {
 			pipeline = std::make_shared<Core::Pipeline>();
@@ -59,6 +60,7 @@ namespace REngine::Scene {
 	}
 
 	void PortalMesh::PreDraw(Core::CommandBuffer cb) {
+		if (!visible) return;
 		auto info = Core::Instance::GetInfo();
 		Core::DescriptorPool::SetImage(descriptorSets[info.currentFrame], 0, renderPass.GetView(2).lock()->Views()[info.currentFb], sampler);
 
@@ -79,6 +81,7 @@ namespace REngine::Scene {
 
 	void PortalMesh::SetRenderCam(Core::Camera *camera) {
 		renderCam = camera;
+		visible = renderCam;
 	}
 	
 	void PortalMesh::Recreate() {
