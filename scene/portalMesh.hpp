@@ -3,6 +3,7 @@
 #include "core/camera.hpp"
 #include "mesh.hpp"
 #include "core/renderPass.hpp"
+#include "scene/node.hpp"
 
 namespace REngine::Scene {
 	class PortalMesh : public Mesh {
@@ -15,11 +16,12 @@ namespace REngine::Scene {
 		Core::Camera *renderCam = nullptr;
 
 	public:
-		void Create(vk::RenderPass rp);
+		void Create();
+		void EnteredTree() override;
 		virtual void PreDraw(Core::CommandBuffer cb) override;
 		void SetRenderCam(Core::Camera *camera);
 		virtual void Recreate() override;
 		virtual void Destroy() override;
-		void SetSampler(vk::Sampler sampler);
+		VISITOR(Mesh);
 	};
 }

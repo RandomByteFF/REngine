@@ -37,7 +37,7 @@ namespace REngine::Scene {
 		virtual const glm::mat4 &GetModel() { return identity; }
 
 		Node *GetParent();
-		void AddChild(std::shared_ptr<Node> child);
+		virtual void AddChild(std::shared_ptr<Node> child);
 		//TODO: remove child
 		virtual void Destroy();
 

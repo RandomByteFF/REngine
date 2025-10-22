@@ -9,6 +9,7 @@ namespace REngine::Scene {
 		static void loadMesh(const toml::table &tbl, std::shared_ptr<Mesh> node);
 		static void loadNode3D(const toml::table &tbl, std::shared_ptr<Node3D> node);
 		static void loadNode(const toml::table &tbl, std::shared_ptr<Node> node);
+		static void loadPortal(const toml::table &tbl, std::shared_ptr<Portal> node);
 	public:
 		static std::shared_ptr<SceneTree> loadTree(const std::string sceneName);
 	};

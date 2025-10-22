@@ -17,17 +17,17 @@ namespace REngine::Core {
 		tree = std::make_shared<Scene::SceneTree>();
 		tree->SetRoot(std::shared_ptr<Scene::Node>(new Scene::Node()));
 		portals.resize(6);
-		for(size_t i = 0; i < portals.size(); i++) {
-			portals[i] = std::shared_ptr<Scene::Portal>(new Scene::Portal());
-		}
-		for(size_t i = 0; i < portals.size(); i += 2) {
-			portals[i]->SetPair(portals[i + 1]);
-			portals[i + 1]->SetPair(portals[i]);
-		}
+		// for(size_t i = 0; i < portals.size(); i++) {
+		// 	portals[i] = std::shared_ptr<Scene::Portal>(new Scene::Portal());
+		// }
+		// for(size_t i = 0; i < portals.size(); i += 2) {
+		// 	portals[i]->SetPair(portals[i + 1]);
+		// 	portals[i + 1]->SetPair(portals[i]);
+		// }
 		
-		for(size_t i = 0; i < portals.size(); i++) {
-			portals[i]->name = std::format("Portal {}", i);
-		}
+		// for(size_t i = 0; i < portals.size(); i++) {
+		// 	portals[i]->name = std::format("Portal {}", i);
+		// }
 
 		tree->SetCurrent();
 		
@@ -40,9 +40,9 @@ namespace REngine::Core {
 		tree->GetRoot()->AddChild(testLevel);
 		player->AddChild(camera);
 
-		for (size_t i = 0; i < portals.size(); i++) {
-			tree->GetRoot()->AddChild(portals[i]);
-		}
+		// for (size_t i = 0; i < portals.size(); i++) {
+		// 	tree->GetRoot()->AddChild(portals[i]);
+		// }
 		
 		// tree->GetRoot()->AddChild(portal1);
 		// tree->GetRoot()->AddChild(portal2);

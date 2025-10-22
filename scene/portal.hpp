@@ -24,9 +24,11 @@ namespace REngine::Scene{
 		Portal();
 		virtual void EnteredTree() override;
 		void SetPair(std::shared_ptr<Portal>);
+		std::shared_ptr<Portal> GetPair();
 		void UpdateCamera();
 		virtual void Update() override;
 		virtual void ApplyTransforms() override;
+		virtual void AddChild(std::shared_ptr<Node> child) override;
 
 		VISITOR(Node3D);
 	};

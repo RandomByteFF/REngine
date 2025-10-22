@@ -1,5 +1,6 @@
 #include "serializer.hpp"
 #include "scene/node3d.hpp"
+#include "scene/portal.hpp"
 #include <iostream>
 #include <fstream>
 
@@ -51,6 +52,11 @@ namespace REngine::Editor {
 	}
 
 	void Serializer::Visit(Scene::Portal *portal) {
-		
+		if (currentNodeType.empty()) currentNodeType = "Portal";
+		currentNode.insert("pair", portal->GetPair()->id);
+	}
+	
+	void Serializer::Visit(Scene::PortalMesh *portalMesh) {
+		if (currentNodeType.empty()) currentNodeType = "PortalMesh";
 	}
 }

@@ -21,14 +21,17 @@ namespace REngine::Editor {
 		std::string toDisplay = (name + "##" + std::to_string(id)).c_str();
 		bool s = selected.has_value() && selected.value() == node;
 		ImGuiTreeNodeFlags sFlags = s ? ImGuiTreeNodeFlags_Selected : 0;
-		if (node->Children().size() == 0) {
-			ImGui::TreeNodeEx(toDisplay.c_str(), leafFlags | defaultFlags | sFlags);
-			if (ImGui::IsItemClicked()) selected = node;
-			return;
+
+		bool open = false;
+		open = ImGui::TreeNodeEx(toDisplay.c_str(), defaultFlags | sFlags | (node->Children().size() == 0 ? leafFlags : 0));
+		if (ImGui::BeginDragDropSource()) {
+			ImGui::SetDragDropPayload("NODE", &node->id, sizeof(node->id));
+			ImGui::Text(node->name.c_str());
+			ImGui::EndDragDropSource();
 		}
-		bool open = ImGui::TreeNodeEx(toDisplay.c_str(), defaultFlags | sFlags);
+		
 		if (ImGui::IsItemClicked()) selected = node;
-		if (open) {
+		if (open && node->Children().size() > 0) {
 			for (auto i : node->Children()) TraverseNode(i, ++id);
 			ImGui::TreePop();
 		}

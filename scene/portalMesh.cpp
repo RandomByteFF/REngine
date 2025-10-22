@@ -1,9 +1,11 @@
 #include "portalMesh.hpp"
 #include "core/descriptorPool.hpp"
 #include "sceneTree.hpp"
+#include "core/renderer.hpp"
 
 namespace REngine::Scene {
-	void PortalMesh::Create(vk::RenderPass rp) {
+	void PortalMesh::Create() {
+		vk::RenderPass rp = Core::Renderer::GetRenderPass();
 		if (!renderCam) visible = false;
 		portalCounter++;
 		if (!pipeline) {
@@ -59,6 +61,12 @@ namespace REngine::Scene {
 		Mesh::Create(rp, vertices, indices);
 	}
 
+	void PortalMesh::EnteredTree() {
+		Mesh::EnteredTree();
+		Create();
+		sampler = Core::Renderer::Sampler();
+	}
+
 	void PortalMesh::PreDraw(Core::CommandBuffer cb) {
 		if (!visible) return;
 		auto info = Core::Instance::GetInfo();
@@ -95,9 +103,5 @@ namespace REngine::Scene {
 			pipeline->Destroy();
 			pipeline = nullptr;
 		}
-	}
-	
-	void PortalMesh::SetSampler(vk::Sampler sampler) {
-		this->sampler = sampler;
 	}
 }

@@ -1,9 +1,13 @@
 #include "inspectorVisitor.hpp"
 #include "imgui.h"
+#include "scene/portalMesh.hpp"
+#include "scene/sceneTree.hpp"
 #include "widgets/widgets.hpp"
 #include "scene/node.hpp"
 #include "scene/node3d.hpp"
+#include "scene/portal.hpp"
 #include "common/converter.hpp"
+#include <memory>
 
 namespace REngine::Editor {
 	void InspectorVisitor::Visit(Scene::Node *node) {
@@ -39,5 +43,22 @@ namespace REngine::Editor {
 
 	void InspectorVisitor::Visit(Scene::Portal *node) {
 		ImGui::SeparatorText("Portal");
+		std::string buttonText = (node->GetPair() ? node->GetPair()->name : "None") + "##" + std::to_string(node->id);
+		ImGui::Button(buttonText.c_str());
+		if (ImGui::BeginDragDropTarget()) {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("NODE")) {
+				int64_t id = *(int64_t*)(payload->Data);
+				std::shared_ptr<Scene::Node> n = Scene::SceneTree::Current()->Find(id, *Scene::SceneTree::Current()->GetRoot());
+				// fixme: id's should everywhere be uint32_t
+				std::shared_ptr<Scene::Portal> portal = std::dynamic_pointer_cast<Scene::Portal>(n);
+				if (portal) {
+					node->SetPair(portal);
+				}
+			}
+		}
+	}
+
+	void InspectorVisitor::Visit(Scene::PortalMesh *node) {
+		
 	}
 }

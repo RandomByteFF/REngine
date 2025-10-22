@@ -13,7 +13,6 @@
 
 namespace REngine::Scene {
 	Portal::Portal() : camera(1.0) {
-		portalMesh = std::make_shared<PortalMesh>();
 	}
 
 	void Portal::EnteredTree() {
@@ -22,15 +21,20 @@ namespace REngine::Scene {
 		player = std::dynamic_pointer_cast<Player>(SceneTree::Current()->Find(p, *SceneTree::Current()->GetRoot()));
 
 		wasAhead = glm::dot(Forward(), glm::normalize(player->GlobalPosition() - GlobalPosition())) > 0;
+	}
 
-		AddChild(portalMesh);
-		portalMesh->Create(Core::Renderer::GetRenderPass());
-		portalMesh->SetSampler(Core::Renderer::Sampler());
+	void Portal::AddChild(std::shared_ptr<Node> child) {
+		Node3D::AddChild(child);
+		portalMesh = std::dynamic_pointer_cast<PortalMesh>(child);
 	}
 
 	void Portal::SetPair(std::shared_ptr<Portal> portal) {
 		pair = portal;
 		portalMesh->SetRenderCam(&pair->camera);
+	}
+
+	std::shared_ptr<Portal> Portal::GetPair() {
+		return pair;
 	}
 
 	void Portal::UpdateCamera() {
@@ -69,7 +73,7 @@ namespace REngine::Scene {
 	}
 
 	void Portal::Update() {
-		if (!pair) return;
+		if (!pair || !portalMesh) return;
 		Node3D::Update();
 		bool ahead = glm::dot(Forward(), glm::normalize(player->GlobalPosition() - GlobalPosition())) > 0;
 		portalMesh->Position(glm::vec3(0., 0., ahead ? -0.1 : 0.1));
