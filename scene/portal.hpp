@@ -18,6 +18,7 @@ namespace REngine::Scene{
 
 		glm::mat4 modelNoScale = glm::mat4(1.f);
 		float zOffset = 0.f;
+		bool didTeleport = false;
 
 	public:
 		Core::Camera camera;
@@ -29,6 +30,7 @@ namespace REngine::Scene{
 		virtual void Update() override;
 		virtual void ApplyTransforms() override;
 		virtual void AddChild(std::shared_ptr<Node> child) override;
+		bool DidTeleport();
 
 		VISITOR(Node3D);
 	};

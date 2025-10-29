@@ -17,9 +17,13 @@ namespace REngine::Core {
 		std::shared_ptr<Scene::SceneTree> tree;
 		std::vector<std::shared_ptr<Scene::Portal>> portals;
 		std::shared_ptr<Scene::TextureMesh> testLevel;
+		std::shared_ptr<Scene::TextureMesh> poster;
 		std::shared_ptr<Scene::Player> player;
 		std::shared_ptr<Camera> camera;
-		void InitVulkan();
+
+		bool northTeleported = true;
+
+		void Init();
 		void MainLoop();
 		void Cleanup();
 	public: 

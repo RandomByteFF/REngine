@@ -45,6 +45,7 @@ namespace REngine::Scene {
 		std::shared_ptr<Node> GetRoot() const;
 
 		std::shared_ptr<Node> Find(std::string &name, const Node& root);
+		std::shared_ptr<Node> Find(const char* name, const Node& root);
 		std::shared_ptr<Node> Find(uint32_t id, const Node& root);
 	};
 }

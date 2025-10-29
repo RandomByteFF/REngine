@@ -43,7 +43,7 @@ namespace REngine::Core {
 	}
 
 	void Camera::Aspect(float aspect) {
-		proj = glm::perspective(glm::radians(45.0f), aspect, 0.01f, 100.0f);
+		proj = glm::perspective(glm::radians(45.0f), aspect, 0.01f, 1000.0f);
 		proj[1][1] *= -1;
 		dirty = true;
 		this->aspect = aspect;

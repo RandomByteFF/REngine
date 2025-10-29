@@ -52,7 +52,7 @@ namespace REngine::Editor {
 				dragging = false;
 			}
 			else {
-				selected = candidate;
+				if (candidate) selected = candidate;
 				candidate = std::nullopt;
 			}
 		}

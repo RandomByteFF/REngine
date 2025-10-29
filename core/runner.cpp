@@ -1,56 +1,38 @@
 #include "runner.hpp"
 #include "input/mouse.hpp"
 #include "input/keyboard.hpp"
+#include "scene/portal.hpp"
+#include "scene/sceneTree.hpp"
 #include "scene/textureMesh.hpp"
 #include "time.hpp"
 #include "descriptorPool.hpp"
 #include "loader/shader.hpp"
 #include <iostream>
+#include <memory>
 #include <numbers>
 #include "scene/deserializer.hpp"
 
 namespace REngine::Core {
-	void Runner::InitVulkan() {
+	void Runner::Init() {
 		Instance::Initialize(window);
 		device = Instance::GetInfo().device;
-		// Portal setup
 		tree = std::make_shared<Scene::SceneTree>();
 		tree->SetRoot(std::shared_ptr<Scene::Node>(new Scene::Node()));
 		portals.resize(6);
-		// for(size_t i = 0; i < portals.size(); i++) {
-		// 	portals[i] = std::shared_ptr<Scene::Portal>(new Scene::Portal());
-		// }
-		// for(size_t i = 0; i < portals.size(); i += 2) {
-		// 	portals[i]->SetPair(portals[i + 1]);
-		// 	portals[i + 1]->SetPair(portals[i]);
-		// }
-		
-		// for(size_t i = 0; i < portals.size(); i++) {
-		// 	portals[i]->name = std::format("Portal {}", i);
-		// }
 
 		tree->SetCurrent();
 		
 		renderer.Create();
 		camera = std::shared_ptr<Camera>(new Camera(renderer.AspectRatio()));
 		
-		testLevel = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh(renderer.GetRenderPass(), "test_files/test_level.obj", "test_files/checker.png"));
+		testLevel = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh(renderer.GetRenderPass(), "test_files/exit8.obj", "test_files/checker.png"));
+		poster = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh(renderer.GetRenderPass(), "test_files/poster.obj", "test_files/checker.png"));
 		player = std::shared_ptr<Scene::Player>(new Scene::Player(renderer.GetRenderPass()));
 		tree->GetRoot()->AddChild(player);
 		tree->GetRoot()->AddChild(testLevel);
+		tree->GetRoot()->AddChild(poster);
 		player->AddChild(camera);
 
-		// for (size_t i = 0; i < portals.size(); i++) {
-		// 	tree->GetRoot()->AddChild(portals[i]);
-		// }
-		
-		// tree->GetRoot()->AddChild(portal1);
-		// tree->GetRoot()->AddChild(portal2);
-		
-		// portal1->Create(renderer.GetRenderPass());
-		// portal1->SetSampler(renderer.Sampler());
-		// portal2->Create(renderer.GetRenderPass());
-		// portal2->SetSampler(renderer.Sampler());
 
 		tree->SetActiveCamera(camera);
 
@@ -68,6 +50,30 @@ namespace REngine::Core {
 			Input::Mouse::RecordDelta();
 
 			tree->Update();
+
+			std::shared_ptr<Scene::Portal> sp = std::dynamic_pointer_cast<Scene::Portal>(Scene::SceneTree::Current()->Find("SouthPortal", *Scene::SceneTree::Current()->GetRoot()));
+			std::shared_ptr<Scene::Portal> np = std::dynamic_pointer_cast<Scene::Portal>(Scene::SceneTree::Current()->Find("NorthPortal", *Scene::SceneTree::Current()->GetRoot()));
+
+			bool teleported = false;
+			bool tnteleported = northTeleported;
+			if (sp->DidTeleport()) {
+				northTeleported = false;
+				teleported = true;
+			}
+			if (np->DidTeleport()) {
+				northTeleported = true;
+				teleported = true;
+			}
+
+			if (teleported) {
+				if (tnteleported == northTeleported) {
+					std::cout << "Nothing changed" << std::endl;
+				}
+				else {
+					std::cout << "Something changed" << std::endl;
+				}
+
+			}
 
 			renderer.Render(*tree, *camera);
 			Input::Keyboard::EndFrame();
@@ -97,7 +103,7 @@ namespace REngine::Core {
 		try	{
 			ImGui::CreateContext();
 			window.CreateWindow();
-			InitVulkan();
+			Init();
 			MainLoop();
 			Cleanup();
 		}

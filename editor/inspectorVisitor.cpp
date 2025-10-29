@@ -11,8 +11,12 @@
 
 namespace REngine::Editor {
 	void InspectorVisitor::Visit(Scene::Node *node) {
+		char name[30];
+		// node->name.copy(name, sizeof(name) - 1);
+		sprintf(name, "%.29s", node->name.c_str());
 		ImGui::SeparatorText("Node");
-		ImGui::Text(node->name.c_str());
+		ImGui::InputText("##Name", name, sizeof(name));
+		node->name = name;
 	}
 
 	void InspectorVisitor::Visit(Scene::Node3D *node) {

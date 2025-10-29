@@ -74,6 +74,7 @@ namespace REngine::Scene {
 
 	void Portal::Update() {
 		if (!pair || !portalMesh) return;
+		didTeleport = false;
 		Node3D::Update();
 		bool ahead = glm::dot(Forward(), glm::normalize(player->GlobalPosition() - GlobalPosition())) > 0;
 		portalMesh->Position(glm::vec3(0., 0., ahead ? -0.1 : 0.1));
@@ -89,6 +90,7 @@ namespace REngine::Scene {
 			glm::decompose(m, scale, rotation, translation, skew, perspective);
 			player->Position(translation);
 			player->RotationQuat(rotation);
+			didTeleport = true;
 		}
 
 		glm::vec3 d = player->GlobalPosition() - GlobalPosition();
@@ -104,4 +106,8 @@ namespace REngine::Scene {
 		glm::mat4 pModel = GetParent() ? GetParent()->GetModel() : glm::mat4(1.f);
 		modelNoScale = pModel * glm::translate(glm::mat4(1.f), Position()) * glm::toMat4(RotationQuat());
 	};
+
+	bool Portal::DidTeleport() {
+		return didTeleport;
+	}
 }
