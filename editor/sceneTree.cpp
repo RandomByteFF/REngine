@@ -3,7 +3,9 @@
 #include "scene/portal.hpp"
 #include "scene/sceneTree.hpp"
 #include <memory>
+#include <optional>
 #include <typeinfo>
+#include <iostream>
 
 namespace {
 	std::array<std::string, 1> nodes = {"Portal"};
@@ -28,9 +30,12 @@ namespace REngine::Editor {
 			ImGui::SetDragDropPayload("NODE", &node->id, sizeof(node->id));
 			ImGui::Text(node->name.c_str());
 			ImGui::EndDragDropSource();
+			dragging = true;
+		}
+		if (ImGui::IsItemClicked()) {
+			candidate = node;
 		}
 		
-		if (ImGui::IsItemClicked()) selected = node;
 		if (open && node->Children().size() > 0) {
 			for (auto i : node->Children()) TraverseNode(i, ++id);
 			ImGui::TreePop();
@@ -42,6 +47,15 @@ namespace REngine::Editor {
 		ImGui::Begin("Scene tree");
 		int id = -1;
 		TraverseNode(root, id);
+		if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+			if (dragging) {
+				dragging = false;
+			}
+			else {
+				selected = candidate;
+				candidate = std::nullopt;
+			}
+		}
 		GenericPopup();
 		ImGui::End();
 	}
@@ -67,13 +81,12 @@ namespace REngine::Editor {
 			ImGui::EndPopup();
 		}
 
-		std::shared_ptr<Scene::Node> newNode;
 		if (selected == 0) {
-			newNode = std::dynamic_pointer_cast<Scene::Node>(std::make_shared<Scene::Portal>());
+			auto newNode = std::dynamic_pointer_cast<Scene::Node>(std::make_shared<Scene::Portal>());
+			Scene::SceneTree::Current()->GetRoot()->AddChild(newNode);
+			auto mesh = std::make_shared<Scene::PortalMesh>();
+			newNode->AddChild(mesh);
 		}
 
-		if (newNode) {
-			Scene::SceneTree::Current()->GetRoot()->AddChild(newNode);
-		}
 	}
 }
