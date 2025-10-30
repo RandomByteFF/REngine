@@ -1,4 +1,5 @@
 #include "player.hpp"
+#include "GLFW/glfw3.h"
 #include "core/camera.hpp"
 #include "core/time.hpp"
 #include "input/mouse.hpp"
@@ -9,6 +10,7 @@
 
 namespace {
 	constexpr float SPEED = 10.;
+	constexpr float SPRINTSPEED = 30.;
 	constexpr float SENSITIVITY = 0.01;
 	constexpr float yLimit = 0.6;
 }
@@ -36,6 +38,8 @@ namespace REngine::Scene {
 			gravityV = 0.f;
 		}
 
+		float speed = Input::Keyboard::IsDown(GLFW_KEY_LEFT_SHIFT) ? SPRINTSPEED : SPEED;
+
 		std::shared_ptr<Core::Camera> cam = std::dynamic_pointer_cast<Core::Camera>(Children()[0]);
 		if (Input::Keyboard::IsDown(GLFW_KEY_1)) {
 			Input::Mouse::Lock();
@@ -46,16 +50,16 @@ namespace REngine::Scene {
 			locked = false;
 		}
 		if (Input::Keyboard::IsDown(GLFW_KEY_W)) {
-			Position(Position() + glm::vec3(Forward()) * Core::Time::Delta() * SPEED);
+			Position(Position() + glm::vec3(Forward()) * Core::Time::Delta() * speed);
 		}
 		if (Input::Keyboard::IsDown(GLFW_KEY_S)) {
-			Position(Position() + glm::vec3(-Forward()) * Core::Time::Delta() * SPEED);
+			Position(Position() + glm::vec3(-Forward()) * Core::Time::Delta() * speed);
 		}
 		if (Input::Keyboard::IsDown(GLFW_KEY_A)) {
-			Position(Position() + glm::vec3(Right()) * Core::Time::Delta() * SPEED);
+			Position(Position() + glm::vec3(Right()) * Core::Time::Delta() * speed);
 		}
 		if (Input::Keyboard::IsDown(GLFW_KEY_D)) {
-			Position(Position() + glm::vec3(-Right()) * Core::Time::Delta() * SPEED);
+			Position(Position() + glm::vec3(-Right()) * Core::Time::Delta() * speed);
 		}
 
 		if (locked) {

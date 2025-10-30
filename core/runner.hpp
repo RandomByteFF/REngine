@@ -17,11 +17,14 @@ namespace REngine::Core {
 		std::shared_ptr<Scene::SceneTree> tree;
 		std::vector<std::shared_ptr<Scene::Portal>> portals;
 		std::shared_ptr<Scene::TextureMesh> testLevel;
-		std::shared_ptr<Scene::TextureMesh> poster;
+		std::vector<std::shared_ptr<Scene::TextureMesh>> numberPosters;
+		std::vector<std::shared_ptr<Scene::TextureMesh>> posters;
 		std::shared_ptr<Scene::Player> player;
 		std::shared_ptr<Camera> camera;
 
 		bool northTeleported = true;
+		int round = 0;
+		bool didChange = false;
 
 		void Init();
 		void MainLoop();
