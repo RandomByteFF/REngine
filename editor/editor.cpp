@@ -55,12 +55,6 @@ namespace REngine::Editor {
 		ApplyTheme();
 		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-		grid = std::shared_ptr<Grid>(new Grid());
-		grid->SetDrawOrder(1);
-		grid->Create(*swapchain, vpRenderPass.GetRenderPass());
-		grid->editorOnly = true;
-		Scene::SceneTree::Current()->GetRoot()->AddChild(grid);
-
 		barrier.oldLayout = vk::ImageLayout::eColorAttachmentOptimal;
 		barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		barrier.srcQueueFamilyIndex = vk::QueueFamilyIgnored;

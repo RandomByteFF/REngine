@@ -23,7 +23,6 @@ namespace REngine::Editor {
 		std::weak_ptr<Core::IViews> vpViews;
 		std::vector<vk::DescriptorSet> renderedViewports;
 		std::vector<vk::DescriptorSet> renderedEditorViews;
-		std::shared_ptr<Grid> grid;
 		SceneTree sceneTree;
 		Inspector inspector;
 		Serializer serializer;

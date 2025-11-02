@@ -21,6 +21,7 @@ namespace REngine::Core {
 		std::vector<std::shared_ptr<Scene::TextureMesh>> posters;
 		std::shared_ptr<Scene::Player> player;
 		std::shared_ptr<Camera> camera;
+		std::shared_ptr<Editor::Grid> grid;
 
 		bool northTeleported = true;
 		int round = 0;

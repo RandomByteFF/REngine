@@ -24,6 +24,13 @@ namespace REngine::Core {
 		tree->SetCurrent();
 		
 		renderer.Create();
+		
+		grid = std::shared_ptr<Editor::Grid>(new Editor::Grid());
+		grid->SetDrawOrder(1);
+		grid->Create(renderer.GetSwapchain(), renderer.GetRenderPass());
+		grid->editorOnly = true;
+		Scene::SceneTree::Current()->GetRoot()->AddChild(grid);
+
 		camera = std::shared_ptr<Camera>(new Camera(renderer.AspectRatio()));
 		
 		testLevel = std::shared_ptr<Scene::TextureMesh>(new Scene::TextureMesh(renderer.GetRenderPass(), "test_files/exit8.obj", "test_files/checker.png"));
