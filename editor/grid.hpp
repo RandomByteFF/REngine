@@ -17,9 +17,10 @@ namespace REngine::Editor {
 		VP vp;
 	public:
 		void Create(Core::Swapchain swapchain, vk::RenderPass renderPass);
-		void Bind(vk::CommandBuffer cb);
+		void Bind(vk::CommandBuffer cb, Core::Camera &camera);
 		void Update() override;
 		void Draw(vk::CommandBuffer cb) override;
+		void DrawFromView(vk::CommandBuffer cb, Core::Camera &camera) override;
 		void Destroy() override;
 	};
 }

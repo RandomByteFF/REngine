@@ -22,10 +22,9 @@ namespace REngine::Editor {
 		}
 	}
 
-	void Grid::Bind(vk::CommandBuffer cb) {
-		auto camera = Scene::SceneTree::Current()->ActiveCamera();
-		vp.V = camera->V();
-		vp.P = camera->P();
+	void Grid::Bind(vk::CommandBuffer cb, Core::Camera &camera) {
+		vp.V = camera.V();
+		vp.P = camera.P();
 		uniformBuffers[Core::Instance::GetInfo().currentFrame].CopyData(&vp, sizeof(vp));
 
 		cb.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline.GetPipelineLayout(), 0, descriptorSets[Core::Instance::GetInfo().currentFrame], nullptr);
@@ -36,7 +35,12 @@ namespace REngine::Editor {
 	}
 	
 	void Grid::Draw(vk::CommandBuffer cb) {
-		Bind(cb);
+		Bind(cb, *Scene::SceneTree::Current()->ActiveCamera());
+		cb.draw(6, 1, 0, 0);
+	}
+	
+	void Grid::DrawFromView(vk::CommandBuffer cb, Core::Camera &camera) {
+		Bind(cb, camera);
 		cb.draw(6, 1, 0, 0);
 	}
 
