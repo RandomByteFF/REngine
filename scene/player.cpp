@@ -27,7 +27,7 @@ namespace REngine::Scene {
 		if (Position().y - yLimit > 0.001) {
 			float d = 10.0 * Core::Time::Delta() / 2.0;
 			gravityV += d;
-			Position(Position() + glm::vec3(0.f, -d, 0.f));
+			Position(Position() + glm::vec3(0.f, -d, 0.f) * Core::Time::Delta());
 			gravityV += d;
 		}
 		else if (Position().y < yLimit) {
