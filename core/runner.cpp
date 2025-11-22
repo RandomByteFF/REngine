@@ -29,6 +29,7 @@ namespace REngine::Core {
 		grid->SetDrawOrder(1);
 		grid->Create(renderer.GetSwapchain(), renderer.GetRenderPass());
 		grid->editorOnly = true;
+		grid->renderMask = 1 << 31;
 		Scene::SceneTree::Current()->GetRoot()->AddChild(grid);
 
 		camera = std::shared_ptr<Camera>(new Camera(renderer.AspectRatio()));

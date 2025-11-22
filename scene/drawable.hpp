@@ -21,5 +21,7 @@ namespace REngine::Scene {
 		virtual void PostDraw(Core::CommandBuffer cb) {}
 		virtual void Recreate() {};
 		void SetDrawOrder(uint8_t drawOrder);
+
+		uint32_t renderMask = 1;
 	};
 }

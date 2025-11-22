@@ -44,13 +44,12 @@ namespace REngine::Scene {
 		node->id = lastFreeId++;
 	}
 
-	void SceneTree::Draw(vk::CommandBuffer &cb) {
-		for(auto i = drawList.begin(); i != drawList.end(); i++) {
-			for(auto j = i->begin(); j != i->end(); j++) {
-				(*j)->Draw(cb);
-				//TODO: switch this out for: CallDrawlist
+	void SceneTree::Draw(vk::CommandBuffer &cb, uint32_t renderMask) {
+		CallDrawlist([&cb, this, renderMask](Scene::Drawable &j) {
+			if (j.renderMask & renderMask) {
+				j.Draw(cb);
 			}
-		}
+		});
 	}
 
 	void SceneTree::PreDraw(Core::CommandBuffer &cb) {

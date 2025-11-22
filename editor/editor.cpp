@@ -101,7 +101,9 @@ namespace REngine::Editor {
 		auto info = Core::Instance::GetInfo();
 		cb.BeginPass(editorViewRP.GetRenderPass(), info.swapchainExtent, editorViewRP.GetFramebuffer()[info.currentFb]);
 		Scene::SceneTree::Current()->CallDrawlist([&cb, this](Scene::Drawable &j) {
-			j.DrawFromView(cb.GetBuffer(), editorCamera);
+			if (j.renderMask & (1 | 1 << 31)) {
+				j.DrawFromView(cb.GetBuffer(), editorCamera);
+			}
 		});
 		cb.EndPass();
 

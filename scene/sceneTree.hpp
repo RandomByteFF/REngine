@@ -33,7 +33,7 @@ namespace REngine::Scene {
 		void RemoveFromDrawList(std::list<Drawable*>::iterator iterator, uint8_t order);
 		void EnterTree(Node* node);
 
-		void Draw(vk::CommandBuffer &cb);
+		void Draw(vk::CommandBuffer &cb, uint32_t renderMask = 1);
 		void PreDraw(Core::CommandBuffer &cb);
 		void PostDraw(Core::CommandBuffer &cb);
 		void CallDrawlist(std::function<void(Drawable &)>);
