@@ -50,8 +50,7 @@ namespace REngine::Scene {
 		portalMesh->Scale(glm::vec3(portalMesh->Scale().x, portalMesh->Scale().y, 0.1));
 
 		// set own camera position
-		glm::mat4 c = glm::inverse(mainCamera->V());
-		glm::mat4 m = modelNoScale * inverse(pair->modelNoScale) * c;
+		glm::mat4 m = modelNoScale * inverse(pair->modelNoScale) * mainCamera->GetModel();
 		// TODO: kill model no scale
 		glm::decompose(m, scale, rotation, translation, skew, perspective);
 		camera.Position(translation);

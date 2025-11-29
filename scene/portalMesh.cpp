@@ -5,6 +5,7 @@
 
 namespace REngine::Scene {
 	void PortalMesh::Create() {
+		renderMask = 1 << 30 | 1 << 0;
 		vk::RenderPass rp = Core::Renderer::GetRenderPass();
 		if (!renderCam) visible = false;
 		portalCounter++;
@@ -74,7 +75,7 @@ namespace REngine::Scene {
 
 		cb.BeginPass(renderPass.GetRenderPass(), info.swapchainExtent, renderPass.GetFramebuffer()[info.currentFb]);
 		SceneTree::Current()->CallDrawlist([&cb, this](Drawable &j) {
-			if (dynamic_cast<PortalMesh*>(&j)) {
+			if (j.renderMask & 1 << 30 || j.renderMask & 1 << 31) {
 				return;
 			}
 			j.DrawFromView(cb.GetBuffer(), *renderCam);
