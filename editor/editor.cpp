@@ -151,6 +151,13 @@ namespace REngine::Editor {
 		ImGui::Text(std::format("Cursor position: X: {}, Y: {}", cursor.x, cursor.y).c_str());
 		glm::vec2 delta = Input::Mouse::Delta();
 		ImGui::Text(std::format("Cursor delta: X: {}, Y: {}", delta.x, delta.y).c_str());
+		aggreg += Core::Time::Delta();
+		if (++samples == 60) {
+			fps = 1. / (aggreg / 60);
+			samples = 0;
+			aggreg = 0;
+		}
+		ImGui::Text(std::format("FPS: {}", fps).c_str());
 		ImGui::End();
 
 		sceneTree.Gui();

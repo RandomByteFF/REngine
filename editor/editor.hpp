@@ -31,6 +31,9 @@ namespace REngine::Editor {
 		glm::vec2 orbitAngle = glm::vec2(0.f, 0.f);
 		glm::vec3 orbitCenter = glm::vec3(0.f, 0.f, 0.f);
 		float orbitDistance = 5.;
+		float aggreg = 0;
+		int samples = 0;
+		float fps = 0;
 
 	public:
 		void Initialize(std::shared_ptr<Core::Swapchain> swapchain, Core::RenderPass vpRenderPass);
