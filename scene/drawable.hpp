@@ -1,5 +1,4 @@
 #pragma once
-#include "core/headers.h"
 #include "core/camera.hpp"
 #include "core/commandBuffer.hpp"
 #include "node.hpp"

@@ -1,0 +1,17 @@
+core_src = files(
+	'windowManager.cpp',
+	'instance.cpp',
+	'queueFamily.cpp',
+	'swapchain.cpp',
+	'image.cpp',
+	'buffer.cpp',
+	'pipeline.cpp',
+	'descriptorPool.cpp',
+	'renderer.cpp',
+	'commandBuffer.cpp',
+	'time.cpp',
+	'runner.cpp',
+	'camera.cpp',
+	'renderPass.cpp',
+	'renderTarget.cpp',
+)

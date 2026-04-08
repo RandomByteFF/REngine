@@ -1,9 +1,6 @@
 [submodule "submodules/imgui"]
 	path = submodules/imgui
 	url = git@github.com:ocornut/imgui.git
-[submodule "submodules/glfw"]
-	path = submodules/glfw
-	url = git@github.com:glfw/glfw.git
 [submodule "submodules/glm"]
 	path = submodules/glm
 	url = git@github.com:icaven/glm.git
@@ -16,3 +13,6 @@
 [submodule "submodules/VulkanMemoryAllocator"]
 	path = submodules/VulkanMemoryAllocator
 	url = git@github.com:GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "subprojects/glfw"]
+	path = subprojects/glfw
+	url = git@github.com:glfw/glfw.git

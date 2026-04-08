@@ -1,6 +1,5 @@
 #pragma once
 
-#include "headers.h"
 #include "buffer.hpp"
 #include "image.hpp"
 

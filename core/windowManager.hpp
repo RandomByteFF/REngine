@@ -1,6 +1,5 @@
 #pragma once
 
-#include "headers.h"
 #include <GLFW/glfw3.h>
 
 const int WIDTH = 800;

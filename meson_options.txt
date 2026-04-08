@@ -1,0 +1,6 @@
+option(
+	'editor',
+	type: 'boolean',
+	value: true,
+	description: 'Run in either editor or play mode'
+)
