@@ -20,8 +20,6 @@ namespace REngine::Editor {
 		Core::RenderPass renderPass;
 		Core::RenderPass editorViewRP;
 		vk::ImageMemoryBarrier barrier;
-		std::weak_ptr<Core::IViews> vpViews;
-		std::vector<vk::DescriptorSet> renderedViewports;
 		std::vector<vk::DescriptorSet> renderedEditorViews;
 		SceneTree sceneTree;
 		Inspector inspector;
@@ -36,9 +34,10 @@ namespace REngine::Editor {
 		float fps = 0;
 
 	public:
-		void Initialize(std::shared_ptr<Core::Swapchain> swapchain, Core::RenderPass vpRenderPass);
+		void Initialize(std::shared_ptr<Core::Swapchain> swapchain);
 		void AddTextures(vk::Sampler sampler);
 		void Render(uint32_t imageIndex, Core::CommandBuffer cb, vk::Extent2D extent);
+		Core::RenderPass GetRenderPass();
 
 		void Recreate();
 		void Destroy();

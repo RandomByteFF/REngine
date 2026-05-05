@@ -6,7 +6,7 @@
 namespace REngine::Scene {
 	void PortalMesh::Create() {
 		renderMask = 1 << 30 | 1 << 0;
-		vk::RenderPass rp = Core::Renderer::GetRenderPass();
+		// vk::RenderPass rp = Core::Renderer::GetRenderPass();
 		if (!renderCam) visible = false;
 		portalCounter++;
 		if (!pipeline) {
@@ -17,7 +17,7 @@ namespace REngine::Scene {
 			pipeline->SetInput({Vertex::GetBindingDescription()}, Vertex::GetAttributeDescriptions());
 			pipeline->SetSampleCount(Core::Instance::GetInfo().maxMsaa);
 			pipeline->SetCullMode(vk::CullModeFlagBits::eNone);
-			pipeline->Create("portalVert", "portalFrag", rp);
+			// pipeline->Create("portalVert", "portalFrag", rp);
 		}
 		pPipeline = pipeline;
 		
@@ -59,7 +59,7 @@ namespace REngine::Scene {
 		barrier.subresourceRange.layerCount = 1;
 		barrier.subresourceRange.levelCount = 1;
 
-		Mesh::Create(rp, vertices, indices);
+		// Mesh::Create(rp, vertices, indices);
 	}
 
 	void PortalMesh::EnteredTree() {

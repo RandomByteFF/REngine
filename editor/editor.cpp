@@ -21,12 +21,11 @@ namespace {
 }
 
 namespace REngine::Editor {
-	void Editor::Initialize(std::shared_ptr<Core::Swapchain> swapchain, Core::RenderPass vpRenderPass) {
+	void Editor::Initialize(std::shared_ptr<Core::Swapchain> swapchain) {
 		renderPass.AddColorAttachment().finalLayout = vk::ImageLayout::ePresentSrcKHR;
 		renderPass.AddColorImage(swapchain);
 		renderPass.CreateRenderPass();
 		auto info = Core::Instance::GetInfo();
-		vpViews = vpRenderPass.GetView(2);
 
 		editorViewRP.AddColorAttachment().samples = Core::Instance::GetInfo().maxMsaa;
 		editorViewRP.AddColorImage();
@@ -72,9 +71,6 @@ namespace REngine::Editor {
 	
 	void Editor::AddTextures(vk::Sampler sampler) {
 		this->sampler = sampler;
-		for (auto i : vpViews.lock()->Views()) {
-			renderedViewports.push_back(ImGui_ImplVulkan_AddTexture(sampler, i, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
-		}
 		for (auto i : editorViewRP.GetView(2).lock()->Views()) {
 			renderedEditorViews.push_back(ImGui_ImplVulkan_AddTexture(sampler, i, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
 		}
@@ -126,18 +122,9 @@ namespace REngine::Editor {
 		ImGui::Begin("REngine", nullptr, window_flags);
 		ImGui::End();
 		ImGui::PopStyleVar(2);
-		ImGui::Begin("Player view");
-		ImVec2 size = ImGui::GetWindowSize();
-		size.x -= 20;
-		size.y -= 40;
-		if (size.x != prevViewSize.x || size.y != prevViewSize.y) {
-			Core::Instance::FrameBufferResized(int(size.x), int(size.y));
-			prevViewSize = size;
-		}
-		ImGui::Image(ImTextureID(VkDescriptorSet(renderedViewports[imageIndex])), size);
-		ImGui::End();
 		ImGui::Begin("Editor");
-		size = ImGui::GetWindowSize();
+		
+		ImVec2 size = ImGui::GetWindowSize();
 		float aspect = float(size.x / size.y);
 		if (abs(aspect - editorCamera.Aspect()) > 0.001) editorCamera.Aspect(aspect);
 		size.x -= 20;
@@ -175,8 +162,6 @@ namespace REngine::Editor {
 	}
 
 	void Editor::Recreate() {
-		for (auto i : renderedViewports) ImGui_ImplVulkan_RemoveTexture(i);
-		renderedViewports.clear();
 		renderedEditorViews.clear();
 		renderPass.Recreate();
 		editorViewRP.Recreate();
@@ -184,11 +169,14 @@ namespace REngine::Editor {
 	}
 
 	void Editor::Destroy() {
-		for (auto i : renderedViewports) ImGui_ImplVulkan_RemoveTexture(i);
 		renderPass.Destroy();
 		editorViewRP.Destroy();
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();
+	}
+	
+	Core::RenderPass Editor::GetRenderPass() {
+		return editorViewRP;
 	}
 }

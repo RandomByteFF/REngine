@@ -17,20 +17,6 @@ namespace REngine::Core {
 		swapchain->CreateSwapchain();
 		colorFormat = swapchain->ImageFormat();
 
-		vpRenderer.AddColorAttachment().samples = Instance::GetInfo().maxMsaa;
-		vpRenderer.AddColorImage();
-		vpRenderer.AddDepthAttachment().samples = Instance::GetInfo().maxMsaa;
-		vpRenderer.AddDepthImage();
-		vk::AttachmentDescription &resolve = vpRenderer.AddResolveAttachment();
-		#ifndef EDITOR
-		resolve.finalLayout = vk::ImageLayout::ePresentSrcKHR;
-		vpRenderer.AddResolveImage(swapchain);
-		#else
-		vpRenderer.AddResolveImage();
-		#endif
-
-		vpRenderer.CreateRenderPass();
-		
 		CreateSampler();
 		CreateSyncObjects();
 		
@@ -40,7 +26,7 @@ namespace REngine::Core {
 		}
 		
 		#ifdef EDITOR
-		editor.Initialize(swapchain, vpRenderer);
+		editor.Initialize(swapchain);
 		editor.AddTextures(sampler);
 		barrier.oldLayout = vk::ImageLayout::ePresentSrcKHR;
 		barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
@@ -61,7 +47,7 @@ namespace REngine::Core {
 	}
 
 	const vk::RenderPass Renderer::GetRenderPass() {
-		return vpRenderer.GetRenderPass();
+		return editor.GetRenderPass().GetRenderPass();
 	}
 
 	vk::Sampler Renderer::Sampler() {
@@ -102,22 +88,18 @@ namespace REngine::Core {
 
 		sceneTree.PreDraw(commandBuffers[currentFrame]);
 	
-		// vpRenderer.Render(commandBuffers[currentFrame], swapchain.Extent(), imageIndex, sceneTree, camera);
-		commandBuffers[currentFrame].BeginPass(vpRenderer.GetRenderPass(), swapchain->Extent(), vpRenderer.GetFramebuffer()[imageIndex]);
+		// commandBuffers[currentFrame].BeginPass(vpRenderer.GetRenderPass(), swapchain->Extent(), vpRenderer.GetFramebuffer()[imageIndex]);
 
-		sceneTree.Draw(commandBuffers[currentFrame].GetBuffer());
+		// sceneTree.Draw(commandBuffers[currentFrame].GetBuffer());
 		
-		commandBuffers[currentFrame].EndPass();
+		// commandBuffers[currentFrame].EndPass();
 		
-		sceneTree.PostDraw(commandBuffers[currentFrame]);
 
 		#ifdef EDITOR
-		barrier.image = vpRenderer.GetImage(2, imageIndex);
-		commandBuffers[currentFrame].GetBuffer().pipelineBarrier(vk::PipelineStageFlagBits::eColorAttachmentOutput,
-			vk::PipelineStageFlagBits::eFragmentShader, vk::DependencyFlags(), nullptr, nullptr, barrier);
-
 		editor.Render(imageIndex, commandBuffers[currentFrame], swapchain->Extent());
 		#endif
+
+		sceneTree.PostDraw(commandBuffers[currentFrame]);
 		
 		commandBuffers[currentFrame].End();
 		
@@ -221,7 +203,6 @@ namespace REngine::Core {
 			device.destroySemaphore(imageAvailableSemaphores[i]);
 			device.destroyFence(inFlightFences[i]);
 		}
-		vpRenderer.Destroy();
 		#ifdef EDITOR
 		editor.Destroy();
 		#endif
@@ -238,7 +219,6 @@ namespace REngine::Core {
 		swapchain->Destroy();
 		swapchain->CreateSwapchain();
 		RenderTarget::RecreateAll();
-		vpRenderer.Recreate();
 		Scene::SceneTree::Current()->CallDrawlist([](Scene::Drawable &d) {
 			d.Recreate();
 		});

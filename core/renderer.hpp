@@ -10,7 +10,6 @@
 
 namespace REngine::Core {
 	class Renderer {
-		inline static RenderPass vpRenderer;
 		Editor::Editor editor;
 		vk::Device device;
 		vk::Format colorFormat;
@@ -32,7 +31,7 @@ namespace REngine::Core {
 		//FIXME: objects from here
 		void Create();
 		const Swapchain GetSwapchain() const;
-		static const vk::RenderPass GetRenderPass();
+		const vk::RenderPass GetRenderPass();
 		static vk::Sampler Sampler();
 		void Render(Scene::SceneTree &sceneTree, Camera &camera);
 		void RecreateSwapchain();
