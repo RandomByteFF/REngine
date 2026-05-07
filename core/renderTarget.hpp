@@ -18,10 +18,10 @@ namespace REngine::Core {
 	public:
 		RenderTarget();
 		void CreateTarget(vk::SampleCountFlagBits numSample, vk::Format format, vk::ImageUsageFlags usage, vk::ImageAspectFlagBits aspect = vk::ImageAspectFlagBits::eColor);
-		virtual const std::vector<vk::ImageView> &Views() const;
+		virtual const std::vector<vk::ImageView> &Views() const override;
 		void Recreate();
 		static void RecreateAll();
 		void Destroy();
-		const vk::Image GetImage(uint32_t index) const;
+		virtual const vk::Image GetImage(uint32_t index) const override;
 	};
 }

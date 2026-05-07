@@ -3,6 +3,7 @@
 #include "scene/node3d.hpp"
 #include "core/pipeline.hpp"
 #include "core/buffer.hpp"
+#include "core/renderPass.hpp"
 
 namespace REngine::Editor {
 	struct VP {
@@ -16,7 +17,7 @@ namespace REngine::Editor {
 		std::vector<Core::Buffer> uniformBuffers;
 		VP vp;
 	public:
-		void Create(Core::Swapchain swapchain, vk::RenderPass renderPass);
+		void Create(Core::Swapchain swapchain, Core::RenderPass renderPass);
 		void Bind(vk::CommandBuffer cb, Core::Camera &camera);
 		void Update() override;
 		void Draw(vk::CommandBuffer cb) override;

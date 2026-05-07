@@ -8,7 +8,7 @@ namespace REngine::Scene {
 		float cameraR = 0.f;
 		float gravityV = 0.f;
 	public:
-		Player(vk::RenderPass rp);
+		Player(Core::RenderPass rp);
 		virtual void Update() override;
 	};
 }

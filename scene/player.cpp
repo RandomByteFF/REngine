@@ -16,7 +16,7 @@ namespace {
 }
 
 namespace REngine::Scene {
-	Player::Player(vk::RenderPass rp) : TextureMesh(rp, "test_files/player.obj", "test_files/player.png") {
+	Player::Player(Core::RenderPass rp) : TextureMesh(rp, "test_files/player.obj", "test_files/player.png") {
 		name = "Player";
 		Scale(glm::vec3(0.2, 0.2, 0.2));
 		Rotation(glm::vec3(0., std::numbers::pi, 0.));

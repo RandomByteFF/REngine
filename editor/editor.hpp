@@ -1,6 +1,8 @@
 #pragma once
 
 #include "core/IViews.hpp"
+#include "core/Info.hpp"
+#include "core/instance.hpp"
 #include "core/swapchain.hpp"
 #include "core/commandBuffer.hpp"
 #include "sceneTree.hpp"

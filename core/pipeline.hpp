@@ -3,6 +3,7 @@
 #include "swapchain.hpp"
 #include "vulkan/vulkan_enums.hpp"
 #include "vulkan/vulkan_structs.hpp"
+#include "renderPass.hpp"
 
 namespace REngine::Core {
 	enum Descriptor {
@@ -27,7 +28,7 @@ namespace REngine::Core {
 		vk::SampleCountFlagBits sampleCount = vk::SampleCountFlagBits::e1;
 
 	public:
-		void Create(const char *vertShader, const char *fragShader, const vk::RenderPass renderPass);
+		void Create(const char *vertShader, const char *fragShader, const RenderPass renderPass);
 		
 		void SetLayout(std::vector<std::pair<vk::DescriptorType, vk::ShaderStageFlags>> descriptors);
 		void SetInput(std::vector<vk::VertexInputBindingDescription>, std::vector<vk::VertexInputAttributeDescription>);

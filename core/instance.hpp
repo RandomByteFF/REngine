@@ -1,6 +1,7 @@
 #pragma once
 #include "Info.hpp"
 #include "swapchain.hpp"
+#include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_structs.hpp"
 #include "windowManager.hpp"
 #include "vk_mem_alloc.h"
@@ -17,7 +18,10 @@ const std::vector<const char *> validationLayers = {
 };
 
 const std::vector<const char*> deviceExtensions = {
-	VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+	VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
+	VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME,
+	VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
 };
 
 using ResizedCallback = std::function<void(int, int)>;

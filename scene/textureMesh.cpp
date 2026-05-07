@@ -5,7 +5,7 @@
 #include "loader/obj.hpp"
 
 namespace REngine::Scene {
-	TextureMesh::TextureMesh(vk::RenderPass rp, std::filesystem::path model, std::filesystem::path texture) {
+	TextureMesh::TextureMesh(Core::RenderPass rp, std::filesystem::path model, std::filesystem::path texture) {
 		REngine::Loader::Obj obj;
 		obj.Load(model.string());
 		Create(rp, obj.Verticies(), obj.Indices());
@@ -16,7 +16,7 @@ namespace REngine::Scene {
 		}
 	}
 
-	void TextureMesh::Create(vk::RenderPass rp, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices) {
+	void TextureMesh::Create(Core::RenderPass rp, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices) {
 		meshCounter++;
 		if (!pipeline) {
 			pipeline = std::make_shared<Core::Pipeline>();

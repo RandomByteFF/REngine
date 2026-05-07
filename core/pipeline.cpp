@@ -3,6 +3,7 @@
 #include "glm/ext/matrix_float4x4.hpp"
 #include "loader/shader.hpp"
 #include "instance.hpp"
+#include "vulkan/vulkan_core.h"
 #include <vulkan/vulkan_enums.hpp>
 
 /* TODO: Descriptor sets should be reusable. My idea for this is:
@@ -10,7 +11,7 @@
 - On binding, we won't try to bind the already bound descriptors.
 */
 namespace REngine::Core {
-	void Pipeline::Create(const char *vertShader, const char *fragShader, const vk::RenderPass renderPass) {
+	void Pipeline::Create(const char *vertShader, const char *fragShader, const RenderPass renderPass) {
 		vk::ShaderModule vertShaderModule = Loader::Shader::Get(vertShader);
 		vk::ShaderModule fragShaderModule = Loader::Shader::Get(fragShader);
 		
@@ -114,7 +115,10 @@ namespace REngine::Core {
 		pipelineInfo.pColorBlendState = &colorBlending;
 		pipelineInfo.pDynamicState = &dynamicState;
 		pipelineInfo.layout = layout;
-		pipelineInfo.renderPass = renderPass;
+		auto renderingCI = renderPass.GetPipelineRenderingInfo();
+		pipelineInfo.pNext = &renderingCI;
+		
+		pipelineInfo.renderPass = VK_NULL_HANDLE;
 		pipelineInfo.subpass = 0;
 
 		auto r = Instance::GetInfo().device.createGraphicsPipeline(nullptr, pipelineInfo);

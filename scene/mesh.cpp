@@ -11,7 +11,7 @@
 using namespace REngine::Core;
 
 namespace REngine::Scene {
-	void Mesh::Create(vk::RenderPass rp, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices) {
+	void Mesh::Create(Core::RenderPass rp, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices) {
 		indicesSize = uint32_t(indices.size());
 		descriptorSets = DescriptorPool::CreateDescriptor(pPipeline.lock()->GetLayout(), Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
 		

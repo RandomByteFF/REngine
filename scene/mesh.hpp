@@ -28,7 +28,7 @@ namespace REngine::Scene {
 		virtual void EnteredTree() override;
 
 	public:
-		virtual void Create(vk::RenderPass rp, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices);
+		virtual void Create(Core::RenderPass rp, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices);
 		void Draw(vk::CommandBuffer cb) override;
 		void DrawFromView(vk::CommandBuffer cb, Core::Camera &camera) override;
 		virtual void Destroy() override;

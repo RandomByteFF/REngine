@@ -19,7 +19,6 @@ namespace REngine::Core {
 		std::vector<CommandBuffer> commandBuffers;
 		inline static vk::Sampler sampler;
 		// TODO: some kind of sampler pool
-		vk::ImageMemoryBarrier barrier;
 		void CreateSyncObjects();
 		void CleanupSwapchain();
 		void CreateSampler();
@@ -31,7 +30,7 @@ namespace REngine::Core {
 		//FIXME: objects from here
 		void Create();
 		const Swapchain GetSwapchain() const;
-		const vk::RenderPass GetRenderPass();
+		const RenderPass GetRenderPass();
 		static vk::Sampler Sampler();
 		void Render(Scene::SceneTree &sceneTree, Camera &camera);
 		void RecreateSwapchain();

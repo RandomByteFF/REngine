@@ -21,14 +21,14 @@ namespace REngine::Scene {
 		}
 		pPipeline = pipeline;
 		
-		renderPass.AddColorAttachment().samples = Core::Instance::GetInfo().maxMsaa;
-		renderPass.AddColorImage();
-		renderPass.AddDepthAttachment().samples = Core::Instance::GetInfo().maxMsaa;
-		renderPass.AddDepthImage();
-		renderPass.AddResolveAttachment().finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
-		renderPass.AddResolveImage();
+		// renderPass.AddColorAttachment().samples = Core::Instance::GetInfo().maxMsaa;
+		// renderPass.AddColorImage();
+		// renderPass.AddDepthAttachment().samples = Core::Instance::GetInfo().maxMsaa;
+		// renderPass.AddDepthImage();
+		// renderPass.AddResolveAttachment().finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
+		// renderPass.AddResolveImage();
 
-		renderPass.CreateRenderPass();
+		// renderPass.CreateRenderPass();
 
 		std::vector<Vertex> vertices {
 			Vertex{glm::vec3(-1, -1, 1), glm::vec3(0, 0, 0), glm::vec2(0, 0)}, 
@@ -71,16 +71,16 @@ namespace REngine::Scene {
 	void PortalMesh::PreDraw(Core::CommandBuffer cb) {
 		if (!visible) return;
 		auto info = Core::Instance::GetInfo();
-		Core::DescriptorPool::SetImage(descriptorSets[info.currentFrame], 0, renderPass.GetView(2).lock()->Views()[info.currentFb], sampler);
+		// Core::DescriptorPool::SetImage(descriptorSets[info.currentFrame], 0, renderPass.GetView(2).lock()->Views()[info.currentFb], sampler);
 
-		cb.BeginPass(renderPass.GetRenderPass(), info.swapchainExtent, renderPass.GetFramebuffer()[info.currentFb]);
-		SceneTree::Current()->CallDrawlist([&cb, this](Drawable &j) {
-			if (j.renderMask & 1 << 30 || j.renderMask & 1 << 31) {
-				return;
-			}
-			j.DrawFromView(cb.GetBuffer(), *renderCam);
-		});
-		cb.EndPass();
+		// cb.BeginPass(renderPass.GetRenderPass(), info.swapchainExtent, renderPass.GetFramebuffer()[info.currentFb]);
+		// SceneTree::Current()->CallDrawlist([&cb, this](Drawable &j) {
+		// 	if (j.renderMask & 1 << 30 || j.renderMask & 1 << 31) {
+		// 		return;
+		// 	}
+		// 	j.DrawFromView(cb.GetBuffer(), *renderCam);
+		// });
+		// cb.EndPass();
 
 		barrier.image = renderPass.GetImage(2, info.currentFb);
 		cb.GetBuffer().pipelineBarrier(vk::PipelineStageFlagBits::eColorAttachmentOutput,
@@ -94,7 +94,7 @@ namespace REngine::Scene {
 	}
 	
 	void PortalMesh::Recreate() {
-		renderPass.Recreate();
+		// renderPass.Recreate();
 	}
 
 	void PortalMesh::Destroy() {

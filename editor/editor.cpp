@@ -1,6 +1,7 @@
 #include "editor.hpp"
 
 #include "GLFW/glfw3.h"
+#include "core/renderPass.hpp"
 #include "core/time.hpp"
 #include "imgui.h"
 #include "imgui_impl_vulkan.h"
@@ -22,20 +23,28 @@ namespace {
 
 namespace REngine::Editor {
 	void Editor::Initialize(std::shared_ptr<Core::Swapchain> swapchain) {
-		renderPass.AddColorAttachment().finalLayout = vk::ImageLayout::ePresentSrcKHR;
-		renderPass.AddColorImage(swapchain);
-		renderPass.CreateRenderPass();
+		// renderPass.AddColorAttachment().finalLayout = vk::ImageLayout::ePresentSrcKHR;
+		// renderPass.AddColorImage(swapchain);
+		// renderPass.CreateRenderPass();
+		renderPass.AddColorAttachment({.image = swapchain, .layoutInfo = {.finalLayout = vk::ImageLayout::ePresentSrcKHR}});
+
 		auto info = Core::Instance::GetInfo();
 
-		editorViewRP.AddColorAttachment().samples = Core::Instance::GetInfo().maxMsaa;
-		editorViewRP.AddColorImage();
-		editorViewRP.AddDepthAttachment().samples = Core::Instance::GetInfo().maxMsaa;
-		editorViewRP.AddDepthImage();
-		vk::AttachmentDescription &resolve = editorViewRP.AddResolveAttachment();
-		resolve.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
-		editorViewRP.AddResolveImage();
+		// editorViewRP.AddColorAttachment().samples = Core::Instance::GetInfo().maxMsaa;
+		// editorViewRP.AddColorImage();
+		// editorViewRP.AddDepthAttachment().samples = Core::Instance::GetInfo().maxMsaa;
+		// editorViewRP.AddDepthImage();
+		// vk::AttachmentDescription &resolve = editorViewRP.AddResolveAttachment();
+		// resolve.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
+		// editorViewRP.AddResolveImage();
 
-		editorViewRP.CreateRenderPass();
+		// editorViewRP.CreateRenderPass();
+		
+		editorViewRP = (info.maxMsaa);
+		editorViewRP.AddColorAttachment({.sampled = true, .layoutInfo = {.finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal}});
+		editorViewRP.SetDepthAttachment({});
+		
+
 
 		ImGui_ImplVulkan_InitInfo init_info = {};
 		init_info.Instance = Core::Instance::Get();
@@ -48,7 +57,13 @@ namespace REngine::Editor {
 		//TODO: understand why i need this here
 		init_info.MinImageCount = info.MAX_FRAMES_IN_FLIGHT;
 		init_info.ImageCount = init_info.MinImageCount;
-		init_info.RenderPass = renderPass.GetRenderPass();
+		init_info.UseDynamicRendering = true;
+		VkFormat cFormat = static_cast<VkFormat>(info.imageFormat.format);
+		init_info.PipelineRenderingCreateInfo = {
+			.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO_KHR,
+			.colorAttachmentCount = uint32_t(1),
+			.pColorAttachmentFormats = &cFormat,
+		};
 		ImGui_ImplVulkan_Init(&init_info);
 
 		ApplyTheme();
@@ -71,7 +86,7 @@ namespace REngine::Editor {
 	
 	void Editor::AddTextures(vk::Sampler sampler) {
 		this->sampler = sampler;
-		for (auto i : editorViewRP.GetView(2).lock()->Views()) {
+		for (auto i : editorViewRP.GetColorView(0).lock()->Views()) {
 			renderedEditorViews.push_back(ImGui_ImplVulkan_AddTexture(sampler, i, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
 		}
 	}
@@ -95,17 +110,19 @@ namespace REngine::Editor {
 
 
 		auto info = Core::Instance::GetInfo();
-		cb.BeginPass(editorViewRP.GetRenderPass(), info.swapchainExtent, editorViewRP.GetFramebuffer()[info.currentFb]);
+		// cb.BeginPass(editorViewRP.GetRenderPass(), info.swapchainExtent, editorViewRP.GetFramebuffer()[info.currentFb]);
+		editorViewRP.Begin(cb, info.swapchainExtent, info.currentFb);
 		Scene::SceneTree::Current()->CallDrawlist([&cb, this](Scene::Drawable &j) {
 			if (j.renderMask & (1 | 1 << 31)) {
 				j.DrawFromView(cb.GetBuffer(), editorCamera);
 			}
 		});
-		cb.EndPass();
+		editorViewRP.End();
+		// cb.EndPass();
 
-		barrier.image = editorViewRP.GetImage(2, info.currentFb);
-		cb.GetBuffer().pipelineBarrier(vk::PipelineStageFlagBits::eColorAttachmentOutput,
-			vk::PipelineStageFlagBits::eFragmentShader, vk::DependencyFlags(), nullptr, nullptr, barrier);
+		// barrier.image = editorViewRP.GetImage(0, info.currentFb);
+		// cb.GetBuffer().pipelineBarrier(vk::PipelineStageFlagBits::eColorAttachmentOutput,
+		// 	vk::PipelineStageFlagBits::eFragmentShader, vk::DependencyFlags(), nullptr, nullptr, barrier);
 
 
 		ImGui_ImplVulkan_NewFrame();
@@ -152,9 +169,11 @@ namespace REngine::Editor {
 
 		ImGui::Render();
 		
-		cb.BeginPass(renderPass.GetRenderPass(), extent, renderPass.GetFramebuffer()[imageIndex]);
+		// cb.BeginPass(renderPass.GetRenderPass(), extent, renderPass.GetFramebuffer()[imageIndex]);
+		renderPass.Begin(cb, extent, imageIndex);
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb.GetBuffer());
-		cb.EndPass();
+		// cb.EndPass();
+		renderPass.End();
 
 		if (Input::Keyboard::IsDown(GLFW_KEY_LEFT_CONTROL) && Input::Keyboard::IsJustPressed(GLFW_KEY_S)) {
 			serializer.SerializeTree(*Scene::SceneTree::Current());
@@ -163,8 +182,6 @@ namespace REngine::Editor {
 
 	void Editor::Recreate() {
 		renderedEditorViews.clear();
-		renderPass.Recreate();
-		editorViewRP.Recreate();
 		AddTextures(sampler);
 	}
 

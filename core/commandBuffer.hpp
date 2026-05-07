@@ -9,9 +9,7 @@ namespace REngine::Core {
 		void Create();
 		void Reset();
 		void Begin();
-		void BeginPass(vk::RenderPass renderPass, vk::Extent2D extent, vk::Framebuffer frameBuffer);
 		void End();
-		void EndPass();
 
 		vk::CommandBuffer &GetBuffer();
 		

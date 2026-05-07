@@ -4,13 +4,14 @@
 #include "mesh.hpp"
 #include "core/renderPass.hpp"
 #include "scene/node.hpp"
+#include "vulkan/vulkan_enums.hpp"
 
 namespace REngine::Scene {
 	class PortalMesh : public Mesh {
 		inline static uint32_t portalCounter = 0;
 		inline static std::shared_ptr<Core::Pipeline> pipeline;
 		
-		Core::RenderPass renderPass;
+		Core::RenderPass renderPass = Core::RenderPass(vk::SampleCountFlagBits::e1);
 		vk::ImageMemoryBarrier barrier;
 		vk::Sampler sampler;
 		Core::Camera *renderCam = nullptr;

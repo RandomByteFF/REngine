@@ -5,7 +5,7 @@
 #include <vulkan/vulkan_enums.hpp>
 
 namespace REngine::Editor {
-	void Grid::Create(Core::Swapchain swapchain, vk::RenderPass renderPass) {
+	void Grid::Create(Core::Swapchain swapchain, Core::RenderPass renderPass) {
 		Scene::Drawable::Initialize(Scene::SceneTree::Current());
 		pipeline.SetLayout({{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex}});
 		pipeline.SetSampleCount(Core::Instance::GetInfo().maxMsaa);

@@ -28,17 +28,6 @@ namespace REngine::Core {
 		#ifdef EDITOR
 		editor.Initialize(swapchain);
 		editor.AddTextures(sampler);
-		barrier.oldLayout = vk::ImageLayout::ePresentSrcKHR;
-		barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-		barrier.srcQueueFamilyIndex = vk::QueueFamilyIgnored;
-		barrier.dstQueueFamilyIndex = vk::QueueFamilyIgnored;
-		barrier.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
-		barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-		barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.baseArrayLayer = 0;
-		barrier.subresourceRange.layerCount = 1;
-		barrier.subresourceRange.levelCount = 1;
 		#endif
 	}
 
@@ -46,8 +35,8 @@ namespace REngine::Core {
 		return *swapchain;
 	}
 
-	const vk::RenderPass Renderer::GetRenderPass() {
-		return editor.GetRenderPass().GetRenderPass();
+	const RenderPass Renderer::GetRenderPass() {
+		return editor.GetRenderPass();
 	}
 
 	vk::Sampler Renderer::Sampler() {

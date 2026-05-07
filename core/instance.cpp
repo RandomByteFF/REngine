@@ -5,6 +5,9 @@
 
 #include "queueFamily.hpp"
 #include "swapchain.hpp"
+#include "vulkan/vulkan.hpp"
+#include "vulkan/vulkan_core.h"
+#include "vulkan/vulkan_structs.hpp"
 
 namespace REngine::Core {
 	void Instance::Initialize(WindowManager manager) {
@@ -50,7 +53,7 @@ namespace REngine::Core {
 		if (enableValidationLayers && !CheckValidationLayerSupport()) {
 			throw std::runtime_error("A requested validation layer is not available");
 		}
-		vk::ApplicationInfo appInfo("REngine", vk::makeApiVersion(0, 0, 0, 1), "No engine", vk::makeApiVersion(0, 1, 0, 0), vk::ApiVersion10);
+		vk::ApplicationInfo appInfo("REngine", vk::makeApiVersion(0, 0, 0, 1), "No engine", vk::makeApiVersion(0, 1, 0, 0), vk::ApiVersion13);
 		
 		vk::InstanceCreateInfo createInfo({}, &appInfo);
 		
@@ -157,6 +160,10 @@ namespace REngine::Core {
 
 		vk::PhysicalDeviceFeatures physicalDeviceFeatures {};
 		physicalDeviceFeatures.samplerAnisotropy = true;
+		
+		vk::PhysicalDeviceVulkan13Features features13{};
+		features13.dynamicRendering = VK_TRUE;
+		features13.synchronization2 = VK_TRUE;
 
 		vk::DeviceCreateInfo createInfo {};
 		createInfo.pQueueCreateInfos = queueCreateInfos.data();
@@ -164,6 +171,7 @@ namespace REngine::Core {
 		createInfo.pEnabledFeatures = &physicalDeviceFeatures;
 		createInfo.enabledExtensionCount = uint32_t(deviceExtensions.size());
 		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+		createInfo.pNext = &features13;
 
 		if (enableValidationLayers) {
 			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
@@ -180,6 +188,7 @@ namespace REngine::Core {
 		info.presentQueue = presentQueue;
 
 		VmaAllocatorCreateInfo allocCreate{};
+		allocCreate.vulkanApiVersion = VK_API_VERSION_1_3;
 		allocCreate.device = device;
 		allocCreate.instance = instance;
 		allocCreate.physicalDevice = physicalDevice;

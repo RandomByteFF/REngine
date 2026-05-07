@@ -29,6 +29,7 @@ namespace REngine::Core {
 		vk::Format ImageFormat() const;
 		vk::SwapchainKHR GetSwapchain() const;
 		virtual const std::vector<vk::ImageView> &Views() const override;
+		virtual const vk::Image GetImage(uint32_t index) const override;
 		uint32_t SwapchainImageCount() const;
 
 		void Destroy();

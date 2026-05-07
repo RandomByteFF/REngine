@@ -154,4 +154,8 @@ namespace REngine::Core {
 		}
 		return instance;
 	}
+	
+	const vk::Image Swapchain::GetImage(uint32_t index) const {
+		return images[index];
+	}
 }
