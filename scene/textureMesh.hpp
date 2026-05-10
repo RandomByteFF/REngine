@@ -10,6 +10,9 @@ namespace REngine::Scene {
 		inline static uint32_t meshCounter = 0;
 		inline static vk::Sampler sampler;
 		std::optional<Core::Image> image;
+		uint32_t imageHandle = 0;
+	protected:
+		virtual void Bind(vk::CommandBuffer cb, Core::Camera &camera) override; 
 
 	public:
 		TextureMesh() = default;

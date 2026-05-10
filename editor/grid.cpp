@@ -27,7 +27,7 @@ namespace REngine::Editor {
 		vp.P = camera.P();
 		uniformBuffers[Core::Instance::GetInfo().currentFrame].CopyData(&vp, sizeof(vp));
 
-		cb.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline.GetPipelineLayout(), 0, descriptorSets[Core::Instance::GetInfo().currentFrame], nullptr);
+		cb.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline.GetPipelineLayout(), 1, descriptorSets[Core::Instance::GetInfo().currentFrame], nullptr);
 		cb.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.GetPipeline());
 	}
 

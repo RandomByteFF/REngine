@@ -160,10 +160,17 @@ namespace REngine::Core {
 
 		vk::PhysicalDeviceFeatures physicalDeviceFeatures {};
 		physicalDeviceFeatures.samplerAnisotropy = true;
+
+		vk::PhysicalDeviceVulkan12Features features12{};
+		features12.descriptorBindingPartiallyBound = vk::True;
+		features12.descriptorBindingVariableDescriptorCount = vk::True;
+		features12.runtimeDescriptorArray = vk::True;
+		features12.shaderSampledImageArrayNonUniformIndexing = vk::True;
+		features12.descriptorBindingSampledImageUpdateAfterBind = vk::True;
 		
 		vk::PhysicalDeviceVulkan13Features features13{};
-		features13.dynamicRendering = VK_TRUE;
-		features13.synchronization2 = VK_TRUE;
+		features13.dynamicRendering = vk::True;
+		features13.synchronization2 = vk::True;
 
 		vk::DeviceCreateInfo createInfo {};
 		createInfo.pQueueCreateInfos = queueCreateInfos.data();
@@ -171,7 +178,8 @@ namespace REngine::Core {
 		createInfo.pEnabledFeatures = &physicalDeviceFeatures;
 		createInfo.enabledExtensionCount = uint32_t(deviceExtensions.size());
 		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
-		createInfo.pNext = &features13;
+		createInfo.pNext = &features12;
+		features12.pNext = &features13;
 
 		if (enableValidationLayers) {
 			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());

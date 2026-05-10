@@ -5,6 +5,7 @@
 #include "scene/drawable.hpp"
 #include "scene/sceneTree.hpp"
 #include "scene/textureMesh.hpp"
+#include "textureRegistry.hpp"
 #include "vulkan/vulkan_enums.hpp"
 #include <memory>
 
@@ -24,6 +25,7 @@ namespace REngine::Core {
 		for (size_t i = 0; i < Instance::GetInfo().MAX_FRAMES_IN_FLIGHT; i++) {
 			commandBuffers[i].Create();
 		}
+		registry.Create();
 		
 		#ifdef EDITOR
 		editor.Initialize(swapchain);
@@ -83,6 +85,7 @@ namespace REngine::Core {
 		
 		// commandBuffers[currentFrame].EndPass();
 		
+		registry.Bind(commandBuffers[currentFrame]);
 
 		#ifdef EDITOR
 		editor.Render(imageIndex, commandBuffers[currentFrame], swapchain->Extent());
@@ -195,6 +198,7 @@ namespace REngine::Core {
 		#ifdef EDITOR
 		editor.Destroy();
 		#endif
+		registry.Destroy();
 	}
 
 	void Renderer::RecreateSwapchain() {

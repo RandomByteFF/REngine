@@ -14,7 +14,7 @@ namespace REngine::Core {
 	// TODO: inherit layout from other pipeline
 	class Pipeline {
 		vk::Pipeline pipeline;
-		vk::DescriptorSetLayout descriptorLayout;
+		std::optional<vk::DescriptorSetLayout> descriptorLayout;
 		vk::PipelineLayout layout;
 
 		std::vector<vk::VertexInputBindingDescription> vbinddesc;
@@ -26,6 +26,7 @@ namespace REngine::Core {
 		bool depthTest = true;
 		bool stencilTest = false;
 		vk::SampleCountFlagBits sampleCount = vk::SampleCountFlagBits::e1;
+		uint32_t pushConstantSize = 0;
 
 	public:
 		void Create(const char *vertShader, const char *fragShader, const RenderPass renderPass);
@@ -39,6 +40,7 @@ namespace REngine::Core {
 		void setDepthTest(bool test) { depthTest = test; }
 		void setStencilTest(bool test) { stencilTest = test; }
 		void SetSampleCount(vk::SampleCountFlagBits sample) { sampleCount = sample; }
+		void SetPushConstantSize(uint32_t size) { pushConstantSize = size; }
 
 		const vk::Pipeline &GetPipeline() const;
 		const vk::DescriptorSetLayout &GetLayout() const;

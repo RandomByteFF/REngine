@@ -3,6 +3,7 @@
 #include "renderPass.hpp"
 #include "swapchain.hpp"
 #include "commandBuffer.hpp"
+#include "textureRegistry.hpp"
 #include "windowManager.hpp"
 #include "camera.hpp"
 #include "editor/editor.hpp"
@@ -17,6 +18,7 @@ namespace REngine::Core {
 		std::vector<vk::Semaphore> imageAvailableSemaphores;
 		std::vector<vk::Semaphore> renderFinishedSemaphores;
 		std::vector<CommandBuffer> commandBuffers;
+		TextureRegistry registry;
 		inline static vk::Sampler sampler;
 		// TODO: some kind of sampler pool
 		void CreateSyncObjects();

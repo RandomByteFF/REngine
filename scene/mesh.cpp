@@ -13,7 +13,7 @@ using namespace REngine::Core;
 namespace REngine::Scene {
 	void Mesh::Create(Core::RenderPass rp, std::vector<Vertex> &vertices, std::vector<uint32_t> &indices) {
 		indicesSize = uint32_t(indices.size());
-		descriptorSets = DescriptorPool::CreateDescriptor(pPipeline.lock()->GetLayout(), Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
+		// descriptorSets = DescriptorPool::CreateDescriptor(pPipeline.lock()->GetLayout(), Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
 		
 		VkDeviceSize bufferSize = sizeof(mvp);
 		uniformBuffers.resize(Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
@@ -26,10 +26,10 @@ namespace REngine::Scene {
 	}
 	void Mesh::Bind(vk::CommandBuffer cb, Core::Camera &camera) {
 		mvp = camera.VP() * GetModel();
-		cb.pushConstants(pPipeline.lock()->GetPipelineLayout(), vk::ShaderStageFlagBits::eVertex, 0, sizeof(mvp), &mvp);
+		cb.pushConstants(pPipeline.lock()->GetPipelineLayout(), vk::ShaderStageFlagBits::eAll, 0, sizeof(mvp), &mvp);
 		// uniformBuffers[Instance::GetInfo().currentFrame].CopyData(&mvp, sizeof(mvp));
 		
-		cb.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pPipeline.lock()->GetPipelineLayout(), 0, descriptorSets[Instance::GetInfo().currentFrame], nullptr);
+		// cb.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pPipeline.lock()->GetPipelineLayout(), 0, descriptorSets[Instance::GetInfo().currentFrame], nullptr);
 
 		vk::DeviceSize offset[] = {0};
 		cb.bindVertexBuffers(0, vertexBuffer.GetBuffer(), offset);

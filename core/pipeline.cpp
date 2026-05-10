@@ -3,8 +3,11 @@
 #include "glm/ext/matrix_float4x4.hpp"
 #include "loader/shader.hpp"
 #include "instance.hpp"
+#include "textureRegistry.hpp"
 #include "vulkan/vulkan_core.h"
+#include <stdexcept>
 #include <vulkan/vulkan_enums.hpp>
+#include "textureRegistry.hpp"
 
 /* TODO: Descriptor sets should be reusable. My idea for this is:
 - Instead of SetLayout, create an AddLayout. This can either take a new layout, or a reference to an existing one.
@@ -84,14 +87,21 @@ namespace REngine::Core {
 
 		vk::PushConstantRange pushConstant;
 		pushConstant.offset = 0;
-		pushConstant.size = sizeof(glm::mat4);
-		pushConstant.stageFlags = vk::ShaderStageFlagBits::eVertex;
+		pushConstant.size = 128;
+		pushConstant.stageFlags = vk::ShaderStageFlagBits::eAll;
 		
+		std::vector<vk::DescriptorSetLayout> layouts = {
+			TextureRegistry::Instance().GetLayout(),
+		};
+		if (descriptorLayout) layouts.push_back(*descriptorLayout);
 		vk::PipelineLayoutCreateInfo pipelineLayoutInfo{};
-		pipelineLayoutInfo.setLayoutCount = 1;
-		pipelineLayoutInfo.pSetLayouts = &descriptorLayout;
+		pipelineLayoutInfo.setLayoutCount = layouts.size();
+		pipelineLayoutInfo.pSetLayouts = layouts.data();
+
+		// if (pushConstant.size > 0) {
 		pipelineLayoutInfo.pPushConstantRanges = &pushConstant;
 		pipelineLayoutInfo.pushConstantRangeCount = 1;
+		// }
 		
 	
 		layout = Instance::GetInfo().device.createPipelineLayout(pipelineLayoutInfo);
@@ -136,7 +146,7 @@ namespace REngine::Core {
 			bindings[i].descriptorType = descriptors[i].first;
 			bindings[i].stageFlags = descriptors[i].second;
 			bindings[i].pImmutableSamplers = nullptr;
-		}		
+		}
 
 		vk::DescriptorSetLayoutCreateInfo layoutInfo{};
 		layoutInfo.bindingCount = uint32_t(bindings.size());
@@ -168,7 +178,8 @@ namespace REngine::Core {
 	}
 
 	const vk::DescriptorSetLayout &Pipeline::GetLayout() const {
-		return descriptorLayout;
+		if (!descriptorLayout.has_value()) throw std::runtime_error("No layout!"); // FIXME: something a bit more logical
+		return *descriptorLayout;
 	}
 
 	const vk::PipelineLayout &Pipeline::GetPipelineLayout() const {
@@ -177,7 +188,7 @@ namespace REngine::Core {
 
 	void Pipeline::Destroy()
 	{
-		Instance::GetInfo().device.destroyDescriptorSetLayout(descriptorLayout);
+		if (descriptorLayout) Instance::GetInfo().device.destroyDescriptorSetLayout(*descriptorLayout);
 		Instance::GetInfo().device.destroyPipeline(pipeline);
 		Instance::GetInfo().device.destroyPipelineLayout(layout);
 	}

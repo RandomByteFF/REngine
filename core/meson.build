@@ -14,4 +14,5 @@ core_src = files(
 	'camera.cpp',
 	'renderPass.cpp',
 	'renderTarget.cpp',
+	'textureRegistry.cpp',
 )

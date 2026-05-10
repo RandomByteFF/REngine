@@ -17,14 +17,14 @@ namespace REngine::Scene {
 		Core::Buffer indexBuffer;
 		uint32_t indicesSize = 0;
 		std::vector<Core::Buffer> uniformBuffers;
-		void Bind(vk::CommandBuffer cb, Core::Camera &camera);
 		
 		glm::mat4 mvp;
 		
-	protected:
+		protected:
 		std::weak_ptr<Core::Pipeline> pPipeline;
 		std::vector<vk::DescriptorSet> descriptorSets;
-
+		
+		virtual void Bind(vk::CommandBuffer cb, Core::Camera &camera); // FIXME: shouldn't be protected, sort out push constant stuff
 		virtual void EnteredTree() override;
 
 	public:

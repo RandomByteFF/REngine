@@ -3,6 +3,7 @@
 #include "core/image.hpp"
 #include "loader/image.hpp"
 #include "loader/obj.hpp"
+#include "core/textureRegistry.hpp"
 
 namespace REngine::Scene {
 	TextureMesh::TextureMesh(Core::RenderPass rp, std::filesystem::path model, std::filesystem::path texture) {
@@ -20,11 +21,9 @@ namespace REngine::Scene {
 		meshCounter++;
 		if (!pipeline) {
 			pipeline = std::make_shared<Core::Pipeline>();
-			pipeline->SetLayout({
-				{vk::DescriptorType::eCombinedImageSampler, vk::ShaderStageFlagBits::eFragment}
-			});
 			pipeline->SetInput({Vertex::GetBindingDescription()}, Vertex::GetAttributeDescriptions());
 			pipeline->SetSampleCount(Core::Instance::GetInfo().maxMsaa);
+			pipeline->SetPushConstantSize(sizeof(glm::mat4) + sizeof(uint32_t));
 			pipeline->Create("vertex", "fragment", rp);
 		}
 		pPipeline = pipeline;
@@ -32,10 +31,16 @@ namespace REngine::Scene {
 		Mesh::Create(rp, vertices, indices);
 	}
 	
+	void TextureMesh::Bind(vk::CommandBuffer cb, Core::Camera &camera) {
+		cb.pushConstants(pPipeline.lock()->GetPipelineLayout(), vk::ShaderStageFlagBits::eAll, sizeof(glm::mat4), sizeof(uint32_t), &imageHandle);
+		Mesh::Bind(cb, camera);
+	}
+	
 	void TextureMesh::SetImage(Core::Image image) {
-		for (size_t i = 0; i < Core::Instance::GetInfo().MAX_FRAMES_IN_FLIGHT; i++) {
-			Core::DescriptorPool::SetImage(descriptorSets[i], 0, image, sampler);
-		}
+		imageHandle = Core::TextureRegistry::Instance().Register(image.View(), sampler);
+		// for (size_t i = 0; i < Core::Instance::GetInfo().MAX_FRAMES_IN_FLIGHT; i++) {
+		// 	Core::DescriptorPool::SetImage(descriptorSets[i], 0, image, sampler);
+		// }
 	}
 
 	void TextureMesh::Destroy() {

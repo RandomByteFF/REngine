@@ -1,6 +1,6 @@
-#version 450
+#version 460
 
-layout(binding = 0) uniform VP {
+layout(set=1, binding = 0) uniform VP {
 	mat4 view;
 	mat4 proj;
 } vp;
