@@ -2,6 +2,11 @@ cmake = import('cmake')
 
 glfw = cmake.subproject('glfw')
 glfw_dep = glfw.dependency('glfw')
+lua_dep = dependency('lua5.4')
+sol2_dep = dependency('sol2', fallback: ['sol2', 'sol2_dep'])
+submodules_args = [
+	'-DSOL_ALL_SAFETIES_ON=1',
+]
 
 imgui_dep = declare_dependency(
 	sources: files(
@@ -24,9 +29,10 @@ submodules_inc = include_directories(
 	'glm',
 	'VulkanMemoryAllocator/include',
 	'toml.hpp',
+	'../subprojects/sol2/include',
 )
 
 submodules_dep = declare_dependency(
-	dependencies: [imgui_dep, glfw_dep],
+	dependencies: [imgui_dep, glfw_dep, lua_dep, sol2_dep],
 	include_directories: submodules_inc
 )

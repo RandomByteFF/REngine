@@ -15,4 +15,5 @@ core_src = files(
 	'renderPass.cpp',
 	'renderTarget.cpp',
 	'textureRegistry.cpp',
+	'scriptEngine.cpp',
 )

@@ -41,6 +41,9 @@ namespace REngine::Core {
 
 		camera->Rotation(glm::vec3(0., std::numbers::pi, 0.));
 		camera->Position(glm::vec3(0.f, 0.7f, 0.f));
+		scriptEngine.Initialize();
+		scriptEngine.RegisterTypes();
+		scriptEngine.RunFile("scripts/test.lua");
 	}
 
 	void Runner::MainLoop() {

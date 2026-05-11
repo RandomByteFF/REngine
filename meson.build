@@ -10,6 +10,10 @@ subdir('loader')
 subdir('scene')
 subdir('submodules')
 
+args = [
+	submodules_args,
+]
+
 sources = [
 	core_src,
 	editor_src,
@@ -35,7 +39,7 @@ endif
 
 dependencies = [
 	dependency('vulkan'),
-	submodules_dep
+	submodules_dep,
 ]
 
 executable('REngine', 
@@ -43,5 +47,5 @@ executable('REngine',
 	include_directories: includes, 
 	dependencies: dependencies,
 	cpp_pch: 'pch/headers.h',
-	cpp_args: definitions
+	cpp_args: definitions + args
 )

@@ -5,6 +5,7 @@
 #include "scene/textureMesh.hpp"
 #include "renderer.hpp"
 #include "camera.hpp"
+#include "scriptEngine.hpp"
 
 namespace REngine::Core {
 	class Runner {
@@ -16,6 +17,7 @@ namespace REngine::Core {
 		std::shared_ptr<Scene::TextureMesh> testLevel;
 		std::shared_ptr<Camera> camera;
 		std::shared_ptr<Editor::Grid> grid;
+		ScriptEngine scriptEngine;
 
 		void Init();
 		void MainLoop();
