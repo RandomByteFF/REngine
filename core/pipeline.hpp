@@ -27,9 +27,13 @@ namespace REngine::Core {
 		bool stencilTest = false;
 		vk::SampleCountFlagBits sampleCount = vk::SampleCountFlagBits::e1;
 		uint32_t pushConstantSize = 0;
+		std::string vertShader;
+		std::string fragShader;
+		RenderPass renderPass;
+		std::weak_ptr<Pipeline> self;
 
 	public:
-		void Create(const char *vertShader, const char *fragShader, const RenderPass renderPass);
+		void Create(std::string vertShader, std::string fragShader, RenderPass renderPass, std::weak_ptr<Pipeline>);
 		
 		void SetLayout(std::vector<std::pair<vk::DescriptorType, vk::ShaderStageFlags>> descriptors);
 		void SetInput(std::vector<vk::VertexInputBindingDescription>, std::vector<vk::VertexInputAttributeDescription>);
@@ -45,6 +49,7 @@ namespace REngine::Core {
 		const vk::Pipeline &GetPipeline() const;
 		const vk::DescriptorSetLayout &GetLayout() const;
 		const vk::PipelineLayout &GetPipelineLayout() const;
+		void Rebuild();
 		void Destroy();
 	};
 }

@@ -12,7 +12,7 @@ namespace REngine::Editor {
 	};
 
 	class Grid : public Scene::Drawable, public Scene::Node3D {
-		Core::Pipeline pipeline;	
+		std::shared_ptr<Core::Pipeline> pipeline;	
 		std::vector<vk::DescriptorSet> descriptorSets;
 		std::vector<Core::Buffer> uniformBuffers;
 		VP vp;

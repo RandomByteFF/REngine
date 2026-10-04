@@ -1,17 +1,19 @@
 #include "grid.hpp"
 #include "core/instance.hpp"
 #include "core/descriptorPool.hpp"
+#include "core/pipeline.hpp"
 #include "scene/sceneTree.hpp"
 #include <vulkan/vulkan_enums.hpp>
 
 namespace REngine::Editor {
 	void Grid::Create(Core::Swapchain swapchain, Core::RenderPass renderPass) {
 		Scene::Drawable::Initialize(Scene::SceneTree::Current());
-		pipeline.SetLayout({{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex}});
-		pipeline.SetSampleCount(Core::Instance::GetInfo().maxMsaa);
-		pipeline.Create("gridVert", "gridFrag", renderPass);
+		pipeline = std::make_shared<Core::Pipeline>();
+		pipeline->SetLayout({{vk::DescriptorType::eUniformBuffer, vk::ShaderStageFlagBits::eVertex}});
+		pipeline->SetSampleCount(Core::Instance::GetInfo().maxMsaa);
+		pipeline->Create("gridVert.vert", "gridFrag.frag", renderPass, pipeline);
 
-		descriptorSets = Core::DescriptorPool::CreateDescriptor(pipeline.GetLayout(), Core::Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
+		descriptorSets = Core::DescriptorPool::CreateDescriptor(pipeline->GetLayout(), Core::Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
 		
 		VkDeviceSize bufferSize = 2 * sizeof(glm::mat4);
 		uniformBuffers.resize(Core::Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
@@ -27,8 +29,8 @@ namespace REngine::Editor {
 		vp.P = camera.P();
 		uniformBuffers[Core::Instance::GetInfo().currentFrame].CopyData(&vp, sizeof(vp));
 
-		cb.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline.GetPipelineLayout(), 1, descriptorSets[Core::Instance::GetInfo().currentFrame], nullptr);
-		cb.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline.GetPipeline());
+		cb.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline->GetPipelineLayout(), 1, descriptorSets[Core::Instance::GetInfo().currentFrame], nullptr);
+		cb.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline->GetPipeline());
 	}
 
 	void Grid::Update() {
@@ -50,6 +52,7 @@ namespace REngine::Editor {
 		for (auto i : uniformBuffers) {
 			i.Destroy();
 		}
-		pipeline.Destroy();
+		pipeline->Destroy();
+		pipeline = nullptr;
 	}
 }

@@ -62,6 +62,7 @@ namespace REngine::Core {
 			renderer.Render(*tree, *camera);
 			Input::Keyboard::EndFrame();
 			Input::Mouse::EndFrame();
+			Loader::Shader::WatchCodeChange();
 		}
 
 		vkDeviceWaitIdle(device);

@@ -14,9 +14,13 @@
 - On binding, we won't try to bind the already bound descriptors.
 */
 namespace REngine::Core {
-	void Pipeline::Create(const char *vertShader, const char *fragShader, const RenderPass renderPass) {
-		vk::ShaderModule vertShaderModule = Loader::Shader::Get(vertShader);
-		vk::ShaderModule fragShaderModule = Loader::Shader::Get(fragShader);
+	void Pipeline::Create(std::string vertShader, std::string fragShader, RenderPass renderPass, std::weak_ptr<Pipeline> self) {
+		this->vertShader = vertShader;
+		this->fragShader = fragShader;
+		this->renderPass = renderPass;
+		this->self = self;
+		vk::ShaderModule vertShaderModule = Loader::Shader::Get(vertShader, vk::ShaderStageFlagBits::eVertex, self);
+		vk::ShaderModule fragShaderModule = Loader::Shader::Get(fragShader, vk::ShaderStageFlagBits::eFragment, self);
 		
 		vk::PipelineShaderStageCreateInfo vertShaderStageInfo{};
 		vertShaderStageInfo.stage = vk::ShaderStageFlagBits::eVertex;
@@ -184,6 +188,12 @@ namespace REngine::Core {
 
 	const vk::PipelineLayout &Pipeline::GetPipelineLayout() const {
 		return layout;
+	}
+
+	void Pipeline::Rebuild() {
+		Instance::GetInfo().device.destroyPipeline(pipeline);
+		Instance::GetInfo().device.destroyPipelineLayout(layout);
+		Create(vertShader, fragShader, renderPass, self);
 	}
 
 	void Pipeline::Destroy()

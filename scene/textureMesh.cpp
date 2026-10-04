@@ -24,7 +24,7 @@ namespace REngine::Scene {
 			pipeline->SetInput({Vertex::GetBindingDescription()}, Vertex::GetAttributeDescriptions());
 			pipeline->SetSampleCount(Core::Instance::GetInfo().maxMsaa);
 			pipeline->SetPushConstantSize(sizeof(glm::mat4) + sizeof(uint32_t));
-			pipeline->Create("vertex", "fragment", rp);
+			pipeline->Create("vertex.vert", "fragment.frag", rp, pipeline);
 		}
 		pPipeline = pipeline;
 

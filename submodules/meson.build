@@ -4,6 +4,7 @@ glfw = cmake.subproject('glfw')
 glfw_dep = glfw.dependency('glfw')
 lua_dep = dependency('lua5.4')
 sol2_dep = dependency('sol2', fallback: ['sol2', 'sol2_dep'])
+shaderc_dep = dependency('shaderc')
 submodules_args = [
 	'-DSOL_ALL_SAFETIES_ON=1',
 ]
@@ -33,6 +34,6 @@ submodules_inc = include_directories(
 )
 
 submodules_dep = declare_dependency(
-	dependencies: [imgui_dep, glfw_dep, lua_dep, sol2_dep],
+	dependencies: [imgui_dep, glfw_dep, lua_dep, sol2_dep, shaderc_dep],
 	include_directories: submodules_inc
 )
