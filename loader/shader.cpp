@@ -55,6 +55,8 @@ namespace REngine::Loader {
 			if (write != i.second) {
 				std::cout << "Code change happened!" << std::endl;
 				vkDeviceWaitIdle(Core::Instance::GetInfo().device);
+
+				Core::Instance::GetInfo().device.destroyShaderModule(store[i.first]);
 				store.erase(i.first);
 				auto& set = subscribedPipelines[i.first];
 				for (auto it = set.begin(); it != set.end();) {
