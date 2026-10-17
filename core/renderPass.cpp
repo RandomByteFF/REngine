@@ -9,6 +9,7 @@
 #include <optional>
 #include <stdexcept>
 #include <iostream>
+#include "renderStore.hpp"
 
 namespace REngine::Core {
 	RenderPass::RenderPass(vk::SampleCountFlagBits sampleCount) {
@@ -73,9 +74,9 @@ namespace REngine::Core {
 		return internalImages.back();
 	}
 
-	void RenderPass::Begin(CommandBuffer cmd, vk::Extent2D extent, uint32_t imageIndex) {
+	void RenderPass::Begin(vk::Extent2D extent, uint32_t imageIndex) {
 		currentImageIndex = imageIndex;
-		activeCommandBuffer = cmd;
+		activeCommandBuffer = RenderStore::Get().lock()->cb;
 
 		TransitionIn();
 

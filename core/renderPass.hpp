@@ -68,7 +68,7 @@ namespace REngine::Core {
 		void SetDepthAttachment(DepthAttachmentInfo info);
 
 		void Destroy();
-		void Begin(CommandBuffer cmd, vk::Extent2D extent, uint32_t imageIndex);
+		void Begin(vk::Extent2D extent, uint32_t imageIndex);
 		void End();
 
 		vk::PipelineRenderingCreateInfo GetPipelineRenderingInfo() const;

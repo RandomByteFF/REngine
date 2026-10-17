@@ -14,6 +14,7 @@
 #include "core/renderPass.hpp"
 #include "vulkan/vulkan_handles.hpp"
 #include "vulkan/vulkan_structs.hpp"
+#include "gameView.hpp"
 
 namespace REngine::Editor {
 	class Editor {
@@ -21,8 +22,10 @@ namespace REngine::Editor {
 
 		Core::RenderPass renderPass;
 		Core::RenderPass editorViewRP;
+		GameView gameView;
 		vk::ImageMemoryBarrier barrier;
 		std::vector<vk::DescriptorSet> renderedEditorViews;
+		std::vector<vk::DescriptorSet> renderedInGameViews;
 		SceneTree sceneTree;
 		Inspector inspector;
 		Serializer serializer;
@@ -34,11 +37,15 @@ namespace REngine::Editor {
 		float aggreg = 0;
 		int samples = 0;
 		float fps = 0;
+		bool gameRunning = false;
+		bool destroyGame = false;
+
+		void GetInGameImages();
 
 	public:
 		void Initialize(std::shared_ptr<Core::Swapchain> swapchain);
 		void AddTextures(vk::Sampler sampler);
-		void Render(uint32_t imageIndex, Core::CommandBuffer cb, vk::Extent2D extent);
+		void Render(uint32_t imageIndex, vk::Extent2D extent);
 		Core::RenderPass GetRenderPass();
 
 		void Recreate();

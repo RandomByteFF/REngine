@@ -2,6 +2,7 @@
 
 #include "GLFW/glfw3.h"
 #include "core/renderPass.hpp"
+#include "core/renderStore.hpp"
 #include "core/time.hpp"
 #include "imgui.h"
 #include "imgui_impl_vulkan.h"
@@ -23,23 +24,9 @@ namespace {
 
 namespace REngine::Editor {
 	void Editor::Initialize(std::shared_ptr<Core::Swapchain> swapchain) {
-		// renderPass.AddColorAttachment().finalLayout = vk::ImageLayout::ePresentSrcKHR;
-		// renderPass.AddColorImage(swapchain);
-		// renderPass.CreateRenderPass();
 		renderPass.AddColorAttachment({.image = swapchain, .layoutInfo = {.finalLayout = vk::ImageLayout::ePresentSrcKHR}});
 
 		auto info = Core::Instance::GetInfo();
-
-		// editorViewRP.AddColorAttachment().samples = Core::Instance::GetInfo().maxMsaa;
-		// editorViewRP.AddColorImage();
-		// editorViewRP.AddDepthAttachment().samples = Core::Instance::GetInfo().maxMsaa;
-		// editorViewRP.AddDepthImage();
-		// vk::AttachmentDescription &resolve = editorViewRP.AddResolveAttachment();
-		// resolve.finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
-		// editorViewRP.AddResolveImage();
-
-		// editorViewRP.CreateRenderPass();
-		
 		editorViewRP = (info.maxMsaa);
 		editorViewRP.AddColorAttachment({.sampled = true, .layoutInfo = {.finalLayout = vk::ImageLayout::eShaderReadOnlyOptimal}});
 		editorViewRP.SetDepthAttachment({});
@@ -91,7 +78,25 @@ namespace REngine::Editor {
 		}
 	}
 
-	void Editor::Render(uint32_t imageIndex, Core::CommandBuffer cb, vk::Extent2D extent) {
+	void Editor::GetInGameImages() {
+		for (auto i : renderedInGameViews) {
+			ImGui_ImplVulkan_RemoveTexture(i);
+		}
+		renderedInGameViews.clear();
+		for (auto i : gameView.GetImages()) {
+			renderedInGameViews.push_back(ImGui_ImplVulkan_AddTexture(sampler, i, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL));
+		}
+	}
+
+	void Editor::Render(uint32_t imageIndex, vk::Extent2D extent) {
+		if (destroyGame) {
+			destroyGame = false;
+			vkDeviceWaitIdle(Core::Instance::GetInfo().device);
+
+			gameView.Stop();
+			gameRunning = false;
+		}
+		auto cb = Core::RenderStore::Get().lock()->cb;
 		if (Input::Mouse::Scroll() != 0.f) {
 			orbitDistance -= Input::Mouse::Scroll() * (Input::Keyboard::IsDown(GLFW_KEY_LEFT_SHIFT) ? SCROLL_FAST_SENSITIVITY : SCROLL_SENSITIVITY);
 			orbitDistance = std::clamp(orbitDistance, 0.1f, 100.f);
@@ -108,22 +113,19 @@ namespace REngine::Editor {
 			editorCamera.Orbit(orbitCenter, orbitDistance, -orbitAngle);
 		}
 
+		if (gameRunning) {
+			gameView.Render(*Scene::SceneTree::Current());
+		}
+
 
 		auto info = Core::Instance::GetInfo();
-		// cb.BeginPass(editorViewRP.GetRenderPass(), info.swapchainExtent, editorViewRP.GetFramebuffer()[info.currentFb]);
-		editorViewRP.Begin(cb, info.swapchainExtent, info.currentFb);
+		editorViewRP.Begin(info.swapchainExtent, info.currentFb);
 		Scene::SceneTree::Current()->CallDrawlist([&cb, this](Scene::Drawable &j) {
 			if (j.renderMask & (1 | 1 << 31)) {
 				j.DrawFromView(cb.GetBuffer(), editorCamera);
 			}
 		});
 		editorViewRP.End();
-		// cb.EndPass();
-
-		// barrier.image = editorViewRP.GetImage(0, info.currentFb);
-		// cb.GetBuffer().pipelineBarrier(vk::PipelineStageFlagBits::eColorAttachmentOutput,
-		// 	vk::PipelineStageFlagBits::eFragmentShader, vk::DependencyFlags(), nullptr, nullptr, barrier);
-
 
 		ImGui_ImplVulkan_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
@@ -137,6 +139,7 @@ namespace REngine::Editor {
         auto window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
         window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 		ImGui::Begin("REngine", nullptr, window_flags);
+		ImGui::DockSpace(ImGui::GetID("REngineDockSpace"), ImVec2(0, 0), ImGuiDockNodeFlags_PassthruCentralNode);
 		ImGui::End();
 		ImGui::PopStyleVar(2);
 		ImGui::Begin("Editor");
@@ -147,6 +150,17 @@ namespace REngine::Editor {
 		size.x -= 20;
 		size.y -= 40;
 		ImGui::Image(ImTextureID(VkDescriptorSet(renderedEditorViews[imageIndex])), size);
+		ImGui::End();
+		
+		ImGui::Begin("Game");
+		size = ImGui::GetWindowSize();
+		gameView.height = size.y;
+		gameView.width = size.x;
+		size.x -= 20;
+		size.y -= 40;
+		if (gameRunning) {
+			ImGui::Image(ImTextureID(VkDescriptorSet(renderedInGameViews[imageIndex])), size);
+		}
 		ImGui::End();
 			
 		ImGui::Begin("Debug");
@@ -162,6 +176,18 @@ namespace REngine::Editor {
 			aggreg = 0;
 		}
 		ImGui::Text(std::format("FPS: {}", fps).c_str());
+		if (gameRunning) {
+			if (ImGui::Button("Stop")) {
+				destroyGame = true;
+			}
+		}
+		else {
+			if (ImGui::Button("Run")) {
+				gameRunning = true;
+				gameView.Initialize();
+				GetInGameImages();
+			}
+		}
 		ImGui::End();
 
 		sceneTree.Gui();
@@ -169,10 +195,8 @@ namespace REngine::Editor {
 
 		ImGui::Render();
 		
-		// cb.BeginPass(renderPass.GetRenderPass(), extent, renderPass.GetFramebuffer()[imageIndex]);
-		renderPass.Begin(cb, extent, imageIndex);
+		renderPass.Begin(extent, imageIndex);
 		ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), cb.GetBuffer());
-		// cb.EndPass();
 		renderPass.End();
 
 		if (Input::Keyboard::IsDown(GLFW_KEY_LEFT_CONTROL) && Input::Keyboard::IsJustPressed(GLFW_KEY_S)) {
@@ -188,6 +212,13 @@ namespace REngine::Editor {
 	void Editor::Destroy() {
 		renderPass.Destroy();
 		editorViewRP.Destroy();
+		gameView.Stop();
+		for (auto i : renderedInGameViews) {
+			ImGui_ImplVulkan_RemoveTexture(i);
+		}
+		for (auto i : renderedEditorViews) {
+			ImGui_ImplVulkan_RemoveTexture(i);
+		}
 		ImGui_ImplVulkan_Shutdown();
 		ImGui_ImplGlfw_Shutdown();
 		ImGui::DestroyContext();

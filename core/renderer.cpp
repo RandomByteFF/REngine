@@ -20,11 +20,13 @@ namespace REngine::Core {
 
 		CreateSampler();
 		CreateSyncObjects();
-		
-		commandBuffers.resize(Instance::GetInfo().MAX_FRAMES_IN_FLIGHT);
+
 		for (size_t i = 0; i < Instance::GetInfo().MAX_FRAMES_IN_FLIGHT; i++) {
-			commandBuffers[i].Create();
+			renderStores.push_back(std::make_shared<RenderStore>());
+			renderStores.back()->cb.Create();
 		}
+		RenderStore::SetInstance(renderStores[0]);
+		
 		registry.Create();
 		
 		#ifdef EDITOR
@@ -74,26 +76,21 @@ namespace REngine::Core {
 		res = device.resetFences(1, &inFlightFences[currentFrame]);
 		if (res != vk::Result::eSuccess) throw std::runtime_error("Failed to reset fence");
 
-		commandBuffers[currentFrame].Reset();
-		commandBuffers[currentFrame].Begin();
+		auto &cb = RenderStore::Get().lock()->cb;
+		cb.Reset();
+		cb.Begin();
 
-		sceneTree.PreDraw(commandBuffers[currentFrame]);
+		sceneTree.PreDraw(cb);
 	
-		// commandBuffers[currentFrame].BeginPass(vpRenderer.GetRenderPass(), swapchain->Extent(), vpRenderer.GetFramebuffer()[imageIndex]);
-
-		// sceneTree.Draw(commandBuffers[currentFrame].GetBuffer());
-		
-		// commandBuffers[currentFrame].EndPass();
-		
-		registry.Bind(commandBuffers[currentFrame]);
+		registry.Bind(cb);
 
 		#ifdef EDITOR
-		editor.Render(imageIndex, commandBuffers[currentFrame], swapchain->Extent());
+		editor.Render(imageIndex, swapchain->Extent());
 		#endif
 
-		sceneTree.PostDraw(commandBuffers[currentFrame]);
+		sceneTree.PostDraw(cb);
 		
-		commandBuffers[currentFrame].End();
+		cb.End();
 		
 		vk::SubmitInfo submitInfo{};
 
@@ -103,7 +100,7 @@ namespace REngine::Core {
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffers[currentFrame].GetBuffer();
+		submitInfo.pCommandBuffers = &cb.GetBuffer();
 
 		vk::Semaphore signalSemaphores[] = {renderFinishedSemaphores[imageIndex]};
 		submitInfo.signalSemaphoreCount = 1;
@@ -135,6 +132,7 @@ namespace REngine::Core {
 		
 		currentFrame = (currentFrame + 1) % Instance::GetInfo().MAX_FRAMES_IN_FLIGHT;
 		Instance::SetCurrentFrame(currentFrame);
+		RenderStore::SetInstance(renderStores[currentFrame]);
 	}
 	
 	void Renderer::CreateSampler() {

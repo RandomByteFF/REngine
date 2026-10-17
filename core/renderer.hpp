@@ -1,6 +1,7 @@
 #pragma once
 
 #include "renderPass.hpp"
+#include "renderStore.hpp"
 #include "swapchain.hpp"
 #include "commandBuffer.hpp"
 #include "textureRegistry.hpp"
@@ -17,7 +18,7 @@ namespace REngine::Core {
 		std::vector<vk::Fence> inFlightFences;
 		std::vector<vk::Semaphore> imageAvailableSemaphores;
 		std::vector<vk::Semaphore> renderFinishedSemaphores;
-		std::vector<CommandBuffer> commandBuffers;
+		std::vector<std::shared_ptr<RenderStore>> renderStores;
 		TextureRegistry registry;
 		inline static vk::Sampler sampler;
 		// TODO: some kind of sampler pool

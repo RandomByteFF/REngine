@@ -6,4 +6,5 @@ editor_src = files(
 	'inspectorVisitor.cpp',
 	'inspector.cpp',
 	'serializer.cpp',
+	'gameView.cpp'
 ) + widgets_src
